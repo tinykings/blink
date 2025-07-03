@@ -1,6 +1,6 @@
 import feedparser
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import os
 import re
@@ -76,18 +76,19 @@ def fetch_feeds(urls, history):
     all_items = []
     new_history = set(history)
     
-    for url in urls:
+    for i, url in enumerate(urls):
+        print(f"Processing feed {i+1}/{len(urls)}: {url}")
         feed = feedparser.parse(url)
         is_youtube_feed = 'youtube.com' in url
 
         for entry in feed.entries:
             if hasattr(entry, 'published_parsed') and entry.published_parsed:
                 published_time = datetime(*entry.published_parsed[:6])
-                if (datetime.now() - published_time).days > 5:
+                if (datetime.now() - published_time).total_seconds() > 24 * 3600:
                     continue
             elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
                 published_time = datetime(*entry.updated_parsed[:6])
-                if (datetime.now() - published_time).days > 5:
+                if (datetime.now() - published_time).total_seconds() > 24 * 3600:
                     continue
             
             item_id = entry.get('id') or entry.get('link')
@@ -152,7 +153,7 @@ def sort_items(items):
 def generate_html_snippet(items):
     """Generates an HTML snippet from a list of feed items."""
     snippet = ""
-    for item in items:
+    for i, item in enumerate(items):
         snippet += '<div class="feed-item">\n'
         if item['video_id']:
             snippet += f'<div class="video-container"><iframe src="https://www.youtube.com/embed/{item["video_id"]}" frameborder="0" allowfullscreen></iframe></div>\n'
@@ -161,10 +162,11 @@ def generate_html_snippet(items):
         
         snippet += '<div class="feed-item-info">\n'
         snippet += f'<h2><a href="{item["link"]}" target="_blank">{item["title"]}</a></h2>\n'
-        if item['summary']:
-            snippet += f'<p class="summary">{item["summary"]}</p>\n'
         snippet += f'<p class="published-date">{item["published"].strftime("%Y-%m-%d %H:%M:%S")}</p>\n'
         snippet += f'<p class="feed-title">{item["feed_title"]}</p>\n'
+        if item['summary']:
+            snippet += f'<button class="toggle-summary-btn" data-target="summary-{i}">...</button>\n'
+            snippet += f'<div id="summary-{i}" class="summary" style="display: none;">{item["summary"]}</div>\n'
         snippet += '</div>\n'
         snippet += '</div>\n'
     return snippet
