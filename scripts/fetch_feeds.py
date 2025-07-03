@@ -161,7 +161,10 @@ def fetch_feeds(urls):
                 thumbnail_url = ''
                 video_id = None
                 if is_youtube_feed:
-                    video_id = get_youtube_video_id(entry.link)
+                    if hasattr(entry, 'yt_videoid'):
+                        video_id = entry.yt_videoid
+                    else:
+                        video_id = get_youtube_video_id(entry.link)
                 else:
                     if hasattr(entry, 'media_thumbnail') and entry.media_thumbnail:
                         thumbnail_url = entry.media_thumbnail[0]['url']
