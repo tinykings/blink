@@ -3,7 +3,7 @@
   "name": ".blink",
   "short_name": ".blink",
   "description": "A simple RSS feed reader.",
-  "start_url": "/index.html",
+  "start_url": "/.blink/index.html",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#bb86fc",
