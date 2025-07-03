@@ -11,8 +11,10 @@ import pytz
 TIMEZONE = 'America/Los_Angeles'
 
 def get_channel_id_from_url(url):
-    """Extracts the channel ID from a YouTube channel URL."""
-    print(f"  Extracting YouTube channel ID from: {url}") 
+    """Extracts the channel ID and name from a YouTube channel URL."""
+    print(f"  Extracting YouTube channel ID and name from: {url}") 
+    channel_id = None
+    channel_name = None
     try:
         response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
         response.raise_for_status()
@@ -20,17 +22,27 @@ def get_channel_id_from_url(url):
         
         meta_tag = soup.find('meta', itemprop='channelId')
         if meta_tag and meta_tag.has_attr('content'):
-            return meta_tag['content']
+            channel_id = meta_tag['content']
             
-        link_tag = soup.find('link', rel='canonical')
-        if link_tag and link_tag.has_attr('href'):
-            match = re.search(r'channel/(UC[\w-]+)', link_tag['href'])
-            if match:
-                return match.group(1)
+        if not channel_id:
+            link_tag = soup.find('link', rel='canonical')
+            if link_tag and link_tag.has_attr('href'):
+                match = re.search(r'channel/(UC[\w-]+)', link_tag['href'])
+                if match:
+                    channel_id = match.group(1)
+
+        title_tag = soup.find('title')
+        if title_tag:
+            # Extract channel name from title, e.g., "Channel Name - YouTube"
+            title_text = title_tag.get_text()
+            if ' - YouTube' in title_text:
+                channel_name = title_text.replace(' - YouTube', '').strip()
+            else:
+                channel_name = title_text.strip()
 
     except requests.exceptions.RequestException as e:
         print(f"Error fetching YouTube channel page: {e}")
-    return None
+    return channel_id, channel_name
 
 def read_urls_from_file(file_path):
     """Reads URLs from a text file, parsing sections for RSS and YouTube, and converts YouTube channel URLs to RSS feeds."""
@@ -57,29 +69,44 @@ def read_urls_from_file(file_path):
             youtube_channel_urls.append(stripped_line)
 
     # Convert YouTube channel URLs to RSS feeds and add to rss_urls
-    converted_youtube_rss_urls = []
+    converted_youtube_entries = [] # Store tuples of (rss_url, original_youtube_url, channel_name)
     for youtube_url in youtube_channel_urls:
-        channel_id = get_channel_id_from_url(youtube_url)
+        channel_id, channel_name = get_channel_id_from_url(youtube_url)
         if channel_id:
-            converted_youtube_rss_urls.append(f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}")
-            print(f"  Converted YouTube channel '{youtube_url}' to RSS feed.")
+            rss_feed_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+            converted_youtube_entries.append((rss_feed_url, youtube_url, channel_name))
+            print(f"  Converted YouTube channel '{youtube_url}' to RSS feed: {rss_feed_url}")
         else:
-            print(f"  Could not convert YouTube channel '{youtube_url}' to RSS feed. Keeping it in YouTube section.")
             # If conversion fails, keep the original URL in the youtube_channel_urls list
             # This will be handled by writing it back to the file
-            converted_youtube_rss_urls.append(youtube_url) # Add original back if conversion failed
+            converted_youtube_entries.append((youtube_url, youtube_url, None)) # Store original URL if conversion failed
+            print(f"  Could not convert YouTube channel '{youtube_url}' to RSS feed. Keeping it in YouTube section.")
 
     # Update feeds.txt
     with open(file_path, 'w') as f:
         f.write("#rss\n")
-        for url in rss_urls + converted_youtube_rss_urls:
+        for url in rss_urls:
             f.write(f"{url}\n")
+        
+        for rss_url, original_youtube_url, channel_name in converted_youtube_entries:
+            if rss_url.startswith("https://www.youtube.com/feeds/videos.xml"):
+                comment = ""
+                if original_youtube_url and channel_name:
+                    comment = f"  # {original_youtube_url}"
+                elif original_youtube_url:
+                    comment = f"  # {original_youtube_url}"
+                f.write(f"{rss_url}{comment}\n")
+            else:
+                # This handles cases where conversion failed and original URL was stored
+                pass # These will be written back to #youtube section
+
         f.write("\n#youtube\n") # Keep the section, but it will be empty if all converted
         # If any conversion failed, they will be written back here
-        for url in [u for u in youtube_channel_urls if u in converted_youtube_rss_urls and not u.startswith("https://www.youtube.com/feeds/videos.xml")]:
-            f.write(f"{url}\n")
+        for rss_url, original_youtube_url, _ in converted_youtube_entries:
+            if not rss_url.startswith("https://www.youtube.com/feeds/videos.xml"):
+                f.write(f"{original_youtube_url}\n")
 
-    all_urls = rss_urls + converted_youtube_rss_urls
+    all_urls = rss_urls + [entry[0] for entry in converted_youtube_entries if entry[0].startswith("https://www.youtube.com/feeds/videos.xml")]
     print(f"Finished processing URLs. Found {len(all_urls)} URLs for fetching.")
     return all_urls
 
