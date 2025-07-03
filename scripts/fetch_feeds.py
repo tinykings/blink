@@ -4,14 +4,53 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import os
 import re
+import requests
 
 # Configuration
 HISTORY_LIMIT = 500
 
+def get_channel_id_from_url(url):
+    """Extracts the channel ID from a YouTube channel URL."""
+    try:
+        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # First, try to find the channelId meta tag
+        meta_tag = soup.find('meta', itemprop='channelId')
+        if meta_tag and meta_tag.has_attr('content'):
+            return meta_tag['content']
+            
+        # As a fallback, try to find the canonical URL which often contains the channel ID
+        link_tag = soup.find('link', rel='canonical')
+        if link_tag and link_tag.has_attr('href'):
+            match = re.search(r'channel/(UC[\w-]+)', link_tag['href'])
+            if match:
+                return match.group(1)
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching YouTube channel page: {e}")
+    return None
+
 def read_urls_from_file(file_path):
-    """Reads URLs from a text file, one URL per line."""
+    """Reads URLs from a text file, parsing sections for RSS and YouTube."""
+    urls = []
     with open(file_path, 'r') as f:
-        urls = [line.strip() for line in f if line.strip()]
+        current_section = None
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            if line.lower() == '#rss':
+                current_section = 'rss'
+            elif line.lower() == '#youtube':
+                current_section = 'youtube'
+            elif current_section == 'rss':
+                urls.append(line)
+            elif current_section == 'youtube':
+                channel_id = get_channel_id_from_url(line)
+                if channel_id:
+                    urls.append(f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}")
     return urls
 
 def load_history(file_path):
@@ -41,7 +80,17 @@ def fetch_feeds(urls, history):
         feed = feedparser.parse(url)
         is_youtube_feed = 'youtube.com' in url
 
-        for entry in feed.entries[:10]:
+        for entry in feed.entries:
+            # Check if the item was published in the last 5 days
+            if hasattr(entry, 'published_parsed') and entry.published_parsed:
+                published_time = datetime(*entry.published_parsed[:6])
+                if (datetime.now() - published_time).days > 5:
+                    continue
+            elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
+                published_time = datetime(*entry.updated_parsed[:6])
+                if (datetime.now() - published_time).days > 5:
+                    continue
+            
             item_id = entry.get('id') or entry.get('link')
             if not item_id:
                 continue
@@ -122,11 +171,16 @@ def generate_html_snippet(items):
     return snippet
 
 def update_index_html(html_snippet, template_path='index.template.html', output_path='index.html'):
-    """Injects the HTML snippet into the index.html template."""
+    """Injects the HTML snippet and last updated time into the index.html template."""
     with open(template_path, 'r') as f:
         template = f.read()
     
-    updated_html = template.replace('<div id="feed-container"></div>', f'<div id="feed-container">{html_snippet}</div>')
+    # Replace the feed container placeholder
+    template = template.replace('<div id="feed-container"></div>', f'<div id="feed-container">{html_snippet}</div>')
+    
+    # Replace the last updated placeholder
+    last_updated_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    updated_html = template.replace('<!-- last_updated_placeholder -->', last_updated_time)
 
     with open(output_path, 'w') as f:
         f.write(updated_html)
