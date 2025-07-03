@@ -8,11 +8,11 @@ import requests
 import pytz
 
 # Configuration
-HISTORY_LIMIT = 500
 TIMEZONE = 'America/Los_Angeles'
 
 def get_channel_id_from_url(url):
     """Extracts the channel ID from a YouTube channel URL."""
+    print(f"  Extracting YouTube channel ID from: {url}") 
     try:
         response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
         response.raise_for_status()
@@ -34,6 +34,7 @@ def get_channel_id_from_url(url):
 
 def read_urls_from_file(file_path):
     """Reads URLs from a text file, parsing sections for RSS and YouTube."""
+    print(f"Reading URLs from {file_path}...")
     urls = []
     with open(file_path, 'r') as f:
         current_section = None
@@ -51,30 +52,18 @@ def read_urls_from_file(file_path):
                 channel_id = get_channel_id_from_url(line)
                 if channel_id:
                     urls.append(f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}")
+            print(f"Finished reading URLs. Found {len(urls)} URLs.")  
     return urls
-
-def load_history(file_path):
-    """Loads the history of seen items from a JSON file."""
-    if not os.path.exists(file_path):
-        return []
-    with open(file_path, 'r') as f:
-        return json.load(f)
-
-def save_history(history, file_path):
-    """Saves the history of seen items to a JSON file, trimming it to a limit."""
-    trimmed_history = history[-HISTORY_LIMIT:]
-    with open(file_path, 'w') as f:
-        json.dump(trimmed_history, f, indent=4)
 
 def get_youtube_video_id(url):
     """Extracts the YouTube video ID from a URL."""
     match = re.search(r"v=([^&]+)", url)
     return match.group(1) if match else None
 
-def fetch_feeds(urls, history):
+def fetch_feeds(urls):
     """Fetches and parses RSS feeds from a list of URLs."""
+    print(f"Starting to fetch {len(urls)} feeds...")
     all_items = []
-    new_history = set(history)
     
     # Set a common user-agent
     user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
@@ -104,9 +93,6 @@ def fetch_feeds(urls, history):
                 item_id = entry.get('id') or entry.get('link')
                 if not item_id:
                     continue
-
-                is_new = item_id not in history
-                new_history.add(item_id)
 
                 if hasattr(entry, 'published_parsed') and entry.published_parsed:
                     published_time = datetime(*entry.published_parsed[:6])
@@ -148,19 +134,19 @@ def fetch_feeds(urls, history):
                     'link': entry.link,
                     'published': published_time,
                     'thumbnail': thumbnail_url,
-                    'is_new': is_new,
                     'feed_title': feed.feed.title,
                     'summary': summary,
                     'video_id': video_id,
                 })
         except Exception as e:
             print(f"Error processing feed {url}: {e}")
-            
-    return all_items, list(new_history)
+            print(f"Finished fetching feeds. Total items: {len(all_items)}") 
+    return all_items
 
 def sort_items(items):
-    """Sorts items by new status and then by published date."""
-    return sorted(items, key=lambda x: (not x['is_new'], x['published']), reverse=True)
+    """Sorts items by published date."""
+    return sorted(items, key=lambda x: x['published'], reverse=True)
+    print("Finished sorting feed items.")
 
 def generate_item_html(item, item_id):
     """Generates HTML for a single feed item."""
@@ -191,6 +177,7 @@ def process_feed_items(items):
     """
     Groups items by day, generates HTML for the first day, and returns JSON for the rest.
     """
+    print("Processing feed items to generate HTML and JSON...")  
     from collections import defaultdict
     import json
 
@@ -242,10 +229,12 @@ def process_feed_items(items):
         
     json_data_string = json.dumps(other_days_data, indent=2)
 
+    print("Finished processing feed items.")
     return snippet, json_data_string
 
 def update_index_html(html_snippet, json_data, template_path='index.template.html', output_path='index.html'):
     """Injects the HTML snippet and last updated time into the index.html template."""
+    print(f"Updating {output_path} from template {template_path}...")
     with open(template_path, 'r', encoding='utf-8') as f:
         template = f.read()
     
@@ -264,14 +253,12 @@ def update_index_html(html_snippet, json_data, template_path='index.template.htm
 
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(updated_html)
+    print(f"Successfully updated {output_path}.")
 
 if __name__ == "__main__":
     urls_file = 'feeds.txt'
-    history_file = 'history.json'
-    
-    history = load_history(history_file)
     feed_urls = read_urls_from_file(urls_file)
-    feed_items, new_history = fetch_feeds(feed_urls, history)
+    feed_items = fetch_feeds(feed_urls)
     sorted_items = sort_items(feed_items)
     
     # Process items into HTML for today and JSON for other days
@@ -279,9 +266,5 @@ if __name__ == "__main__":
     
     # Update the main HTML file
     update_index_html(html_snippet, json_data)
-    
-    # Save the history
-    save_history(new_history, history_file)
-    
-    print(f"Successfully fetched and updated index.html with {len(sorted_items)} items.")
 
+    print(f"Successfully fetched and updated index.html with {len(sorted_items)} items.")
