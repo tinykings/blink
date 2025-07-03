@@ -70,17 +70,24 @@ def read_urls_from_file(file_path):
 
     # Convert YouTube channel URLs to RSS feeds and add to rss_urls
     converted_youtube_entries = [] # Store tuples of (rss_url, original_youtube_url, channel_name)
+    youtube_log_entries = [] # Store (channel_id, channel_name) for yt.log
     for youtube_url in youtube_channel_urls:
         channel_id, channel_name = get_channel_id_from_url(youtube_url)
         if channel_id:
             rss_feed_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
             converted_youtube_entries.append((rss_feed_url, youtube_url, channel_name))
+            youtube_log_entries.append((channel_id, channel_name))
             print(f"  Converted YouTube channel '{youtube_url}' to RSS feed: {rss_feed_url}")
         else:
             # If conversion fails, keep the original URL in the youtube_channel_urls list
             # This will be handled by writing it back to the file
             converted_youtube_entries.append((youtube_url, youtube_url, None)) # Store original URL if conversion failed
             print(f"  Could not convert YouTube channel '{youtube_url}' to RSS feed. Keeping it in YouTube section.")
+
+    # Write YouTube channel info to yt.log
+    with open('yt.log', 'w') as f:
+        for channel_id, channel_name in youtube_log_entries:
+            f.write(f"{channel_id}: {channel_name}\n")
 
     # Update feeds.txt
     with open(file_path, 'w') as f:
@@ -90,12 +97,7 @@ def read_urls_from_file(file_path):
         
         for rss_url, original_youtube_url, channel_name in converted_youtube_entries:
             if rss_url.startswith("https://www.youtube.com/feeds/videos.xml"):
-                comment = ""
-                if original_youtube_url and channel_name:
-                    comment = f"  # {original_youtube_url}"
-                elif original_youtube_url:
-                    comment = f"  # {original_youtube_url}"
-                f.write(f"{rss_url}{comment}\n")
+                f.write(f"{rss_url}\n")
             else:
                 # This handles cases where conversion failed and original URL was stored
                 pass # These will be written back to #youtube section
