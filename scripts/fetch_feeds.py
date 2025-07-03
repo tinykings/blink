@@ -33,27 +33,55 @@ def get_channel_id_from_url(url):
     return None
 
 def read_urls_from_file(file_path):
-    """Reads URLs from a text file, parsing sections for RSS and YouTube."""
-    print(f"Reading URLs from {file_path}...")
-    urls = []
+    """Reads URLs from a text file, parsing sections for RSS and YouTube, and converts YouTube channel URLs to RSS feeds."""
+    print(f"Reading and processing URLs from {file_path}...")
+    rss_urls = []
+    youtube_channel_urls = []
+    
+    # Read existing content
     with open(file_path, 'r') as f:
-        current_section = None
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            if line.lower() == '#rss':
-                current_section = 'rss'
-            elif line.lower() == '#youtube':
-                current_section = 'youtube'
-            elif current_section == 'rss':
-                urls.append(line)
-            elif current_section == 'youtube':
-                channel_id = get_channel_id_from_url(line)
-                if channel_id:
-                    urls.append(f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}")
-            print(f"Finished reading URLs. Found {len(urls)} URLs.")  
-    return urls
+        lines = f.readlines()
+
+    current_section = None
+    for line in lines:
+        stripped_line = line.strip()
+        if not stripped_line:
+            continue
+        if stripped_line.lower() == '#rss':
+            current_section = 'rss'
+        elif stripped_line.lower() == '#youtube':
+            current_section = 'youtube'
+        elif current_section == 'rss':
+            rss_urls.append(stripped_line)
+        elif current_section == 'youtube':
+            youtube_channel_urls.append(stripped_line)
+
+    # Convert YouTube channel URLs to RSS feeds and add to rss_urls
+    converted_youtube_rss_urls = []
+    for youtube_url in youtube_channel_urls:
+        channel_id = get_channel_id_from_url(youtube_url)
+        if channel_id:
+            converted_youtube_rss_urls.append(f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}")
+            print(f"  Converted YouTube channel '{youtube_url}' to RSS feed.")
+        else:
+            print(f"  Could not convert YouTube channel '{youtube_url}' to RSS feed. Keeping it in YouTube section.")
+            # If conversion fails, keep the original URL in the youtube_channel_urls list
+            # This will be handled by writing it back to the file
+            converted_youtube_rss_urls.append(youtube_url) # Add original back if conversion failed
+
+    # Update feeds.txt
+    with open(file_path, 'w') as f:
+        f.write("#rss\n")
+        for url in rss_urls + converted_youtube_rss_urls:
+            f.write(f"{url}\n")
+        f.write("\n#youtube\n") # Keep the section, but it will be empty if all converted
+        # If any conversion failed, they will be written back here
+        for url in [u for u in youtube_channel_urls if u in converted_youtube_rss_urls and not u.startswith("https://www.youtube.com/feeds/videos.xml")]:
+            f.write(f"{url}\n")
+
+    all_urls = rss_urls + converted_youtube_rss_urls
+    print(f"Finished processing URLs. Found {len(all_urls)} URLs for fetching.")
+    return all_urls
 
 def get_youtube_video_id(url):
     """Extracts the YouTube video ID from a URL."""
