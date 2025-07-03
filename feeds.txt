@@ -18,6 +18,6 @@ https://www.reddit.com/r/apple/top.rss?t=week
 https://www.reddit.com/r/iosgaming/top.rss?t=week
 https://www.reddit.com/r/openai/top.rss?t=week
 https://blog.thenewoil.org/feed/
+https://www.youtube.com/feeds/videos.xml?channel_id=UCAbAsEZ-0LccTNbl8r-3EaQ
 
 #youtube
-https://www.youtube.com/@ScottYuJan
