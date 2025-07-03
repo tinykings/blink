@@ -3,11 +3,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to generate HTML for a single feed item
     function generateItemHtml(item, itemId) {
-        let thumbnailHtml = '';
+        let mediaHtml = '';
         if (item.video_id) {
-            thumbnailHtml = `<div class="video-container"><iframe src="https://www.youtube.com/embed/${item.video_id}" frameborder="0" allowfullscreen></iframe></div>`;
+            const thumbnailUrl = `https://img.youtube.com/vi/${item.video_id}/hqdefault.jpg`;
+            mediaHtml = `
+                <div class="video-placeholder" data-video-id="${item.video_id}">
+                    <img src="${thumbnailUrl}" alt="Video Thumbnail" class="video-thumbnail">
+                    <div class="play-button"></div>
+                </div>
+            `;
         } else if (item.thumbnail) {
-            thumbnailHtml = `<a href="${item.link}" target="_blank"><img src="${item.thumbnail}" alt="${item.title}" class="feed-thumbnail"></a>`;
+            mediaHtml = `<a href="${item.link}" target="_blank"><img src="${item.thumbnail}" alt="${item.title}" class="feed-thumbnail"></a>`;
         }
 
         let summaryHtml = '';
@@ -20,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return `
             <div class="feed-item">
-                ${thumbnailHtml}
+                ${mediaHtml}
                 <div class="feed-item-info">
                     <h2><a href="${item.link}" target="_blank">${item.title}</a></h2>
                     <p class="published-date">${item.published}</p>
