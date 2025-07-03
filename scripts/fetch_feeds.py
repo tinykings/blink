@@ -5,9 +5,11 @@ from bs4 import BeautifulSoup
 import os
 import re
 import requests
+import pytz
 
 # Configuration
 HISTORY_LIMIT = 500
+TIMEZONE = 'America/Los_Angeles'
 
 def get_channel_id_from_url(url):
     """Extracts the channel ID from a YouTube channel URL."""
@@ -16,12 +18,10 @@ def get_channel_id_from_url(url):
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # First, try to find the channelId meta tag
         meta_tag = soup.find('meta', itemprop='channelId')
         if meta_tag and meta_tag.has_attr('content'):
             return meta_tag['content']
             
-        # As a fallback, try to find the canonical URL which often contains the channel ID
         link_tag = soup.find('link', rel='canonical')
         if link_tag and link_tag.has_attr('href'):
             match = re.search(r'channel/(UC[\w-]+)', link_tag['href'])
@@ -81,7 +81,6 @@ def fetch_feeds(urls, history):
         is_youtube_feed = 'youtube.com' in url
 
         for entry in feed.entries:
-            # Check if the item was published in the last 5 days
             if hasattr(entry, 'published_parsed') and entry.published_parsed:
                 published_time = datetime(*entry.published_parsed[:6])
                 if (datetime.now() - published_time).days > 5:
@@ -175,11 +174,11 @@ def update_index_html(html_snippet, template_path='index.template.html', output_
     with open(template_path, 'r') as f:
         template = f.read()
     
-    # Replace the feed container placeholder
     template = template.replace('<div id="feed-container"></div>', f'<div id="feed-container">{html_snippet}</div>')
     
-    # Replace the last updated placeholder
-    last_updated_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    utc_now = datetime.now(pytz.utc)
+    pst_now = utc_now.astimezone(pytz.timezone(TIMEZONE))
+    last_updated_time = pst_now.strftime("%Y-%m-%d %H:%M:%S %Z")
     updated_html = template.replace('<!-- last_updated_placeholder -->', last_updated_time)
 
     with open(output_path, 'w') as f:
