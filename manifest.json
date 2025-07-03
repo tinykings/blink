@@ -1,0 +1,9 @@
+{
+  "name": "RSS Feed Reader",
+  "short_name": "RSS Reader",
+  "description": "A simple RSS feed reader.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#bb86fc"
+}
