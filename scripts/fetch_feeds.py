@@ -151,39 +151,70 @@ def sort_items(items):
     return sorted(items, key=lambda x: (not x['is_new'], x['published']), reverse=True)
 
 def generate_html_snippet(items):
-    """Generates an HTML snippet from a list of feed items."""
+    """Generates an HTML snippet from a list of feed items, grouped by day."""
+    from collections import defaultdict
+    
+    # Group items by day
+    grouped_items = defaultdict(list)
+    for item in items:
+        day = item['published'].strftime('%Y-%m-%d')
+        grouped_items[day].append(item)
+    
+    # Sort days chronologically
+    sorted_days = sorted(grouped_items.keys(), reverse=True)
+    
     snippet = ""
-    for i, item in enumerate(items):
-        snippet += '<div class="feed-item">\n'
-        if item['video_id']:
-            snippet += f'<div class="video-container"><iframe src="https://www.youtube.com/embed/{item["video_id"]}" frameborder="0" allowfullscreen></iframe></div>\n'
-        elif item['thumbnail']:
-            snippet += f'<a href="{item["link"]}" target="_blank"><img src="{item["thumbnail"]}" alt="{item["title"]}" class="feed-thumbnail"></a>\n'
+    today = datetime.now(pytz.timezone(TIMEZONE)).strftime('%Y-%m-%d')
+    
+    for i, day in enumerate(sorted_days):
+        day_items = grouped_items[day]
+        day_str = datetime.strptime(day, '%Y-%m-%d').strftime('%B %d, %Y')
         
-        snippet += '<div class="feed-item-info">\n'
-        snippet += f'<h2><a href="{item["link"]}" target="_blank">{item["title"]}</a></h2>\n'
-        snippet += f'<p class="published-date">{item["published"].strftime("%Y-%m-%d %H:%M:%S")}</p>\n'
-        snippet += f'<p class="feed-title">{item["feed_title"]}</p>\n'
-        if item['summary']:
-            snippet += f'<button class="toggle-summary-btn" data-target="summary-{i}">...</button>\n'
-            snippet += f'<div id="summary-{i}" class="summary" style="display: none;">{item["summary"]}</div>\n'
-        snippet += '</div>\n'
-        snippet += '</div>\n'
+        # The first day's entries are expanded by default
+        is_expanded = (i == 0)
+        
+        snippet += f'<div class="day-section">\n'
+        snippet += f'<h2 class="day-header"><span>{day_str}</span><button class="toggle-day-btn" data-target="day-content-{i}">{"-" if is_expanded else "+"}</button></h2>\n'
+        snippet += f'<div id="day-content-{i}" class="day-content" style="display: {"block" if is_expanded else "none"};">\n'
+        
+        for j, item in enumerate(day_items):
+            item_id = f"{i}-{j}"
+            snippet += '<div class="feed-item">\n'
+            if item['video_id']:
+                snippet += f'<div class="video-container"><iframe src="https://www.youtube.com/embed/{item["video_id"]}" frameborder="0" allowfullscreen></iframe></div>\n'
+            elif item['thumbnail']:
+                snippet += f'<a href="{item["link"]}" target="_blank"><img src="{item["thumbnail"]}" alt="{item["title"]}" class="feed-thumbnail"></a>\n'
+            
+            snippet += '<div class="feed-item-info">\n'
+            snippet += f'<h2><a href="{item["link"]}" target="_blank">{item["title"]}</a></h2>\n'
+            snippet += f'<p class="published-date">{item["published"].strftime("%Y-%m-%d %H:%M:%S")}</p>\n'
+            snippet += f'<p class="feed-title">{item["feed_title"]}</p>\n'
+            if item['summary']:
+                snippet += f'<button class="toggle-summary-btn" data-target="summary-{item_id}">...</button>\n'
+                snippet += f'<div id="summary-{item_id}" class="summary" style="display: none;">{item["summary"]}</div>\n'
+            snippet += '</div>\n'
+            snippet += '</div>\n'
+        
+        snippet += '</div>\n' # close day-content
+        snippet += '</div>\n' # close day-section
+        
     return snippet
 
 def update_index_html(html_snippet, template_path='index.template.html', output_path='index.html'):
     """Injects the HTML snippet and last updated time into the index.html template."""
-    with open(template_path, 'r') as f:
+    with open(template_path, 'r', encoding='utf-8') as f:
         template = f.read()
     
+    # Replace the placeholder with the generated snippet
     template = template.replace('<div id="feed-container"></div>', f'<div id="feed-container">{html_snippet}</div>')
     
+    # Update the last updated time
     utc_now = datetime.now(pytz.utc)
     pst_now = utc_now.astimezone(pytz.timezone(TIMEZONE))
     last_updated_time = pst_now.strftime("%Y-%m-%d %H:%M:%S %Z")
     updated_html = template.replace('<!-- last_updated_placeholder -->', last_updated_time)
 
-    with open(output_path, 'w') as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         f.write(updated_html)
 
 if __name__ == "__main__":
@@ -199,3 +230,4 @@ if __name__ == "__main__":
     save_history(new_history, history_file)
     
     print(f"Successfully fetched and updated index.html with {len(sorted_items)} items.")
+

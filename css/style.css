@@ -156,3 +156,34 @@ body {
 .toggle-summary-btn:hover {
     background-color: var(--button-hover-bg-color);
 }
+
+.day-section {
+    margin-bottom: var(--spacing-xlarge);
+}
+
+.day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--surface-color);
+    padding: var(--spacing-medium) var(--spacing-large);
+    border-radius: var(--border-radius-medium);
+    cursor: pointer;
+}
+
+.day-header h2 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.toggle-day-btn {
+    background: none;
+    border: none;
+    color: var(--primary-text-color);
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+.day-content {
+    padding-top: var(--spacing-large);
+}
