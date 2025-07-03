@@ -18,7 +18,6 @@ https://www.reddit.com/r/apple/top.rss?t=week
 https://www.reddit.com/r/iosgaming/top.rss?t=week
 https://www.reddit.com/r/openai/top.rss?t=week
 https://blog.thenewoil.org/feed/
-<<<<<<< HEAD
 https://www.youtube.com/feeds/videos.xml?channel_id=UCAbAsEZ-0LccTNbl8r-3EaQ  # https://www.youtube.com/@ScottYuJan
 https://www.youtube.com/feeds/videos.xml?channel_id=UCbRP3c757lWg9M-U7TyEkXA  # https://www.youtube.com/@t3dotgg
 https://www.youtube.com/feeds/videos.xml?channel_id=UCfJrdVVcWZMHLC--a4ovLLQ  # https://www.youtube.com/@TimDessaint
@@ -197,8 +196,5 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCDumpETJYAtNsA9M1jabBrg  # 
 https://www.youtube.com/feeds/videos.xml?channel_id=UC55ODQSvARtgSyc8ThfiepQ  # https://www.youtube.com/@samwitteveenai
 https://www.youtube.com/feeds/videos.xml?channel_id=UCQDwLZlZkonozQp6zeIXXlA  # https://www.youtube.com/@kirawasareactor
 https://www.youtube.com/feeds/videos.xml?channel_id=UCQf7OpUG4kuVg1YtKGdQVOg  # https://www.youtube.com/@ellenkuemmel
-=======
-https://www.youtube.com/feeds/videos.xml?channel_id=UCAbAsEZ-0LccTNbl8r-3EaQ
->>>>>>> 9c3991f9e4643a7524830b1c58ab7fd934e5da69
 
 #youtube
