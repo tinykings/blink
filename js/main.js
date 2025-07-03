@@ -78,6 +78,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     summaryDiv.style.display = summaryDiv.style.display === 'none' ? 'block' : 'none';
                 }
             }
+        // Handle video lazy loading
+            const videoPlaceholder = e.target.closest('.video-placeholder');
+            if (videoPlaceholder) {
+                const videoId = videoPlaceholder.getAttribute('data-video-id');
+                if (videoId) {
+                    const iframe = document.createElement('iframe');
+                    iframe.setAttribute('src', `https://www.youtube.com/embed/${videoId}?autoplay=1`);
+                    iframe.setAttribute('frameborder', '0');
+                    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+                    iframe.setAttribute('allowfullscreen', '');
+                    iframe.classList.add('video-iframe'); // Add a class for styling if needed
+                    videoPlaceholder.innerHTML = ''; // Clear the thumbnail and play button
+                    videoPlaceholder.appendChild(iframe);
+                    videoPlaceholder.classList.add('video-loaded'); // Add a class to indicate video is loaded
+                }
+            }
         });
     }
 });

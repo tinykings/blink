@@ -289,3 +289,65 @@ html {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* Styles for lazy-loaded YouTube videos */
+.video-placeholder {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    cursor: pointer;
+    background-color: #000; /* Black background for video area */
+    border-radius: var(--border-radius-small);
+    margin-bottom: var(--spacing-large);
+    overflow: hidden;
+}
+
+.video-placeholder .video-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: opacity 0.3s ease;
+}
+
+.video-placeholder .play-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background-color: rgba(255, 0, 0, 0.8); /* Red play button */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+.video-placeholder .play-button::before {
+    content: '';
+    border-style: solid;
+    border-width: 15px 0 15px 25px;
+    border-color: transparent transparent transparent #fff; /* White triangle */
+    margin-left: 5px; /* Adjust for visual centering */
+}
+
+.video-placeholder:hover .play-button {
+    background-color: rgba(255, 0, 0, 1); /* Darker red on hover */
+}
+
+.video-placeholder.video-loaded .video-thumbnail,
+.video-placeholder.video-loaded .play-button {
+    display: none; /* Hide thumbnail and play button once video is loaded */
+}
+
+.video-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}

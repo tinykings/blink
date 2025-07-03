@@ -212,7 +212,12 @@ def generate_item_html(item, item_id):
     """Generates HTML for a single feed item."""
     snippet = '<div class="feed-item">\n'
     if item['video_id']:
-        snippet += f'<div class="video-container"><iframe src="https://www.youtube.com/embed/{item["video_id"]}" frameborder="0" allowfullscreen></iframe></div>\n'
+        # YouTube video thumbnail and play button for lazy loading
+        thumbnail_url = f"https://img.youtube.com/vi/{item['video_id']}/hqdefault.jpg"
+        snippet += f'<div class="video-placeholder" data-video-id="{item["video_id"]}">\n'
+        snippet += f'<img src="{thumbnail_url}" alt="Video Thumbnail" class="video-thumbnail">\n'
+        snippet += '<div class="play-button"></div>\n'
+        snippet += '</div>\n'
     elif item['thumbnail']:
         snippet += f'<a href="{item["link"]}" target="_blank"><img src="{item["thumbnail"]}" alt="{item["title"]}" class="feed-thumbnail"></a>\n'
     
