@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+h1 {
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 40px;
+}
+
+#feed-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.feed-item {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: left;
+}
+
+.feed-item h2 {
+    font-size: 1.4em;
+    margin: 0 0 10px;
+}
+
+.feed-item h2 a {
+    text-decoration: none;
+    color: #bb86fc;
+}
+
+.feed-item h2 a:hover {
+    color: #3700b3;
+}
+
+.published-date {
+    font-size: 0.8em;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.feed-thumbnail {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.feed-item-info {
+    padding: 0;
+}
+
+.feed-title {
+    font-size: 0.8em;
+    color: #888;
+    font-style: italic;
+}
+
+.summary {
+    font-size: 1em;
+    color: #b0b0b0;
+    margin-bottom: 15px;
+}
+
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    height: 0;
+    overflow: hidden;
+    max-width: 100%;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
