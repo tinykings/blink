@@ -76,73 +76,85 @@ def fetch_feeds(urls, history):
     all_items = []
     new_history = set(history)
     
+    # Set a common user-agent
+    user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+    
     for i, url in enumerate(urls):
         print(f"Processing feed {i+1}/{len(urls)}: {url}")
-        feed = feedparser.parse(url)
-        is_youtube_feed = 'youtube.com' in url
-
-        for entry in feed.entries:
-            if hasattr(entry, 'published_parsed') and entry.published_parsed:
-                published_time = datetime(*entry.published_parsed[:6])
-                if (datetime.now() - published_time).total_seconds() > 24 * 3600:
-                    continue
-            elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
-                published_time = datetime(*entry.updated_parsed[:6])
-                if (datetime.now() - published_time).total_seconds() > 24 * 3600:
-                    continue
+        try:
+            feed = feedparser.parse(url, agent=user_agent)
             
-            item_id = entry.get('id') or entry.get('link')
-            if not item_id:
+            # Check for errors in the feed
+            if feed.bozo and isinstance(feed.bozo_exception, Exception):
+                print(f"Warning: Could not parse feed from {url}. Error: {feed.bozo_exception}")
                 continue
 
-            is_new = item_id not in history
-            new_history.add(item_id)
+            is_youtube_feed = 'youtube.com' in url
 
-            if hasattr(entry, 'published_parsed') and entry.published_parsed:
-                published_time = datetime(*entry.published_parsed[:6])
-            elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
-                published_time = datetime(*entry.updated_parsed[:6])
-            else:
-                published_time = datetime.now()
+            for entry in feed.entries:
+                if hasattr(entry, 'published_parsed') and entry.published_parsed:
+                    published_time = datetime(*entry.published_parsed[:6])
+                    if (datetime.now() - published_time).total_seconds() > 5 * 24 * 3600:
+                        continue
+                elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
+                    published_time = datetime(*entry.updated_parsed[:6])
+                    if (datetime.now() - published_time).total_seconds() > 5 * 24 * 3600:
+                        continue
+                
+                item_id = entry.get('id') or entry.get('link')
+                if not item_id:
+                    continue
 
-            thumbnail_url = ''
-            video_id = None
-            if is_youtube_feed:
-                video_id = get_youtube_video_id(entry.link)
-            else:
-                if hasattr(entry, 'media_thumbnail') and entry.media_thumbnail:
-                    thumbnail_url = entry.media_thumbnail[0]['url']
+                is_new = item_id not in history
+                new_history.add(item_id)
+
+                if hasattr(entry, 'published_parsed') and entry.published_parsed:
+                    published_time = datetime(*entry.published_parsed[:6])
+                elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
+                    published_time = datetime(*entry.updated_parsed[:6])
                 else:
-                    if hasattr(entry, 'content') and entry.content:
-                        soup = BeautifulSoup(entry.content[0].value, 'html.parser')
-                        img_tag = soup.find('img')
-                        if img_tag and img_tag.get('src'):
-                            thumbnail_url = img_tag['src']
-                    elif hasattr(entry, 'summary'):
+                    published_time = datetime.now()
+
+                thumbnail_url = ''
+                video_id = None
+                if is_youtube_feed:
+                    video_id = get_youtube_video_id(entry.link)
+                else:
+                    if hasattr(entry, 'media_thumbnail') and entry.media_thumbnail:
+                        thumbnail_url = entry.media_thumbnail[0]['url']
+                    else:
+                        if hasattr(entry, 'content') and entry.content:
+                            soup = BeautifulSoup(entry.content[0].value, 'html.parser')
+                            img_tag = soup.find('img')
+                            if img_tag and img_tag.get('src'):
+                                thumbnail_url = img_tag['src']
+                        elif hasattr(entry, 'summary'):
+                            soup = BeautifulSoup(entry.summary, 'html.parser')
+                            img_tag = soup.find('img')
+                            if img_tag and img_tag.get('src'):
+                                thumbnail_url = img_tag['src']
+
+                summary = ''
+                if hasattr(entry, 'summary'):
+                    if '<' in entry.summary and '>' in entry.summary:
                         soup = BeautifulSoup(entry.summary, 'html.parser')
-                        img_tag = soup.find('img')
-                        if img_tag and img_tag.get('src'):
-                            thumbnail_url = img_tag['src']
+                        summary = soup.get_text()
+                    else:
+                        summary = entry.summary
 
-            summary = ''
-            if hasattr(entry, 'summary'):
-                if '<' in entry.summary and '>' in entry.summary:
-                    soup = BeautifulSoup(entry.summary, 'html.parser')
-                    summary = soup.get_text()
-                else:
-                    summary = entry.summary
-
-            all_items.append({
-                'id': item_id,
-                'title': entry.title,
-                'link': entry.link,
-                'published': published_time,
-                'thumbnail': thumbnail_url,
-                'is_new': is_new,
-                'feed_title': feed.feed.title,
-                'summary': summary,
-                'video_id': video_id,
-            })
+                all_items.append({
+                    'id': item_id,
+                    'title': entry.title,
+                    'link': entry.link,
+                    'published': published_time,
+                    'thumbnail': thumbnail_url,
+                    'is_new': is_new,
+                    'feed_title': feed.feed.title,
+                    'summary': summary,
+                    'video_id': video_id,
+                })
+        except Exception as e:
+            print(f"Error processing feed {url}: {e}")
             
     return all_items, list(new_history)
 
@@ -150,64 +162,100 @@ def sort_items(items):
     """Sorts items by new status and then by published date."""
     return sorted(items, key=lambda x: (not x['is_new'], x['published']), reverse=True)
 
-def generate_html_snippet(items):
-    """Generates an HTML snippet from a list of feed items, grouped by day."""
-    from collections import defaultdict
+def generate_item_html(item, item_id):
+    """Generates HTML for a single feed item."""
+    snippet = '<div class="feed-item">\n'
+    if item['video_id']:
+        snippet += f'<div class="video-container"><iframe src="https://www.youtube.com/embed/{item["video_id"]}" frameborder="0" allowfullscreen></iframe></div>\n'
+    elif item['thumbnail']:
+        snippet += f'<a href="{item["link"]}" target="_blank"><img src="{item["thumbnail"]}" alt="{item["title"]}" class="feed-thumbnail"></a>\n'
     
+    snippet += '<div class="feed-item-info">\n'
+    snippet += f'<h2><a href="{item["link"]}" target="_blank">{item["title"]}</a></h2>\n'
+    
+    # Handle both datetime objects and string timestamps
+    published_str = item["published"]
+    if isinstance(published_str, datetime):
+        published_str = published_str.strftime("%Y-%m-%d %H:%M:%S")
+    snippet += f'<p class="published-date">{published_str}</p>\n'
+
+    snippet += f'<p class="feed-title">{item["feed_title"]}</p>\n'
+    if item['summary']:
+        snippet += f'<button class="toggle-summary-btn" data-target="summary-{item_id}">...</button>\n'
+        snippet += f'<div id="summary-{item_id}" class="summary" style="display: none;">{item["summary"]}</div>\n'
+    snippet += '</div>\n'
+    snippet += '</div>\n'
+    return snippet
+
+def process_feed_items(items):
+    """
+    Groups items by day, generates HTML for the first day, and returns JSON for the rest.
+    """
+    from collections import defaultdict
+    import json
+
+    if not items:
+        return "", "{}"
+
     # Group items by day
     grouped_items = defaultdict(list)
     for item in items:
         day = item['published'].strftime('%Y-%m-%d')
         grouped_items[day].append(item)
     
-    # Sort days chronologically
     sorted_days = sorted(grouped_items.keys(), reverse=True)
     
+    # --- Generate HTML for the main page ---
     snippet = ""
-    today = datetime.now(pytz.timezone(TIMEZONE)).strftime('%Y-%m-%d')
     
-    for i, day in enumerate(sorted_days):
-        day_items = grouped_items[day]
-        day_str = datetime.strptime(day, '%Y-%m-%d').strftime('%B %d, %Y')
-        
-        # The first day's entries are expanded by default
-        is_expanded = (i == 0)
-        
-        snippet += f'<div class="day-section">\n'
-        snippet += f'<h2 class="day-header"><span>{day_str}</span><button class="toggle-day-btn" data-target="day-content-{i}">{"-" if is_expanded else "+"}</button></h2>\n'
-        snippet += f'<div id="day-content-{i}" class="day-content" style="display: {"block" if is_expanded else "none"};">\n'
-        
-        for j, item in enumerate(day_items):
-            item_id = f"{i}-{j}"
-            snippet += '<div class="feed-item">\n'
-            if item['video_id']:
-                snippet += f'<div class="video-container"><iframe src="https://www.youtube.com/embed/{item["video_id"]}" frameborder="0" allowfullscreen></iframe></div>\n'
-            elif item['thumbnail']:
-                snippet += f'<a href="{item["link"]}" target="_blank"><img src="{item["thumbnail"]}" alt="{item["title"]}" class="feed-thumbnail"></a>\n'
-            
-            snippet += '<div class="feed-item-info">\n'
-            snippet += f'<h2><a href="{item["link"]}" target="_blank">{item["title"]}</a></h2>\n'
-            snippet += f'<p class="published-date">{item["published"].strftime("%Y-%m-%d %H:%M:%S")}</p>\n'
-            snippet += f'<p class="feed-title">{item["feed_title"]}</p>\n'
-            if item['summary']:
-                snippet += f'<button class="toggle-summary-btn" data-target="summary-{item_id}">...</button>\n'
-                snippet += f'<div id="summary-{item_id}" class="summary" style="display: none;">{item["summary"]}</div>\n'
-            snippet += '</div>\n'
-            snippet += '</div>\n'
-        
-        snippet += '</div>\n' # close day-content
-        snippet += '</div>\n' # close day-section
-        
-    return snippet
+    # 1. Handle the first day (most recent)
+    first_day_key = sorted_days[0]
+    first_day_items = grouped_items[first_day_key]
+    day_str = datetime.strptime(first_day_key, '%Y-%m-%d').strftime('%B %d, %Y')
+    
+    snippet += '<div class="day-section">\n'
+    snippet += f'<h2 class="day-header"><span>{day_str}</span><button class="toggle-day-btn" data-target="day-content-0">-</button></h2>\n'
+    snippet += '<div id="day-content-0" class="day-content" style="display: block;">\n'
+    for j, item in enumerate(first_day_items):
+        snippet += generate_item_html(item, f"0-{j}")
+    snippet += '</div>\n</div>\n'
 
-def update_index_html(html_snippet, template_path='index.template.html', output_path='index.html'):
+    # 2. Add placeholders for the other days
+    for i, day_key in enumerate(sorted_days[1:]):
+        day_str = datetime.strptime(day_key, '%Y-%m-%d').strftime('%B %d, %Y')
+        day_index = i + 1
+        snippet += '<div class="day-section">\n'
+        snippet += f'<h2 class="day-header" data-date="{day_key}"><span>{day_str}</span><button class="toggle-day-btn" data-target="day-content-{day_index}">+</button></h2>\n'
+        snippet += f'<div id="day-content-{day_index}" class="day-content" style="display: none;"></div>\n'
+        snippet += '</div>\n'
+
+    # --- Generate JSON for the other days ---
+    other_days_data = {}
+    for day_key in sorted_days[1:]:
+        # Make items JSON serializable
+        serializable_items = []
+        for item in grouped_items[day_key]:
+            item_copy = item.copy()
+            item_copy['published'] = item['published'].strftime("%Y-%m-%d %H:%M:%S")
+            serializable_items.append(item_copy)
+        other_days_data[day_key] = serializable_items
+        
+    json_data_string = json.dumps(other_days_data, indent=2)
+
+    return snippet, json_data_string
+
+def update_index_html(html_snippet, json_data, template_path='index.template.html', output_path='index.html'):
     """Injects the HTML snippet and last updated time into the index.html template."""
     with open(template_path, 'r', encoding='utf-8') as f:
         template = f.read()
     
-    # Replace the placeholder with the generated snippet
+    # Replace the feed container placeholder
     template = template.replace('<div id="feed-container"></div>', f'<div id="feed-container">{html_snippet}</div>')
     
+    # Add the JSON data script before the closing body tag
+    json_script_tag = f'<script id="feed-data" type="application/json">{json_data}</script>'
+    template = template.replace('</body>', f'{json_script_tag}\n</body>')
+
     # Update the last updated time
     utc_now = datetime.now(pytz.utc)
     pst_now = utc_now.astimezone(pytz.timezone(TIMEZONE))
@@ -225,8 +273,14 @@ if __name__ == "__main__":
     feed_urls = read_urls_from_file(urls_file)
     feed_items, new_history = fetch_feeds(feed_urls, history)
     sorted_items = sort_items(feed_items)
-    html_snippet = generate_html_snippet(sorted_items)
-    update_index_html(html_snippet)
+    
+    # Process items into HTML for today and JSON for other days
+    html_snippet, json_data = process_feed_items(sorted_items)
+    
+    # Update the main HTML file
+    update_index_html(html_snippet, json_data)
+    
+    # Save the history
     save_history(new_history, history_file)
     
     print(f"Successfully fetched and updated index.html with {len(sorted_items)} items.")
