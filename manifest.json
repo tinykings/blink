@@ -1,8 +1,8 @@
 {
-  "name": ".blink",
-  "short_name": ".blink",
+  "name": "blink",
+  "short_name": "blink",
   "description": "A simple RSS feed reader.",
-  "start_url": "/.blink/index.html",
+  "start_url": "/blink/index.html",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#bb86fc",
@@ -21,6 +21,6 @@
       "purpose": "maskable any"
     }
   ],
-  "scope": "/.blink/",
+  "scope": "/blink/",
   "categories": ["news", "productivity"]
 }
