@@ -1,6 +1,6 @@
-# .blink
+# blink
 
-.blink is a Python-powered RSS and YouTube feed aggregator focused on speed and simplicity. It fetches and parses RSS and YouTube channel feeds, then generates an HTML index that highlights today’s items, with expandable sections for the previous four days. This design keeps your daily reading fast and clutter-free.
+blink is a Python-powered RSS and YouTube feed aggregator focused on speed and simplicity. It fetches and parses RSS and YouTube channel feeds, then generates an HTML index that highlights today’s items, with expandable sections for the previous four days. This design keeps your daily reading fast and clutter-free.
 
 ## Features
 
