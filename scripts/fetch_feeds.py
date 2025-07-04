@@ -6,6 +6,10 @@ import os
 import re
 import requests
 import pytz
+from bs4 import MarkupResemblesLocatorWarning
+import warnings
+
+warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 
 # Configuration
 TIMEZONE = 'America/Los_Angeles'
@@ -331,7 +335,7 @@ def update_index_html(html_snippet, json_data, template_path='index.template.htm
     # Update the last updated time
     utc_now = datetime.now(pytz.utc)
     pst_now = utc_now.astimezone(pytz.timezone(TIMEZONE))
-    last_updated_time = pst_now.strftime("%Y-%m-%d %H:%M:%S %Z")
+    last_updated_time = pst_now.strftime("%Y-%m-%d %I:%M:%S %p %Z")
     updated_html = template.replace('<!-- last_updated_placeholder -->', last_updated_time)
 
     with open(output_path, 'w', encoding='utf-8') as f:
