@@ -5,7 +5,6 @@ https://www.apple.com/newsroom/rss-feed.rss
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.bleepingcomputer.com/feed/
 https://buttondown.com/hacker-newsletter/rss
-https://www.jw.org/en/news/rss/FullNewsRSS/feed.xml
 https://krebsonsecurity.com/feed/
 https://www.macstories.net/feed/
 https://feeds.feedburner.com/StudyHacks
