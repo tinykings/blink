@@ -9,6 +9,37 @@ import pytz
 
 # Configuration
 TIMEZONE = 'America/Los_Angeles'
+SEEN_ITEMS_FILE = 'seen_items.json'
+
+def load_seen_items(filepath):
+    """Loads a dictionary of seen items from a JSON file and filters out items older than 5 days."""
+    if not os.path.exists(filepath):
+        return {}
+    with open(filepath, 'r') as f:
+        try:
+            seen_items = json.load(f)
+        except json.JSONDecodeError:
+            return {}
+    
+    recent_items = {}
+    utc_now = datetime.now(pytz.utc)
+    for item_id, published_str in seen_items.items():
+        try:
+            published_time = datetime.fromisoformat(published_str)
+            if published_time.tzinfo is None:
+                published_time = published_time.replace(tzinfo=pytz.utc)
+
+            if (utc_now - published_time).total_seconds() <= 5 * 24 * 3600:
+                recent_items[item_id] = published_time
+        except (ValueError, TypeError):
+            continue
+    return recent_items
+
+def save_seen_items(items, filepath):
+    """Saves a dictionary of item IDs and their timestamps to a JSON file."""
+    serializable_items = {item_id: ts.isoformat() for item_id, ts in items.items()}
+    with open(filepath, 'w') as f:
+        json.dump(serializable_items, f, indent=2)
 
 def get_channel_id_from_url(url):
     """Extracts the channel ID and name from a YouTube channel URL."""
@@ -117,20 +148,18 @@ def get_youtube_video_id(url):
     match = re.search(r"v=([^&]+)", url)
     return match.group(1) if match else None
 
-def fetch_feeds(urls):
+def fetch_feeds(urls, seen_items):
     """Fetches and parses RSS feeds from a list of URLs."""
     print(f"Starting to fetch {len(urls)} feeds...")
     all_items = []
+    utc_now = datetime.now(pytz.utc)
     
-    # Set a common user-agent
     user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
     
     for i, url in enumerate(urls):
         print(f"Processing feed {i+1}/{len(urls)}: {url}")
         try:
             feed = feedparser.parse(url, agent=user_agent)
-            
-            # Check for errors in the feed
             if feed.bozo and isinstance(feed.bozo_exception, Exception):
                 print(f"Warning: Could not parse feed from {url}. Error: {feed.bozo_exception}")
                 continue
@@ -138,55 +167,43 @@ def fetch_feeds(urls):
             is_youtube_feed = 'youtube.com' in url
 
             for entry in feed.entries:
-                if hasattr(entry, 'published_parsed') and entry.published_parsed:
-                    published_time = datetime(*entry.published_parsed[:6])
-                    if (datetime.now() - published_time).total_seconds() > 5 * 24 * 3600:
-                        continue
-                elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
-                    published_time = datetime(*entry.updated_parsed[:6])
-                    if (datetime.now() - published_time).total_seconds() > 5 * 24 * 3600:
-                        continue
-                
                 item_id = entry.get('id') or entry.get('link')
                 if not item_id:
                     continue
 
                 if hasattr(entry, 'published_parsed') and entry.published_parsed:
-                    published_time = datetime(*entry.published_parsed[:6])
+                    published_time = datetime(*entry.published_parsed[:6], tzinfo=pytz.utc)
                 elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
-                    published_time = datetime(*entry.updated_parsed[:6])
+                    published_time = datetime(*entry.updated_parsed[:6], tzinfo=pytz.utc)
                 else:
-                    published_time = datetime.now()
+                    published_time = utc_now
+
+                is_new = item_id not in seen_items
+                if not is_new and (utc_now - published_time).total_seconds() > 5 * 24 * 3600:
+                    continue
 
                 thumbnail_url = ''
                 video_id = None
                 if is_youtube_feed:
-                    if hasattr(entry, 'yt_videoid'):
-                        video_id = entry.yt_videoid
-                    else:
-                        video_id = get_youtube_video_id(entry.link)
+                    video_id = entry.get('yt_videoid') or get_youtube_video_id(entry.link)
                 else:
                     if hasattr(entry, 'media_thumbnail') and entry.media_thumbnail:
                         thumbnail_url = entry.media_thumbnail[0]['url']
-                    else:
-                        if hasattr(entry, 'content') and entry.content:
-                            soup = BeautifulSoup(entry.content[0].value, 'html.parser')
-                            img_tag = soup.find('img')
-                            if img_tag and img_tag.get('src'):
-                                thumbnail_url = img_tag['src']
-                        elif hasattr(entry, 'summary'):
-                            soup = BeautifulSoup(entry.summary, 'html.parser')
-                            img_tag = soup.find('img')
-                            if img_tag and img_tag.get('src'):
-                                thumbnail_url = img_tag['src']
+                    elif hasattr(entry, 'content') and entry.content:
+                        soup = BeautifulSoup(entry.content[0].value, 'html.parser')
+                        img_tag = soup.find('img')
+                        if img_tag and img_tag.get('src'):
+                            thumbnail_url = img_tag['src']
+                    elif hasattr(entry, 'summary'):
+                        soup = BeautifulSoup(entry.summary, 'html.parser')
+                        img_tag = soup.find('img')
+                        if img_tag and img_tag.get('src'):
+                            thumbnail_url = img_tag['src']
 
                 summary = ''
                 if hasattr(entry, 'summary'):
-                    if '<' in entry.summary and '>' in entry.summary:
-                        soup = BeautifulSoup(entry.summary, 'html.parser')
-                        summary = soup.get_text()
-                    else:
-                        summary = entry.summary
+                    soup = BeautifulSoup(entry.summary, 'html.parser')
+                    summary = soup.get_text(strip=True)
 
                 all_items.append({
                     'id': item_id,
@@ -197,15 +214,16 @@ def fetch_feeds(urls):
                     'feed_title': feed.feed.title,
                     'summary': summary,
                     'video_id': video_id,
+                    'new': is_new,
                 })
         except Exception as e:
             print(f"Error processing feed {url}: {e}")
-            print(f"Finished fetching feeds. Total items: {len(all_items)}") 
+    print(f"Finished fetching feeds. Total items: {len(all_items)}")
     return all_items
 
 def sort_items(items):
-    """Sorts items by published date."""
-    return sorted(items, key=lambda x: x['published'], reverse=True)
+    """Sorts items by 'new' status, then by published date."""
+    return sorted(items, key=lambda x: (not x.get('new', False), x['published']), reverse=True)
     print("Finished sorting feed items.")
 
 def generate_item_html(item, item_id):
@@ -322,8 +340,10 @@ def update_index_html(html_snippet, json_data, template_path='index.template.htm
 
 if __name__ == "__main__":
     urls_file = 'feeds.txt'
+    seen_items = load_seen_items(SEEN_ITEMS_FILE)
+    
     feed_urls = read_urls_from_file(urls_file)
-    feed_items = fetch_feeds(feed_urls)
+    feed_items = fetch_feeds(feed_urls, seen_items)
     sorted_items = sort_items(feed_items)
     
     # Process items into HTML for today and JSON for other days
@@ -332,4 +352,10 @@ if __name__ == "__main__":
     # Update the main HTML file
     update_index_html(html_snippet, json_data)
 
+    # Update the dictionary of seen items
+    for item in feed_items:
+        seen_items[item['id']] = item['published']
+    save_seen_items(seen_items, SEEN_ITEMS_FILE)
+
     print(f"Successfully fetched and updated index.html with {len(sorted_items)} items.")
+    print(f"Updated seen items file with {len(seen_items)} items.")
