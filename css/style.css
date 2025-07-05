@@ -75,7 +75,7 @@ body {
     height: 100px;
     border-radius: 50%;
     margin-bottom: var(--spacing-medium);
-    margin-top: var(--spacing-xxlarge);
+    margin-top: var(--spacing-xlarge);
     /* Image loading fixes */
     max-width: 100%;
     height: auto;
