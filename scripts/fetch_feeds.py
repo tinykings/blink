@@ -182,9 +182,10 @@ def fetch_feeds(urls, seen_items):
                 else:
                     published_time = utc_now
 
-                is_new = item_id not in seen_items
-                if not is_new and (utc_now - published_time).total_seconds() > 5 * 24 * 3600:
+                if (utc_now - published_time).total_seconds() > 5 * 24 * 3600:
                     continue
+
+                is_new = item_id not in seen_items
 
                 thumbnail_url = ''
                 video_id = None
