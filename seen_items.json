@@ -63,10 +63,6 @@
     "published": "2025-07-01T08:00:24-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
-  "https://www.apple.com/newsroom/2025/06/apple-music-celebrates-10-years-with-the-launch-of-a-new-global-hub-for-artists/": {
-    "published": "2025-06-30T05:59:33-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
   "https://www.bleepingcomputer.com/news/artificial-intelligence/googles-ai-video-maker-veo-3-is-now-available-via-20-gemini/": {
     "published": "2025-07-04T16:17:02-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
@@ -179,10 +175,6 @@
     "published": "2025-07-01T08:19:23-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
-  "https://www.reddit.com/r/sysadmin/t3_1lo6mxa": {
-    "published": "2025-06-30T05:47:53-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
   "https://www.reddit.com/r/sysadmin/t3_1lr9n10": {
     "published": "2025-07-03T21:20:25-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
@@ -249,10 +241,6 @@
   },
   "https://www.reddit.com/r/technology/t3_1lpztmm": {
     "published": "2025-07-02T09:07:06-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
-  "https://www.reddit.com/r/technology/t3_1lo6zbl": {
-    "published": "2025-06-30T06:03:46-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
   "https://www.reddit.com/r/technology/t3_1lrjx88": {
@@ -811,10 +799,6 @@
     "published": "2025-07-01T09:01:38-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
-  "yt:video:-2n2UMC1jkc": {
-    "published": "2025-06-30T06:00:00-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
   "yt:video:-tRzTdfumxk": {
     "published": "2025-07-04T05:00:02-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
@@ -889,10 +873,6 @@
   },
   "yt:video:lcrjCjZ4J0k": {
     "published": "2025-06-30T09:01:20-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
-  "yt:video:omsJbobSY64": {
-    "published": "2025-06-30T06:01:41-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
   "yt:video:fWWpLEAqZIg": {
@@ -1001,10 +981,6 @@
   },
   "yt:video:L8trA37Erdo": {
     "published": "2025-07-04T06:00:47-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
-  "yt:video:5hnFVSbFDTE": {
-    "published": "2025-06-30T06:00:08-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
   "yt:video:R4RwAm3woeo": {
@@ -1294,5 +1270,13 @@
   "yt:video:oxmoO5Alzz0": {
     "published": "2025-07-05T03:01:19-07:00",
     "fetched_at": "2025-07-05T12:35:40.037760+00:00"
+  },
+  "https://www.theverge.com/?p=697019": {
+    "published": "2025-07-05T06:00:00-07:00",
+    "fetched_at": "2025-07-05T13:21:00.579527+00:00"
+  },
+  "yt:video:qI5e0uaxTjY": {
+    "published": "2025-07-05T06:01:41-07:00",
+    "fetched_at": "2025-07-05T13:21:00.579527+00:00"
   }
 }
