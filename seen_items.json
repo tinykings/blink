@@ -179,10 +179,6 @@
     "published": "2025-07-01T08:19:23-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
-  "https://www.reddit.com/r/sysadmin/t3_1lnyq5u": {
-    "published": "2025-06-29T21:40:57-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
   "https://www.reddit.com/r/sysadmin/t3_1lo6mxa": {
     "published": "2025-06-30T05:47:53-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
@@ -559,10 +555,6 @@
     "published": "2025-07-02T09:54:52-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
-  "https://www.reddit.com/r/openai/t3_1lnzg0d": {
-    "published": "2025-06-29T22:23:39-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
   "https://www.reddit.com/r/openai/t3_1lpspdn": {
     "published": "2025-07-02T03:50:52-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
@@ -601,10 +593,6 @@
   },
   "https://www.reddit.com/r/openai/t3_1loeu6l": {
     "published": "2025-06-30T11:13:36-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
-  "https://www.reddit.com/r/openai/t3_1lnys9u": {
-    "published": "2025-06-29T21:44:28-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
   "https://www.reddit.com/r/openai/t3_1losynk": {
@@ -1326,5 +1314,13 @@
   "yt:video:SP5amrRl3Lk": {
     "published": "2025-06-30T22:17:54-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
+  },
+  "https://www.reddit.com/r/technology/t3_1lpj6d2": {
+    "published": "2025-07-01T18:22:33-07:00",
+    "fetched_at": "2025-07-05T06:28:30.579764+00:00"
+  },
+  "yt:video:1PuQuwWA30Q": {
+    "published": "2025-07-04T21:36:07-07:00",
+    "fetched_at": "2025-07-05T06:28:30.579764+00:00"
   }
 }
