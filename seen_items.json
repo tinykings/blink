@@ -339,14 +339,6 @@
     "published": "2025-06-30T20:00:29-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
-  "https://www.reddit.com/r/anime/t3_1lo1r9n": {
-    "published": "2025-06-30T00:56:00-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
-  "https://www.reddit.com/r/anime/t3_1lo2plp": {
-    "published": "2025-06-30T02:01:10-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
   "https://www.reddit.com/r/anime/t3_1lrl0aa": {
     "published": "2025-07-04T08:06:39-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
@@ -405,10 +397,6 @@
   },
   "https://www.reddit.com/r/apple/t3_1lq5thp": {
     "published": "2025-07-02T13:03:36-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
-  "https://www.reddit.com/r/apple/t3_1lo1k5e": {
-    "published": "2025-06-30T00:42:17-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
   "https://www.reddit.com/r/apple/t3_1lo81tl": {
@@ -653,10 +641,6 @@
   },
   "yt:video:IeGkOu31rCc": {
     "published": "2025-07-01T02:41:23-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
-  "yt:video:fwnAoTMWIMs": {
-    "published": "2025-06-30T01:20:16-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
   "yt:video:6DplZIS_Nvo": {
@@ -951,10 +935,6 @@
     "published": "2025-07-02T02:51:47-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
-  "yt:video:NGK8Dh4eShQ": {
-    "published": "2025-06-30T01:53:26-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
   "yt:video:xoHMrT7xat0": {
     "published": "2025-07-04T07:07:18-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
@@ -1163,10 +1143,6 @@
     "published": "2025-07-02T02:01:16-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
-  "yt:video:TSZ7ctY5Zg8": {
-    "published": "2025-06-30T02:00:44-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
   "yt:video:iQZ81MbjKpU": {
     "published": "2025-07-01T10:51:13-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
@@ -1322,5 +1298,13 @@
   "yt:video:1PuQuwWA30Q": {
     "published": "2025-07-04T21:36:07-07:00",
     "fetched_at": "2025-07-05T06:28:30.579764+00:00"
+  },
+  "https://www.reddit.com/r/apple/t3_1lrxv0b": {
+    "published": "2025-07-04T17:51:31-07:00",
+    "fetched_at": "2025-07-05T09:20:00.648858+00:00"
+  },
+  "yt:video:2sl0NwUCZlg": {
+    "published": "2025-07-04T23:06:28-07:00",
+    "fetched_at": "2025-07-05T09:20:00.648858+00:00"
   }
 }
