@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault(); // Prevent immediate navigation
             blinkText.style.display = 'block'; // Show BLINK text
             setTimeout(() => {
-                window.location.href = 'index.html'; // Redirect after a delay
+                window.location.href = 'https://github.com/tinykings/blink/actions/workflows/main.yml'; // Redirect after a delay
             }, 1000); // 1 second delay
         });
     }
