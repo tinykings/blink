@@ -1,6 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
     let feedData = null;
 
+    const profileLink = document.getElementById('profile-link');
+    const blinkText = document.getElementById('blink-text');
+
+    if (profileLink && blinkText) {
+        profileLink.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent immediate navigation
+            blinkText.style.display = 'block'; // Show BLINK text
+            setTimeout(() => {
+                window.location.href = 'index.html'; // Redirect after a delay
+            }, 1000); // 1 second delay
+        });
+    }
+
     // Function to generate HTML for a single feed item
     function generateItemHtml(item, itemId) {
         let mediaHtml = '';

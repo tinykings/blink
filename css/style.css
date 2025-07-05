@@ -62,6 +62,14 @@ body {
     user-select: none;
 }
 
+#blink-text {
+    font-size: 3em;
+    font-weight: bold;
+    color: var(--accent-color);
+    display: none;
+    margin-top: 20px;
+}
+
 .profile-image {
     width: 100px;
     height: 100px;
