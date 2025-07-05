@@ -182,6 +182,10 @@ def fetch_feeds(urls, seen_items):
                 else:
                     published_time = utc_now
 
+                # Convert published_time to the specified TIMEZONE
+                local_timezone = pytz.timezone(TIMEZONE)
+                published_time = published_time.astimezone(local_timezone)
+
                 if (utc_now - published_time).total_seconds() > 5 * 24 * 3600:
                     continue
 
