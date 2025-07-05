@@ -1,11 +1,7 @@
 name: Fetch RSS Feeds
 
 on:
-  push:
-    branches:
-      - main
-  schedule:
-    - cron: '0 * * * *' # Runs hourly
+  workflow_dispatch:
 
 jobs:
   fetch-feeds:
