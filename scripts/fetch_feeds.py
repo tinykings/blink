@@ -41,7 +41,12 @@ def load_seen_items(filepath):
 
 def save_seen_items(items, filepath):
     """Saves a dictionary of item IDs and their timestamps to a JSON file."""
-    serializable_items = {item_id: ts.isoformat() for item_id, ts in items.items()}
+    serializable_items = {}
+    for item_id, item_data in items.items():
+        serializable_items[item_id] = {
+            'published': item_data['published'].isoformat(),
+            'fetched_at': item_data['fetched_at'].isoformat()
+        }
     with open(filepath, 'w') as f:
         json.dump(serializable_items, f, indent=2)
 
@@ -191,6 +196,12 @@ def fetch_feeds(urls, seen_items):
 
                 is_new = item_id not in seen_items
 
+                # Determine fetched_at time
+                if item_id in seen_items and 'fetched_at' in seen_items[item_id]:
+                    fetched_at_time = seen_items[item_id]['fetched_at']
+                else:
+                    fetched_at_time = utc_now
+
                 thumbnail_url = ''
                 video_id = None
                 if is_youtube_feed:
@@ -219,6 +230,7 @@ def fetch_feeds(urls, seen_items):
                     'title': entry.title,
                     'link': entry.link,
                     'published': published_time,
+                    'fetched_at': fetched_at_time,
                     'thumbnail': thumbnail_url,
                     'feed_title': feed.feed.title,
                     'summary': summary,
@@ -316,6 +328,7 @@ def process_feed_items(items):
         for item in grouped_items[day_key]:
             item_copy = item.copy()
             item_copy['published'] = item['published'].strftime("%Y-%m-%d %H:%M:%S")
+            item_copy['fetched_at'] = item['fetched_at'].strftime("%Y-%m-%d %H:%M:%S") # Convert fetched_at to string
             serializable_items.append(item_copy)
         other_days_data[day_key] = serializable_items
         
@@ -363,7 +376,7 @@ if __name__ == "__main__":
 
     # Update the dictionary of seen items
     for item in feed_items:
-        seen_items[item['id']] = item['published']
+        seen_items[item['id']] = {'published': item['published'], 'fetched_at': item['fetched_at']}
     save_seen_items(seen_items, SEEN_ITEMS_FILE)
 
     print(f"Successfully fetched and updated index.html with {len(sorted_items)} items.")
