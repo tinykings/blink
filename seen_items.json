@@ -131,10 +131,6 @@
     "published": "2025-07-01T05:36:36-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
-  "https://www.macstories.net/?p=78851": {
-    "published": "2025-06-30T08:30:41-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
   "https://www.reddit.com/r/sysadmin/t3_1lozykk": {
     "published": "2025-07-01T05:08:32-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
@@ -373,10 +369,6 @@
   },
   "https://www.reddit.com/r/apple/t3_1lq5thp": {
     "published": "2025-07-02T13:03:36-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
-  "https://www.reddit.com/r/apple/t3_1loajvd": {
-    "published": "2025-06-30T08:31:14-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
   "https://www.reddit.com/r/apple/t3_1lqoufq": {
@@ -745,10 +737,6 @@
   },
   "yt:video:OBn8GcMbWaY": {
     "published": "2025-07-01T11:01:03-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
-  "yt:video:1u5XvSr614Q": {
-    "published": "2025-06-30T08:00:04-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
   "yt:video:YV5XVcNLHzs": {
@@ -1262,5 +1250,25 @@
   "yt:video:IHZtfO_yTaA": {
     "published": "2025-07-05T07:30:10-07:00",
     "fetched_at": "2025-07-05T14:48:03.080609+00:00"
+  },
+  "https://www.theverge.com/?p=697322": {
+    "published": "2025-07-05T08:00:00-07:00",
+    "fetched_at": "2025-07-05T15:35:35.903312+00:00"
+  },
+  "https://www.reddit.com/r/sysadmin/t3_1lrq17k": {
+    "published": "2025-07-04T11:35:57-07:00",
+    "fetched_at": "2025-07-05T15:35:35.903312+00:00"
+  },
+  "https://www.reddit.com/r/anime/t3_1lrllbq": {
+    "published": "2025-07-04T08:30:42-07:00",
+    "fetched_at": "2025-07-05T15:35:35.903312+00:00"
+  },
+  "https://www.reddit.com/r/apple/t3_1lrm96h": {
+    "published": "2025-07-04T08:58:27-07:00",
+    "fetched_at": "2025-07-05T15:35:35.903312+00:00"
+  },
+  "yt:video:3B3LG5N0w9w": {
+    "published": "2025-07-05T08:05:14-07:00",
+    "fetched_at": "2025-07-05T15:35:35.903312+00:00"
   }
 }
