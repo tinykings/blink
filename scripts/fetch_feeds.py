@@ -1,383 +1,511 @@
 import feedparser
 import json
-from datetime import datetime, timedelta
-from bs4 import BeautifulSoup
+import logging
 import os
 import re
 import requests
-import pytz
-from bs4 import MarkupResemblesLocatorWarning
 import warnings
+from collections import defaultdict
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Tuple, Any
 
+import pytz
+from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Suppress specific warnings
 warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 
 # Configuration
 TIMEZONE = 'America/Los_Angeles'
 SEEN_ITEMS_FILE = 'seen_items.json'
+ITEMS_RETENTION_DAYS = 5
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+REQUEST_TIMEOUT = 30
 
-def load_seen_items(filepath):
-    """Loads a dictionary of seen items from a JSON file and filters out items older than 5 days."""
-    if not os.path.exists(filepath):
-        return {}
-    with open(filepath, 'r') as f:
-        try:
-            seen_items = json.load(f)
-        except json.JSONDecodeError:
+
+class FeedProcessor:
+    """Main class for processing RSS feeds and YouTube channels."""
+    
+    def __init__(self, timezone: str = TIMEZONE, seen_items_file: str = SEEN_ITEMS_FILE):
+        self.timezone = timezone
+        self.seen_items_file = seen_items_file
+        self.local_tz = pytz.timezone(timezone)
+        self.utc_now = datetime.now(pytz.utc)
+        
+    def load_seen_items(self) -> Dict[str, Dict[str, datetime]]:
+        """Load seen items from JSON file, filtering out old entries."""
+        if not os.path.exists(self.seen_items_file):
             return {}
-    
-    recent_items = {}
-    utc_now = datetime.now(pytz.utc)
-    for item_id, published_str in seen_items.items():
-        try:
-            published_time = datetime.fromisoformat(published_str)
-            if published_time.tzinfo is None:
-                published_time = published_time.replace(tzinfo=pytz.utc)
-
-            if (utc_now - published_time).total_seconds() <= 5 * 24 * 3600:
-                recent_items[item_id] = published_time
-        except (ValueError, TypeError):
-            continue
-    return recent_items
-
-def save_seen_items(items, filepath):
-    """Saves a dictionary of item IDs and their timestamps to a JSON file."""
-    serializable_items = {}
-    for item_id, item_data in items.items():
-        serializable_items[item_id] = {
-            'published': item_data['published'].isoformat(),
-            'fetched_at': item_data['fetched_at'].isoformat()
-        }
-    with open(filepath, 'w') as f:
-        json.dump(serializable_items, f, indent=2)
-
-def get_channel_id_from_url(url):
-    """Extracts the channel ID and name from a YouTube channel URL."""
-    print(f"  Extracting YouTube channel ID and name from: {url}") 
-    channel_id = None
-    channel_name = None
-    try:
-        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        meta_tag = soup.find('meta', itemprop='channelId')
-        if meta_tag and meta_tag.has_attr('content'):
-            channel_id = meta_tag['content']
             
-        if not channel_id:
-            link_tag = soup.find('link', rel='canonical')
-            if link_tag and link_tag.has_attr('href'):
-                match = re.search(r'channel/(UC[\w-]+)', link_tag['href'])
-                if match:
-                    channel_id = match.group(1)
-
-        title_tag = soup.find('title')
-        if title_tag:
-            # Extract channel name from title, e.g., "Channel Name - YouTube"
-            title_text = title_tag.get_text()
-            if ' - YouTube' in title_text:
-                channel_name = title_text.replace(' - YouTube', '').strip()
-            else:
-                channel_name = title_text.strip()
-
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching YouTube channel page: {e}")
-    return channel_id, channel_name
-
-def read_urls_from_file(file_path):
-    """Reads URLs from a text file, parsing sections for RSS and YouTube, and converts YouTube channel URLs to RSS feeds."""
-    print(f"Reading and processing URLs from {file_path}...")
-    rss_urls = []
-    youtube_channel_urls = []
-    
-    # Read existing content
-    with open(file_path, 'r') as f:
-        lines = f.readlines()
-
-    current_section = None
-    for line in lines:
-        stripped_line = line.strip()
-        if not stripped_line:
-            continue
-        if stripped_line.lower() == '#rss':
-            current_section = 'rss'
-        elif stripped_line.lower() == '#youtube':
-            current_section = 'youtube'
-        elif current_section == 'rss':
-            rss_urls.append(stripped_line)
-        elif current_section == 'youtube':
-            youtube_channel_urls.append(stripped_line)
-
-    # Convert YouTube channel URLs to RSS feeds and add to rss_urls
-    converted_youtube_entries = [] # Store tuples of (rss_url, original_youtube_url, channel_name)
-    youtube_log_entries = [] # Store (channel_id, channel_name) for yt.log
-    for youtube_url in youtube_channel_urls:
-        channel_id, channel_name = get_channel_id_from_url(youtube_url)
-        if channel_id:
-            rss_feed_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
-            converted_youtube_entries.append((rss_feed_url, youtube_url, channel_name))
-            youtube_log_entries.append((channel_id, channel_name))
-            print(f"  Converted YouTube channel '{youtube_url}' to RSS feed: {rss_feed_url}")
-        else:
-            # If conversion fails, keep the original URL in the youtube_channel_urls list
-            # This will be handled by writing it back to the file
-            converted_youtube_entries.append((youtube_url, youtube_url, None)) # Store original URL if conversion failed
-            print(f"  Could not convert YouTube channel '{youtube_url}' to RSS feed. Keeping it in YouTube section.")
-
-    # Write YouTube channel info to yt.log
-    with open('yt.log', 'w') as f:
-        for channel_id, channel_name in youtube_log_entries:
-            f.write(f"{channel_id}: {channel_name}\n")
-
-    # Update feeds.txt
-    with open(file_path, 'w') as f:
-        f.write("#rss\n")
-        for url in rss_urls:
-            f.write(f"{url}\n")
-        
-        for rss_url, original_youtube_url, channel_name in converted_youtube_entries:
-            if rss_url.startswith("https://www.youtube.com/feeds/videos.xml"):
-                f.write(f"{rss_url}\n")
-            else:
-                # This handles cases where conversion failed and original URL was stored
-                pass # These will be written back to #youtube section
-
-        f.write("\n#youtube\n") # Keep the section, but it will be empty if all converted
-        # If any conversion failed, they will be written back here
-        for rss_url, original_youtube_url, _ in converted_youtube_entries:
-            if not rss_url.startswith("https://www.youtube.com/feeds/videos.xml"):
-                f.write(f"{original_youtube_url}\n")
-
-    all_urls = rss_urls + [entry[0] for entry in converted_youtube_entries if entry[0].startswith("https://www.youtube.com/feeds/videos.xml")]
-    print(f"Finished processing URLs. Found {len(all_urls)} URLs for fetching.")
-    return all_urls
-
-def get_youtube_video_id(url):
-    """Extracts the YouTube video ID from a URL."""
-    match = re.search(r"v=([^&]+)", url)
-    return match.group(1) if match else None
-
-def fetch_feeds(urls, seen_items):
-    """Fetches and parses RSS feeds from a list of URLs."""
-    print(f"Starting to fetch {len(urls)} feeds...")
-    all_items = []
-    utc_now = datetime.now(pytz.utc)
-    
-    user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
-    
-    for i, url in enumerate(urls):
-        print(f"Processing feed {i+1}/{len(urls)}: {url}")
         try:
-            feed = feedparser.parse(url, agent=user_agent)
-            if feed.bozo and isinstance(feed.bozo_exception, Exception):
-                print(f"Warning: Could not parse feed from {url}. Error: {feed.bozo_exception}")
-                continue
-
-            is_youtube_feed = 'youtube.com' in url
-
-            for entry in feed.entries:
-                item_id = entry.get('id') or entry.get('link')
-                if not item_id:
-                    continue
-
-                if hasattr(entry, 'published_parsed') and entry.published_parsed:
-                    published_time = datetime(*entry.published_parsed[:6], tzinfo=pytz.utc)
-                elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
-                    published_time = datetime(*entry.updated_parsed[:6], tzinfo=pytz.utc)
-                else:
-                    published_time = utc_now
-
-                # Convert published_time to the specified TIMEZONE
-                local_timezone = pytz.timezone(TIMEZONE)
-                published_time = published_time.astimezone(local_timezone)
-
-                if (utc_now - published_time).total_seconds() > 5 * 24 * 3600:
-                    continue
-
-                is_new = item_id not in seen_items
-
-                # Determine fetched_at time
-                if item_id in seen_items and 'fetched_at' in seen_items[item_id]:
-                    fetched_at_time = seen_items[item_id]['fetched_at']
-                else:
-                    fetched_at_time = utc_now
-
-                thumbnail_url = ''
-                video_id = None
-                if is_youtube_feed:
-                    video_id = entry.get('yt_videoid') or get_youtube_video_id(entry.link)
-                else:
-                    if hasattr(entry, 'media_thumbnail') and entry.media_thumbnail:
-                        thumbnail_url = entry.media_thumbnail[0]['url']
-                    elif hasattr(entry, 'content') and entry.content:
-                        soup = BeautifulSoup(entry.content[0].value, 'html.parser')
-                        img_tag = soup.find('img')
-                        if img_tag and img_tag.get('src'):
-                            thumbnail_url = img_tag['src']
-                    elif hasattr(entry, 'summary'):
-                        soup = BeautifulSoup(entry.summary, 'html.parser')
-                        img_tag = soup.find('img')
-                        if img_tag and img_tag.get('src'):
-                            thumbnail_url = img_tag['src']
-
-                summary = ''
-                if hasattr(entry, 'summary'):
-                    soup = BeautifulSoup(entry.summary, 'html.parser')
-                    summary = soup.get_text(strip=True)
-
-                all_items.append({
-                    'id': item_id,
-                    'title': entry.title,
-                    'link': entry.link,
-                    'published': published_time,
-                    'fetched_at': fetched_at_time,
-                    'thumbnail': thumbnail_url,
-                    'feed_title': feed.feed.title,
-                    'summary': summary,
-                    'video_id': video_id,
-                    'new': is_new,
-                })
-        except Exception as e:
-            print(f"Error processing feed {url}: {e}")
-    print(f"Finished fetching feeds. Total items: {len(all_items)}")
-    return all_items
-
-def sort_items(items):
-    """Sorts items by 'new' status, then by published date."""
-    return sorted(items, key=lambda x: (not x.get('new', False), x['published']), reverse=True)
-    print("Finished sorting feed items.")
-
-def generate_item_html(item, item_id):
-    """Generates HTML for a single feed item."""
-    snippet = '<div class="feed-item">\n'
-    if item['video_id']:
-        # YouTube video thumbnail and play button for lazy loading
-        thumbnail_url = f"https://img.youtube.com/vi/{item['video_id']}/hqdefault.jpg"
-        snippet += f'<div class="video-placeholder" data-video-id="{item["video_id"]}">\n'
-        snippet += f'<img src="{thumbnail_url}" alt="Video Thumbnail" class="video-thumbnail">\n'
-        snippet += '<div class="play-button"></div>\n'
-        snippet += '</div>\n'
-    elif item['thumbnail']:
-        snippet += f'<a href="{item["link"]}" target="_blank"><img src="{item["thumbnail"]}" alt="{item["title"]}" class="feed-thumbnail"></a>\n'
-    
-    snippet += '<div class="feed-item-info">\n'
-    snippet += f'<h2><a href="{item["link"]}" target="_blank">{item["title"]}</a></h2>\n'
-    
-    # Handle both datetime objects and string timestamps
-    published_str = item["published"]
-    if isinstance(published_str, datetime):
-        published_str = published_str.strftime("%Y-%m-%d %H:%M:%S")
-    snippet += f'<p class="published-date">{published_str}</p>\n'
-
-    snippet += f'<p class="feed-title">{item["feed_title"]}</p>\n'
-    if item['summary']:
-        snippet += f'<button class="toggle-summary-btn" data-target="summary-{item_id}">...</button>\n'
-        snippet += f'<div id="summary-{item_id}" class="summary" style="display: none;">{item["summary"]}</div>\n'
-    snippet += '</div>\n'
-    snippet += '</div>\n'
-    return snippet
-
-def process_feed_items(items):
-    """
-    Groups items by day, generates HTML for the first day, and returns JSON for the rest.
-    """
-    print("Processing feed items to generate HTML and JSON...")  
-    from collections import defaultdict
-    import json
-
-    if not items:
-        return "", "{}"
-
-    # Group items by day
-    grouped_items = defaultdict(list)
-    for item in items:
-        day = item['published'].strftime('%Y-%m-%d')
-        grouped_items[day].append(item)
-    
-    sorted_days = sorted(grouped_items.keys(), reverse=True)
-    
-    # --- Generate HTML for the main page ---
-    snippet = ""
-    
-    # 1. Handle the first day (most recent)
-    first_day_key = sorted_days[0]
-    first_day_items = grouped_items[first_day_key]
-    day_str = datetime.strptime(first_day_key, '%Y-%m-%d').strftime('%B %d, %Y')
-    
-    snippet += '<div class="day-section">\n'
-    snippet += f'<h2 class="day-header"><span>{day_str}</span><button class="toggle-day-btn" data-target="day-content-0">-</button></h2>\n'
-    snippet += '<div id="day-content-0" class="day-content" style="display: block;">\n'
-    for j, item in enumerate(first_day_items):
-        snippet += generate_item_html(item, f"0-{j}")
-    snippet += '</div>\n</div>\n'
-
-    # 2. Add placeholders for the other days
-    for i, day_key in enumerate(sorted_days[1:]):
-        day_str = datetime.strptime(day_key, '%Y-%m-%d').strftime('%B %d, %Y')
-        day_index = i + 1
-        snippet += '<div class="day-section">\n'
-        snippet += f'<h2 class="day-header" data-date="{day_key}"><span>{day_str}</span><button class="toggle-day-btn" data-target="day-content-{day_index}">+</button></h2>\n'
-        snippet += f'<div id="day-content-{day_index}" class="day-content" style="display: none;"></div>\n'
-        snippet += '</div>\n'
-
-    # --- Generate JSON for the other days ---
-    other_days_data = {}
-    for day_key in sorted_days[1:]:
-        # Make items JSON serializable
-        serializable_items = []
-        for item in grouped_items[day_key]:
-            item_copy = item.copy()
-            item_copy['published'] = item['published'].strftime("%Y-%m-%d %H:%M:%S")
-            item_copy['fetched_at'] = item['fetched_at'].strftime("%Y-%m-%d %H:%M:%S") # Convert fetched_at to string
-            serializable_items.append(item_copy)
-        other_days_data[day_key] = serializable_items
+            with open(self.seen_items_file, 'r') as f:
+                raw_data = json.load(f)
+        except (json.JSONDecodeError, FileNotFoundError) as e:
+            logger.warning(f"Could not load seen items: {e}")
+            return {}
         
-    json_data_string = json.dumps(other_days_data, indent=2)
-
-    print("Finished processing feed items.")
-    return snippet, json_data_string
-
-def update_index_html(html_snippet, json_data, template_path='index.template.html', output_path='index.html'):
-    """Injects the HTML snippet and last updated time into the index.html template."""
-    print(f"Updating {output_path} from template {template_path}...")
-    with open(template_path, 'r', encoding='utf-8') as f:
-        template = f.read()
+        # Filter recent items and convert to datetime objects
+        cutoff_time = self.utc_now - timedelta(days=ITEMS_RETENTION_DAYS)
+        recent_items = {}
+        
+        for item_id, item_data in raw_data.items():
+            try:
+                if isinstance(item_data, dict):
+                    # New format with published and fetched_at
+                    published_str = item_data.get('published')
+                    fetched_at_str = item_data.get('fetched_at')
+                else:
+                    # Legacy format - just published time
+                    published_str = item_data
+                    fetched_at_str = None
+                
+                published_time = self._parse_datetime(published_str)
+                fetched_at_time = self._parse_datetime(fetched_at_str) if fetched_at_str else self.utc_now
+                
+                if published_time and published_time >= cutoff_time:
+                    recent_items[item_id] = {
+                        'published': published_time,
+                        'fetched_at': fetched_at_time
+                    }
+            except (ValueError, TypeError) as e:
+                logger.debug(f"Skipping invalid item {item_id}: {e}")
+                continue
+                
+        logger.info(f"Loaded {len(recent_items)} recent seen items")
+        return recent_items
     
-    # Replace the feed container placeholder
-    template = template.replace('<div id="feed-container"></div>', f'<div id="feed-container">{html_snippet}</div>')
+    def _parse_datetime(self, dt_str: str) -> Optional[datetime]:
+        """Parse datetime string to datetime object."""
+        if not dt_str:
+            return None
+        try:
+            dt = datetime.fromisoformat(dt_str)
+            return dt if dt.tzinfo else dt.replace(tzinfo=pytz.utc)
+        except ValueError:
+            return None
     
-    # Add the JSON data script before the closing body tag
-    json_script_tag = f'<script id="feed-data" type="application/json">{json_data}</script>'
-    template = template.replace('</body>', f'{json_script_tag}\n</body>')
+    def save_seen_items(self, items: Dict[str, Dict[str, Any]]) -> None:
+        """Save seen items to JSON file."""
+        serializable_items = {}
+        for item_id, item_data in items.items():
+            serializable_items[item_id] = {
+                'published': item_data['published'].isoformat(),
+                'fetched_at': item_data['fetched_at'].isoformat()
+            }
+        
+        try:
+            with open(self.seen_items_file, 'w') as f:
+                json.dump(serializable_items, f, indent=2)
+            logger.info(f"Saved {len(serializable_items)} seen items")
+        except IOError as e:
+            logger.error(f"Could not save seen items: {e}")
+    
+    def get_youtube_channel_info(self, url: str) -> Tuple[Optional[str], Optional[str]]:
+        """Extract YouTube channel ID and name from URL."""
+        logger.debug(f"Extracting YouTube channel info from: {url}")
+        
+        try:
+            response = requests.get(url, headers={'User-Agent': USER_AGENT}, timeout=REQUEST_TIMEOUT)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # Try to find channel ID
+            channel_id = None
+            meta_tag = soup.find('meta', itemprop='channelId')
+            if meta_tag and meta_tag.get('content'):
+                channel_id = meta_tag['content']
+            
+            # Fallback: extract from canonical URL
+            if not channel_id:
+                link_tag = soup.find('link', rel='canonical')
+                if link_tag and link_tag.get('href'):
+                    match = re.search(r'channel/(UC[\w-]+)', link_tag['href'])
+                    if match:
+                        channel_id = match.group(1)
+            
+            # Extract channel name
+            channel_name = None
+            title_tag = soup.find('title')
+            if title_tag:
+                title_text = title_tag.get_text().strip()
+                channel_name = title_text.replace(' - YouTube', '').strip()
+            
+            return channel_id, channel_name
+            
+        except requests.RequestException as e:
+            logger.error(f"Error fetching YouTube channel page {url}: {e}")
+            return None, None
+    
+    def process_urls_file(self, file_path: str) -> List[str]:
+        """Process URLs file and convert YouTube channels to RSS feeds."""
+        logger.info(f"Processing URLs from {file_path}")
+        
+        try:
+            with open(file_path, 'r') as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            logger.error(f"URLs file {file_path} not found")
+            return []
+        
+        rss_urls = []
+        youtube_urls = []
+        current_section = None
+        
+        # Parse file sections
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                if line.lower() == '#rss':
+                    current_section = 'rss'
+                elif line.lower() == '#youtube':
+                    current_section = 'youtube'
+                continue
+                
+            if current_section == 'rss':
+                rss_urls.append(line)
+            elif current_section == 'youtube':
+                youtube_urls.append(line)
+        
+        # Convert YouTube URLs to RSS feeds
+        converted_entries = []
+        youtube_log_entries = []
+        
+        for youtube_url in youtube_urls:
+            channel_id, channel_name = self.get_youtube_channel_info(youtube_url)
+            if channel_id:
+                rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+                converted_entries.append((rss_url, youtube_url, channel_name))
+                youtube_log_entries.append((channel_id, channel_name))
+                logger.info(f"Converted YouTube channel '{channel_name}' to RSS feed")
+            else:
+                converted_entries.append((youtube_url, youtube_url, None))
+                logger.warning(f"Could not convert YouTube channel: {youtube_url}")
+        
+        # Write YouTube log
+        self._write_youtube_log(youtube_log_entries)
+        
+        # Update feeds.txt file
+        self._update_feeds_file(file_path, rss_urls, converted_entries)
+        
+        # Return all RSS URLs
+        all_rss_urls = rss_urls + [entry[0] for entry in converted_entries 
+                                   if entry[0].startswith("https://www.youtube.com/feeds/videos.xml")]
+        
+        logger.info(f"Found {len(all_rss_urls)} RSS feeds to process")
+        return all_rss_urls
+    
+    def _write_youtube_log(self, entries: List[Tuple[str, str]]) -> None:
+        """Write YouTube channel info to log file."""
+        try:
+            with open('yt.log', 'w') as f:
+                for channel_id, channel_name in entries:
+                    f.write(f"{channel_id}: {channel_name}\n")
+        except IOError as e:
+            logger.error(f"Could not write YouTube log: {e}")
+    
+    def _update_feeds_file(self, file_path: str, rss_urls: List[str], converted_entries: List[Tuple[str, str, Optional[str]]]) -> None:
+        """Update the feeds.txt file with converted YouTube URLs."""
+        try:
+            with open(file_path, 'w') as f:
+                f.write("#rss\n")
+                
+                # Write original RSS URLs
+                for url in rss_urls:
+                    f.write(f"{url}\n")
+                
+                # Write converted YouTube RSS URLs
+                for rss_url, _, _ in converted_entries:
+                    if rss_url.startswith("https://www.youtube.com/feeds/videos.xml"):
+                        f.write(f"{rss_url}\n")
+                
+                # Write failed conversions back to YouTube section
+                f.write("\n#youtube\n")
+                for rss_url, original_url, _ in converted_entries:
+                    if not rss_url.startswith("https://www.youtube.com/feeds/videos.xml"):
+                        f.write(f"{original_url}\n")
+        except IOError as e:
+            logger.error(f"Could not update feeds file: {e}")
+    
+    def fetch_feeds(self, urls: List[str], seen_items: Dict[str, Dict[str, datetime]]) -> List[Dict[str, Any]]:
+        """Fetch and parse RSS feeds from URLs."""
+        logger.info(f"Fetching {len(urls)} feeds")
+        all_items = []
+        
+        for i, url in enumerate(urls):
+            logger.info(f"Processing feed {i+1}/{len(urls)}: {url}")
+            try:
+                feed = feedparser.parse(url, agent=USER_AGENT)
+                if feed.bozo and isinstance(feed.bozo_exception, Exception):
+                    logger.warning(f"Parse error for {url}: {feed.bozo_exception}")
+                    continue
+                
+                items = self._process_feed_entries(feed, url, seen_items)
+                all_items.extend(items)
+                
+            except Exception as e:
+                logger.error(f"Error processing feed {url}: {e}")
+        
+        logger.info(f"Fetched {len(all_items)} total items")
+        return all_items
+    
+    def _process_feed_entries(self, feed: feedparser.FeedParserDict, url: str, seen_items: Dict[str, Dict[str, datetime]]) -> List[Dict[str, Any]]:
+        """Process entries from a single feed."""
+        items = []
+        is_youtube_feed = 'youtube.com' in url
+        cutoff_time = self.utc_now - timedelta(days=ITEMS_RETENTION_DAYS)
+        
+        for entry in feed.entries:
+            item_id = entry.get('id') or entry.get('link')
+            if not item_id:
+                continue
+            
+            # Parse published time
+            published_time = self._get_entry_time(entry)
+            if published_time < cutoff_time:
+                continue
+            
+            # Convert to local timezone
+            published_time = published_time.astimezone(self.local_tz)
+            
+            # Determine if item is new
+            is_new = item_id not in seen_items
+            fetched_at = seen_items.get(item_id, {}).get('fetched_at', self.utc_now)
+            
+            # Extract thumbnail and video info
+            thumbnail_url, video_id = self._extract_media_info(entry, is_youtube_feed)
+            
+            # Extract summary
+            summary = self._extract_summary(entry)
+            
+            items.append({
+                'id': item_id,
+                'title': entry.title,
+                'link': entry.link,
+                'published': published_time,
+                'fetched_at': fetched_at,
+                'thumbnail': thumbnail_url,
+                'feed_title': getattr(feed.feed, 'title', ''),
+                'summary': summary,
+                'video_id': video_id,
+                'new': is_new,
+            })
+        
+        return items
+    
+    def _get_entry_time(self, entry: feedparser.FeedParserDict) -> datetime:
+        """Extract published time from feed entry."""
+        for time_attr in ['published_parsed', 'updated_parsed']:
+            if hasattr(entry, time_attr) and getattr(entry, time_attr):
+                return datetime(*getattr(entry, time_attr)[:6], tzinfo=pytz.utc)
+        return self.utc_now
+    
+    def _extract_media_info(self, entry: feedparser.FeedParserDict, is_youtube: bool) -> Tuple[str, Optional[str]]:
+        """Extract thumbnail URL and video ID from entry."""
+        thumbnail_url = ''
+        video_id = None
+        
+        if is_youtube:
+            video_id = entry.get('yt_videoid')
+            if not video_id:
+                match = re.search(r"v=([^&]+)", entry.link)
+                video_id = match.group(1) if match else None
+        else:
+            # Try various ways to find thumbnail
+            if hasattr(entry, 'media_thumbnail') and entry.media_thumbnail:
+                thumbnail_url = entry.media_thumbnail[0]['url']
+            else:
+                # Look in content or summary
+                for content_attr in ['content', 'summary']:
+                    if hasattr(entry, content_attr):
+                        content = getattr(entry, content_attr)
+                        if isinstance(content, list):
+                            content = content[0].value if content else ''
+                        
+                        soup = BeautifulSoup(str(content), 'html.parser')
+                        img_tag = soup.find('img')
+                        if img_tag and img_tag.get('src'):
+                            thumbnail_url = img_tag['src']
+                            break
+        
+        return thumbnail_url, video_id
+    
+    def _extract_summary(self, entry: feedparser.FeedParserDict) -> str:
+        """Extract clean text summary from entry."""
+        if not hasattr(entry, 'summary'):
+            return ''
+        
+        soup = BeautifulSoup(entry.summary, 'html.parser')
+        return soup.get_text(strip=True)
+    
+    def sort_items(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Sort items by new status, then by published date."""
+        return sorted(items, key=lambda x: (not x.get('new', False), x['published']), reverse=True)
+    
+    def process_items_for_display(self, items: List[Dict[str, Any]]) -> Tuple[str, str]:
+        """Group items by day and generate HTML for first day, JSON for others."""
+        logger.info("Processing items for display")
+        
+        if not items:
+            return "", "{}"
+        
+        # Group items by day
+        grouped_items = defaultdict(list)
+        for item in items:
+            day = item['published'].strftime('%Y-%m-%d')
+            grouped_items[day].append(item)
+        
+        sorted_days = sorted(grouped_items.keys(), reverse=True)
+        
+        # Generate HTML for first day
+        html_snippet = self._generate_first_day_html(grouped_items, sorted_days)
+        
+        # Generate JSON for other days
+        json_data = self._generate_other_days_json(grouped_items, sorted_days)
+        
+        return html_snippet, json_data
+    
+    def _generate_first_day_html(self, grouped_items: Dict[str, List[Dict[str, Any]]], sorted_days: List[str]) -> str:
+        """Generate HTML for the first day's items."""
+        if not sorted_days:
+            return ""
+        
+        first_day = sorted_days[0]
+        first_day_items = grouped_items[first_day]
+        day_str = datetime.strptime(first_day, '%Y-%m-%d').strftime('%B %d, %Y')
+        
+        html = f'''<div class="day-section">
+<h2 class="day-header"><span>{day_str}</span><button class="toggle-day-btn" data-target="day-content-0">-</button></h2>
+<div id="day-content-0" class="day-content" style="display: block;">
+'''
+        
+        for j, item in enumerate(first_day_items):
+            html += self._generate_item_html(item, f"0-{j}")
+        
+        html += '</div>\n</div>\n'
+        
+        # Add placeholders for other days
+        for i, day in enumerate(sorted_days[1:], 1):
+            day_str = datetime.strptime(day, '%Y-%m-%d').strftime('%B %d, %Y')
+            html += f'''<div class="day-section">
+<h2 class="day-header" data-date="{day}"><span>{day_str}</span><button class="toggle-day-btn" data-target="day-content-{i}">+</button></h2>
+<div id="day-content-{i}" class="day-content" style="display: none;"></div>
+</div>
+'''
+        
+        return html
+    
+    def _generate_item_html(self, item: Dict[str, Any], item_id: str) -> str:
+        """Generate HTML for a single feed item."""
+        html = '<div class="feed-item">\n'
+        
+        # Add thumbnail/video placeholder
+        if item['video_id']:
+            thumbnail_url = f"https://img.youtube.com/vi/{item['video_id']}/hqdefault.jpg"
+            html += f'''<div class="video-placeholder" data-video-id="{item['video_id']}">
+<img src="{thumbnail_url}" alt="Video Thumbnail" class="video-thumbnail">
+<div class="play-button"></div>
+</div>
+'''
+        elif item['thumbnail']:
+            html += f'<a href="{item["link"]}" target="_blank"><img src="{item["thumbnail"]}" alt="{item["title"]}" class="feed-thumbnail"></a>\n'
+        
+        # Add item info
+        published_str = item["published"].strftime("%Y-%m-%d %H:%M:%S") if isinstance(item["published"], datetime) else str(item["published"])
+        
+        html += f'''<div class="feed-item-info">
+<h2><a href="{item["link"]}" target="_blank">{item["title"]}</a></h2>
+<p class="published-date">{published_str}</p>
+<p class="feed-title">{item["feed_title"]}</p>
+'''
+        
+        if item['summary']:
+            html += f'''<button class="toggle-summary-btn" data-target="summary-{item_id}">...</button>
+<div id="summary-{item_id}" class="summary" style="display: none;">{item["summary"]}</div>
+'''
+        
+        html += '</div>\n</div>\n'
+        return html
+    
+    def _generate_other_days_json(self, grouped_items: Dict[str, List[Dict[str, Any]]], sorted_days: List[str]) -> str:
+        """Generate JSON data for days other than the first."""
+        if len(sorted_days) <= 1:
+            return "{}"
+        
+        other_days_data = {}
+        for day in sorted_days[1:]:
+            serializable_items = []
+            for item in grouped_items[day]:
+                item_copy = item.copy()
+                item_copy['published'] = item['published'].strftime("%Y-%m-%d %H:%M:%S")
+                item_copy['fetched_at'] = item['fetched_at'].strftime("%Y-%m-%d %H:%M:%S")
+                serializable_items.append(item_copy)
+            other_days_data[day] = serializable_items
+        
+        return json.dumps(other_days_data, indent=2)
+    
+    def update_html_file(self, html_snippet: str, json_data: str, template_path: str = 'index.template.html', output_path: str = 'index.html') -> None:
+        """Update the HTML file with feed data."""
+        logger.info(f"Updating {output_path}")
+        
+        try:
+            with open(template_path, 'r', encoding='utf-8') as f:
+                template = f.read()
+        except FileNotFoundError:
+            logger.error(f"Template file {template_path} not found")
+            return
+        
+        # Replace placeholders
+        template = template.replace('<div id="feed-container"></div>', f'<div id="feed-container">{html_snippet}</div>')
+        
+        # Add JSON data
+        json_script = f'<script id="feed-data" type="application/json">{json_data}</script>'
+        template = template.replace('</body>', f'{json_script}\n</body>')
+        
+        # Update timestamp
+        now = self.utc_now.astimezone(self.local_tz)
+        timestamp = now.strftime("%Y-%m-%d %I:%M:%S %p %Z")
+        template = template.replace('<!-- last_updated_placeholder -->', timestamp)
+        
+        try:
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(template)
+            logger.info(f"Successfully updated {output_path}")
+        except IOError as e:
+            logger.error(f"Could not write {output_path}: {e}")
 
-    # Update the last updated time
-    utc_now = datetime.now(pytz.utc)
-    pst_now = utc_now.astimezone(pytz.timezone(TIMEZONE))
-    last_updated_time = pst_now.strftime("%Y-%m-%d %I:%M:%S %p %Z")
-    updated_html = template.replace('<!-- last_updated_placeholder -->', last_updated_time)
 
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write(updated_html)
-    print(f"Successfully updated {output_path}.")
+def main():
+    """Main execution function."""
+    processor = FeedProcessor()
+    
+    # Load seen items
+    seen_items = processor.load_seen_items()
+    
+    # Process URLs and fetch feeds
+    feed_urls = processor.process_urls_file('feeds.txt')
+    feed_items = processor.fetch_feeds(feed_urls, seen_items)
+    sorted_items = processor.sort_items(feed_items)
+    
+    # Generate HTML and JSON
+    html_snippet, json_data = processor.process_items_for_display(sorted_items)
+    
+    # Update HTML file
+    processor.update_html_file(html_snippet, json_data)
+    
+    # Update seen items
+    for item in feed_items:
+        seen_items[item['id']] = {
+            'published': item['published'], 
+            'fetched_at': item['fetched_at']
+        }
+    processor.save_seen_items(seen_items)
+    
+    logger.info(f"Successfully processed {len(sorted_items)} items")
+
 
 if __name__ == "__main__":
-    urls_file = 'feeds.txt'
-    seen_items = load_seen_items(SEEN_ITEMS_FILE)
-    
-    feed_urls = read_urls_from_file(urls_file)
-    feed_items = fetch_feeds(feed_urls, seen_items)
-    sorted_items = sort_items(feed_items)
-    
-    # Process items into HTML for today and JSON for other days
-    html_snippet, json_data = process_feed_items(sorted_items)
-    
-    # Update the main HTML file
-    update_index_html(html_snippet, json_data)
-
-    # Update the dictionary of seen items
-    for item in feed_items:
-        seen_items[item['id']] = {'published': item['published'], 'fetched_at': item['fetched_at']}
-    save_seen_items(seen_items, SEEN_ITEMS_FILE)
-
-    print(f"Successfully fetched and updated index.html with {len(sorted_items)} items.")
-    print(f"Updated seen items file with {len(seen_items)} items.")
+    main()
