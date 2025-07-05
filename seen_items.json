@@ -267,10 +267,6 @@
     "published": "2025-06-30T20:43:23-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
-  "https://www.reddit.com/r/technology/t3_1lo87oh": {
-    "published": "2025-06-30T06:57:48-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
   "https://www.reddit.com/r/technology/t3_1lq3pze": {
     "published": "2025-07-02T11:39:01-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
@@ -383,10 +379,6 @@
     "published": "2025-07-02T13:03:36-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
-  "https://www.reddit.com/r/apple/t3_1lo81tl": {
-    "published": "2025-06-30T06:51:04-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
   "https://www.reddit.com/r/apple/t3_1loajvd": {
     "published": "2025-06-30T08:31:14-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
@@ -411,10 +403,6 @@
     "published": "2025-07-03T07:44:31-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
-  "https://www.reddit.com/r/apple/t3_1lo7kzu": {
-    "published": "2025-06-30T06:30:41-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
   "https://www.reddit.com/r/apple/t3_1loz2zi": {
     "published": "2025-07-01T04:22:29-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
@@ -437,10 +425,6 @@
   },
   "https://www.reddit.com/r/apple/t3_1lq6tg7": {
     "published": "2025-07-02T13:44:13-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
-  "https://www.reddit.com/r/apple/t3_1lo7zpl": {
-    "published": "2025-06-30T06:48:35-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
   "https://www.reddit.com/r/apple/t3_1lqx4o5": {
@@ -773,10 +757,6 @@
   },
   "yt:video:1u5XvSr614Q": {
     "published": "2025-06-30T08:00:04-07:00",
-    "fetched_at": "2025-07-05T03:30:32.172113+00:00"
-  },
-  "yt:video:ZBHaqtroMw8": {
-    "published": "2025-06-30T07:00:58-07:00",
     "fetched_at": "2025-07-05T03:30:32.172113+00:00"
   },
   "yt:video:YV5XVcNLHzs": {
@@ -1278,5 +1258,13 @@
   "yt:video:qI5e0uaxTjY": {
     "published": "2025-07-05T06:01:41-07:00",
     "fetched_at": "2025-07-05T13:21:00.579527+00:00"
+  },
+  "yt:video:qV5CmQIQFQM": {
+    "published": "2025-07-05T07:01:20-07:00",
+    "fetched_at": "2025-07-05T14:10:23.876769+00:00"
+  },
+  "yt:video:2xYYsUFYw80": {
+    "published": "2025-07-05T06:00:06-07:00",
+    "fetched_at": "2025-07-05T14:10:23.876769+00:00"
   }
 }
