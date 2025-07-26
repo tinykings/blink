@@ -1,9 +1,18 @@
 #rss
-https://www.theverge.com/rss/index.xml
-https://4sysops.com/feed/
-https://www.youtube.com/feeds/videos.xml?channel_id=UC55ODQSvARtgSyc8ThfiepQ
-https://www.youtube.com/feeds/videos.xml?channel_id=UCQDwLZlZkonozQp6zeIXXlA
-https://www.youtube.com/feeds/videos.xml?channel_id=UCQf7OpUG4kuVg1YtKGdQVOg
+https://www.reddit.com/r/apple/top.rss?t=week
+https://www.reddit.com/r/gaming/top.rss?t=week
+https://www.reddit.com/r/openai/top.rss?t=week
+https://www.reddit.com/r/pcgaming/top.rss?t=week
+https://www.reddit.com/r/bazzite/top.rss?t=week
+https://www.reddit.com/r/sysadmin/top.rss?t=week
+https://www.reddit.com/r/technology/top.rss?t=week
+https://pitchfork.com/feed/reviews/best/albums/rss
+https://www.bleepingcomputer.com/feed/
+https://buttondown.com/hacker-newsletter/rss
+https://krebsonsecurity.com/feed/
+https://www.macstories.net/feed/
+https://www.thelazyadministrator.com/feed/
+
 
 #youtube
-https://www.youtube.com/@bashbunni
+
