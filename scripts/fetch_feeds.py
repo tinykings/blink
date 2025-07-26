@@ -21,7 +21,6 @@ warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 
 # Configuration
 TIMEZONE = 'America/Los_Angeles'
-SEEN_ITEMS_FILE = 'seen_items.json'
 ITEMS_RETENTION_DAYS = 5
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
 REQUEST_TIMEOUT = 30
@@ -30,54 +29,11 @@ REQUEST_TIMEOUT = 30
 class FeedProcessor:
     """Main class for processing RSS feeds and YouTube channels."""
     
-    def __init__(self, timezone: str = TIMEZONE, seen_items_file: str = SEEN_ITEMS_FILE):
+    def __init__(self, timezone: str = TIMEZONE):
         self.timezone = timezone
-        self.seen_items_file = seen_items_file
         self.local_tz = pytz.timezone(timezone)
         self.utc_now = datetime.now(pytz.utc)
         
-    def load_seen_items(self) -> Dict[str, Dict[str, datetime]]:
-        """Load seen items from JSON file, filtering out old entries."""
-        if not os.path.exists(self.seen_items_file):
-            return {}
-            
-        try:
-            with open(self.seen_items_file, 'r') as f:
-                raw_data = json.load(f)
-        except (json.JSONDecodeError, FileNotFoundError) as e:
-            logger.warning(f"Could not load seen items: {e}")
-            return {}
-        
-        # Filter recent items and convert to datetime objects
-        cutoff_time = self.utc_now - timedelta(days=ITEMS_RETENTION_DAYS)
-        recent_items = {}
-        
-        for item_id, item_data in raw_data.items():
-            try:
-                if isinstance(item_data, dict):
-                    # New format with published and fetched_at
-                    published_str = item_data.get('published')
-                    fetched_at_str = item_data.get('fetched_at')
-                else:
-                    # Legacy format - just published time
-                    published_str = item_data
-                    fetched_at_str = None
-                
-                published_time = self._parse_datetime(published_str)
-                fetched_at_time = self._parse_datetime(fetched_at_str) if fetched_at_str else self.utc_now
-                
-                if published_time and published_time >= cutoff_time:
-                    recent_items[item_id] = {
-                        'published': published_time,
-                        'fetched_at': fetched_at_time
-                    }
-            except (ValueError, TypeError) as e:
-                logger.debug(f"Skipping invalid item {item_id}: {e}")
-                continue
-                
-        logger.info(f"Loaded {len(recent_items)} recent seen items")
-        return recent_items
-    
     def _parse_datetime(self, dt_str: str) -> Optional[datetime]:
         """Parse datetime string to datetime object."""
         if not dt_str:
@@ -87,22 +43,7 @@ class FeedProcessor:
             return dt if dt.tzinfo else dt.replace(tzinfo=pytz.utc)
         except ValueError:
             return None
-    
-    def save_seen_items(self, items: Dict[str, Dict[str, Any]]) -> None:
-        """Save seen items to JSON file."""
-        serializable_items = {}
-        for item_id, item_data in items.items():
-            serializable_items[item_id] = {
-                'published': item_data['published'].isoformat(),
-                'fetched_at': item_data['fetched_at'].isoformat()
-            }
-        
-        try:
-            with open(self.seen_items_file, 'w') as f:
-                json.dump(serializable_items, f, indent=2)
-            logger.info(f"Saved {len(serializable_items)} seen items")
-        except IOError as e:
-            logger.error(f"Could not save seen items: {e}")
+
     
     def get_youtube_channel_info(self, url: str) -> Tuple[Optional[str], Optional[str]]:
         """Extract YouTube channel ID and name from URL."""
@@ -230,7 +171,7 @@ class FeedProcessor:
         except IOError as e:
             logger.error(f"Could not update feeds file: {e}")
     
-    def fetch_feeds(self, urls: List[str], seen_items: Dict[str, Dict[str, datetime]]) -> List[Dict[str, Any]]:
+    def fetch_feeds(self, urls: List[str]) -> List[Dict[str, Any]]:
         """Fetch and parse RSS feeds from URLs."""
         logger.info(f"Fetching {len(urls)} feeds")
         all_items = []
@@ -243,7 +184,7 @@ class FeedProcessor:
                     logger.warning(f"Parse error for {url}: {feed.bozo_exception}")
                     continue
                 
-                items = self._process_feed_entries(feed, url, seen_items)
+                items = self._process_feed_entries(feed, url)
                 all_items.extend(items)
                 
             except Exception as e:
@@ -252,7 +193,7 @@ class FeedProcessor:
         logger.info(f"Fetched {len(all_items)} total items")
         return all_items
     
-    def _process_feed_entries(self, feed: feedparser.FeedParserDict, url: str, seen_items: Dict[str, Dict[str, datetime]]) -> List[Dict[str, Any]]:
+    def _process_feed_entries(self, feed: feedparser.FeedParserDict, url: str) -> List[Dict[str, Any]]:
         """Process entries from a single feed."""
         items = []
         is_youtube_feed = 'youtube.com' in url
@@ -271,10 +212,6 @@ class FeedProcessor:
             # Convert to local timezone
             published_time = published_time.astimezone(self.local_tz)
             
-            # Determine if item is new
-            is_new = item_id not in seen_items
-            fetched_at = seen_items.get(item_id, {}).get('fetched_at', self.utc_now)
-            
             # Extract thumbnail and video info
             thumbnail_url, video_id = self._extract_media_info(entry, is_youtube_feed)
             
@@ -286,12 +223,10 @@ class FeedProcessor:
                 'title': entry.title,
                 'link': entry.link,
                 'published': published_time,
-                'fetched_at': fetched_at,
                 'thumbnail': thumbnail_url,
                 'feed_title': getattr(feed.feed, 'title', ''),
                 'summary': summary,
                 'video_id': video_id,
-                'new': is_new,
             })
         
         return items
@@ -342,8 +277,8 @@ class FeedProcessor:
         return soup.get_text(strip=True)
     
     def sort_items(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Sort items by new status, then by published date."""
-        return sorted(items, key=lambda x: (not x.get('new', False), x['published']), reverse=True)
+        """Sort items by published date."""
+        return sorted(items, key=lambda x: x['published'], reverse=True)
     
     def process_items_for_display(self, items: List[Dict[str, Any]]) -> Tuple[str, str]:
         """Group items by day and generate HTML for first day, JSON for others."""
@@ -441,7 +376,6 @@ class FeedProcessor:
             for item in grouped_items[day]:
                 item_copy = item.copy()
                 item_copy['published'] = item['published'].strftime("%Y-%m-%d %H:%M:%S")
-                item_copy['fetched_at'] = item['fetched_at'].strftime("%Y-%m-%d %H:%M:%S")
                 serializable_items.append(item_copy)
             other_days_data[day] = serializable_items
         
@@ -482,12 +416,9 @@ def main():
     """Main execution function."""
     processor = FeedProcessor()
     
-    # Load seen items
-    seen_items = processor.load_seen_items()
-    
     # Process URLs and fetch feeds
     feed_urls = processor.process_urls_file('feeds.txt')
-    feed_items = processor.fetch_feeds(feed_urls, seen_items)
+    feed_items = processor.fetch_feeds(feed_urls)
     sorted_items = processor.sort_items(feed_items)
     
     # Generate HTML and JSON
@@ -495,14 +426,6 @@ def main():
     
     # Update HTML file
     processor.update_html_file(html_snippet, json_data)
-    
-    # Update seen items
-    for item in feed_items:
-        seen_items[item['id']] = {
-            'published': item['published'], 
-            'fetched_at': item['fetched_at']
-        }
-    processor.save_seen_items(seen_items)
     
     logger.info(f"Successfully processed {len(sorted_items)} items")
 

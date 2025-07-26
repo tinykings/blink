@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const reloadIcon = document.getElementById('reload-icon');
+    if (reloadIcon) {
+        reloadIcon.addEventListener('click', () => {
+            window.location.reload();
+        });
+    }
+
     let feedData = null;
 
     const profileLink = document.getElementById('profile-link');
