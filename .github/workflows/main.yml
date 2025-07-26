@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   
   schedule:
-    - cron: '0 13 * * *' # 6am PST is 14:00 UTC
+    - cron: '0 6 * * *' # 6am PST is 14:00 UTC
 
 jobs:
   fetch-feeds:
