@@ -3,9 +3,6 @@ name: Fetch RSS Feeds
 on:
   workflow_dispatch:
   
-  schedule:
-    - cron: '0 6 * * *' # 6am PST is 14:00 UTC
-
 jobs:
   fetch-feeds:
     runs-on: ubuntu-latest
