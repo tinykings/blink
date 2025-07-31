@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const reloadIcon = document.getElementById('reload-icon');
     if (reloadIcon) {
         reloadIcon.addEventListener('click', () => {
-            localStorage.removeItem('lastSeenItemId');
+            localStorage.removeItem('seenItemIds');
             window.location.reload();
         });
     }
@@ -21,10 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Feed rendering and "last seen" logic
+    // Feed rendering and "new items" logic
     const feedContainer = document.getElementById('feed-container');
     let feedData = [];
-    let lastSeenItemId = localStorage.getItem('lastSeenItemId');
 
     const feedDataElement = document.getElementById('feed-data');
     if (feedDataElement) {
@@ -76,41 +75,28 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const seenItemIds = JSON.parse(localStorage.getItem('seenItemIds') || '[]');
+        const newItems = feedData.filter(item => !seenItemIds.includes(item.id));
+        const oldItems = feedData.filter(item => seenItemIds.includes(item.id));
+        
         let html = '';
-        let lastSeenMarkerInserted = false;
 
-        feedData.forEach((item, index) => {
-            if (lastSeenItemId && item.id === lastSeenItemId && !lastSeenMarkerInserted) {
-                html += '<div class="last-seen-marker">New items above</div>';
-                lastSeenMarkerInserted = true;
-            }
-            html += generateItemHtml(item, index.toString());
+        // Render new items
+        newItems.forEach((item, index) => {
+            html += generateItemHtml(item, `new-${index}`);
+        });
+
+        // Render marker if there are new items and old items
+        if (newItems.length > 0 && oldItems.length > 0) {
+            html += '<div class="last-seen-marker">New items above</div>';
+        }
+
+        // Render old items
+        oldItems.forEach((item, index) => {
+            html += generateItemHtml(item, `old-${index}`);
         });
 
         feedContainer.innerHTML = html;
-        setupIntersectionObserver();
-    }
-
-    function setupIntersectionObserver() {
-        const options = {
-            root: null,
-            rootMargin: '0px',
-            threshold: 0.5
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const itemId = entry.target.getAttribute('data-item-id');
-                    if (itemId) {
-                        localStorage.setItem('lastSeenItemId', itemId);
-                    }
-                }
-            });
-        }, options);
-
-        const feedItems = document.querySelectorAll('.feed-item');
-        feedItems.forEach(item => observer.observe(item));
     }
 
     // Event delegation for all clicks
@@ -148,4 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     renderFeed();
+
+    // Update seen items for next visit
+    const allItemIds = feedData.map(item => item.id);
+    localStorage.setItem('seenItemIds', JSON.stringify(allItemIds));
 });
