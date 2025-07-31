@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="images/icon.png" alt="Blink Logo" width="150"/>
+</p>
+
 # ✨ Blink: A Lightning-Fast Feed Aggregator
 
 Blink is a minimalist, Python-powered aggregator for your favorite RSS and YouTube feeds. It's designed for speed and simplicity, generating a clean, single-page HTML file that puts **today's content** front and center.
