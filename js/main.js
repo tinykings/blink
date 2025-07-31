@@ -56,22 +56,24 @@ document.addEventListener('DOMContentLoaded', () => {
             mediaHtml = `<a href="${item.link}" target="_blank"><img src="${item.thumbnail}" alt="${item.title}" class="feed-thumbnail"></a>`;
         }
 
+        const starredItems = getStarredItems();
+        const isStarred = starredItems.includes(item.id);
+
         let summaryHtml = '';
         if (item.summary) {
             summaryHtml = `
+                <span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>
                 <button class="toggle-summary-btn" data-target="summary-${itemId}">...</button>
                 <div id="summary-${itemId}" class="summary" style="display: none;">${item.summary}</div>
             `;
         }
 
-        const starredItems = getStarredItems();
-        const isStarred = starredItems.includes(item.id);
+
 
         return `
             <div class="feed-item" data-item-id="${item.id}">
                 ${mediaHtml}
                 <div class="feed-item-info">
-                    <span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>
                     <h2><a href="${item.link}" target="_blank">${item.title}</a></h2>
                     <p class="published-date">${item.published}</p>
                     <p class="feed-title">${item.feed_title}</p>
