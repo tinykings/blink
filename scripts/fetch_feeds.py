@@ -281,62 +281,31 @@ class FeedProcessor:
         return sorted(items, key=lambda x: x['published'], reverse=True)
     
     def process_items_for_display(self, items: List[Dict[str, Any]]) -> Tuple[str, str]:
-        """Group items by day and generate HTML for first day, JSON for others."""
+        """Generate HTML and JSON for all items."""
         logger.info("Processing items for display")
-        
+
         if not items:
-            return "", "{}"
-        
-        # Group items by day
-        grouped_items = defaultdict(list)
-        for item in items:
-            day = item['published'].strftime('%Y-%m-%d')
-            grouped_items[day].append(item)
-        
-        sorted_days = sorted(grouped_items.keys(), reverse=True)
-        
-        # Generate HTML for first day
-        html_snippet = self._generate_first_day_html(grouped_items, sorted_days)
-        
-        # Generate JSON for other days
-        json_data = self._generate_other_days_json(grouped_items, sorted_days)
-        
+            return "", "[]"
+
+        # Generate HTML for all items
+        html_snippet = self._generate_all_items_html(items)
+
+        # Generate JSON for all items
+        json_data = self._generate_all_items_json(items)
+
         return html_snippet, json_data
-    
-    def _generate_first_day_html(self, grouped_items: Dict[str, List[Dict[str, Any]]], sorted_days: List[str]) -> str:
-        """Generate HTML for the first day's items."""
-        if not sorted_days:
-            return ""
-        
-        first_day = sorted_days[0]
-        first_day_items = grouped_items[first_day]
-        day_str = datetime.strptime(first_day, '%Y-%m-%d').strftime('%B %d, %Y')
-        
-        html = f'''<div class="day-section">
-<h2 class="day-header"><span>{day_str}</span><button class="toggle-day-btn" data-target="day-content-0">-</button></h2>
-<div id="day-content-0" class="day-content" style="display: block;">
-'''
-        
-        for j, item in enumerate(first_day_items):
-            html += self._generate_item_html(item, f"0-{j}")
-        
-        html += '</div>\n</div>\n'
-        
-        # Add placeholders for other days
-        for i, day in enumerate(sorted_days[1:], 1):
-            day_str = datetime.strptime(day, '%Y-%m-%d').strftime('%B %d, %Y')
-            html += f'''<div class="day-section">
-<h2 class="day-header" data-date="{day}"><span>{day_str}</span><button class="toggle-day-btn" data-target="day-content-{i}">+</button></h2>
-<div id="day-content-{i}" class="day-content" style="display: none;"></div>
-</div>
-'''
-        
+
+    def _generate_all_items_html(self, items: List[Dict[str, Any]]) -> str:
+        """Generate HTML for all feed items."""
+        html = ''
+        for i, item in enumerate(items):
+            html += self._generate_item_html(item, str(i))
         return html
-    
+
     def _generate_item_html(self, item: Dict[str, Any], item_id: str) -> str:
         """Generate HTML for a single feed item."""
-        html = '<div class="feed-item">\n'
-        
+        html = f'<div class="feed-item" data-item-id="{item["id"]}">\n'
+
         # Add thumbnail/video placeholder
         if item['video_id']:
             thumbnail_url = f"https://img.youtube.com/vi/{item['video_id']}/hqdefault.jpg"
@@ -347,39 +316,32 @@ class FeedProcessor:
 '''
         elif item['thumbnail']:
             html += f'<a href="{item["link"]}" target="_blank"><img src="{item["thumbnail"]}" alt="{item["title"]}" class="feed-thumbnail"></a>\n'
-        
+
         # Add item info
         published_str = item["published"].strftime("%Y-%m-%d %H:%M:%S") if isinstance(item["published"], datetime) else str(item["published"])
-        
+
         html += f'''<div class="feed-item-info">
 <h2><a href="{item["link"]}" target="_blank">{item["title"]}</a></h2>
 <p class="published-date">{published_str}</p>
 <p class="feed-title">{item["feed_title"]}</p>
 '''
-        
+
         if item['summary']:
             html += f'''<button class="toggle-summary-btn" data-target="summary-{item_id}">...</button>
 <div id="summary-{item_id}" class="summary" style="display: none;">{item["summary"]}</div>
 '''
-        
+
         html += '</div>\n</div>\n'
         return html
-    
-    def _generate_other_days_json(self, grouped_items: Dict[str, List[Dict[str, Any]]], sorted_days: List[str]) -> str:
-        """Generate JSON data for days other than the first."""
-        if len(sorted_days) <= 1:
-            return "{}"
-        
-        other_days_data = {}
-        for day in sorted_days[1:]:
-            serializable_items = []
-            for item in grouped_items[day]:
-                item_copy = item.copy()
-                item_copy['published'] = item['published'].strftime("%Y-%m-%d %H:%M:%S")
-                serializable_items.append(item_copy)
-            other_days_data[day] = serializable_items
-        
-        return json.dumps(other_days_data, indent=2)
+
+    def _generate_all_items_json(self, items: List[Dict[str, Any]]) -> str:
+        """Generate JSON data for all items."""
+        serializable_items = []
+        for item in items:
+            item_copy = item.copy()
+            item_copy['published'] = item['published'].strftime("%Y-%m-%d %H:%M:%S")
+            serializable_items.append(item_copy)
+        return json.dumps(serializable_items, indent=2)
     
     def update_html_file(self, html_snippet: str, json_data: str, template_path: str = 'index.template.html', output_path: str = 'index.html') -> None:
         """Update the HTML file with feed data."""
