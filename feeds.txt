@@ -13,6 +13,5 @@ https://www.macstories.net/feed/
 https://www.thelazyadministrator.com/feed/
 https://feeds.feedburner.com/StudyHacks
 https://www.404media.co/rss
-https://www.wired.com/feed/rss
 
 #youtube
