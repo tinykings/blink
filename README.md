@@ -2,23 +2,24 @@
   <img src="images/icon.png" alt="Blink Logo" width="150"/>
 </p>
 
-# ✨ Blink: A Lightning-Fast Feed Aggregator
+<h1 align="center">Blink</h1>
 
-Blink is a minimalist, Python-powered aggregator for your favorite RSS and YouTube feeds. It's designed for speed and simplicity, generating a clean, single-page HTML file that puts **today's content** front and center.
 
-Tired of cluttered feed readers? Blink keeps your daily reading fast and focused. Past updates are neatly tucked away in collapsible sections, ensuring your view is always clean and loads instantly.
 
-![GitHub Actions Workflow](https://github.com/user/repo/actions/workflows/main.yml/badge.svg) <!-- Replace with your actual badge URL -->
+Blink is a minimalist, Python-powered aggregator for your favorite RSS and YouTube feeds. It's designed for speed and simplicity, generating a single-page HTML file.
 
 ## Key Features
 
--   **📰 Unified Feed:** Combines RSS and YouTube channels into a single, streamlined view.
--   **📺 Smart YouTube Integration:** Automatically converts YouTube channel URLs into RSS feeds—no more hunting for hidden feed links!
--   **🗓️ Focus on Today:** The main view only shows items from the last 24 hours. Older content is collapsed into expandable sections for the previous four days.
--   **⚡ Blazing Fast:** By generating a static HTML file and prioritizing today's content, Blink loads instantly, even with hundreds of feeds.
--   **🎨 Clean & Simple UI:** A minimalist, readable interface with expandable summaries and embedded YouTube video previews.
--   **📱 Progressive Web App (PWA):** Install Blink on your desktop or mobile device for an app-like experience, complete with an icon and offline access.
--   **🚀 Automated & Self-Hosted:** Deploy your personalized feed to GitHub Pages for free and keep it updated automatically with the included GitHub Actions workflow.
+-   **📰 Unified Feed:**
+    - Combines RSS and YouTube channels into a single, streamlined view.
+-   **📺 Smart YouTube Integration:**
+    - Automatically converts YouTube channel URLs into RSS feeds—no more hunting for hidden feed links!
+-   **⚡ Kind of Fast I guess:**
+    - By generating a static HTML file and prioritizing today's content, Blink loads instantly, even with hundreds of feeds.
+-   **📱 Progressive Web App (PWA):**
+    - Install Blink on your desktop or mobile device for an app-like experience, complete with an icon and offline access.
+-   **🚀 Automated & Self-Hosted:**
+    - Deploy your personalized feed to GitHub Pages for free and keep it updated automatically with the included GitHub Actions workflow.
 
 ## How It Works
 
