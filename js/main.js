@@ -1,50 +1,39 @@
-'''document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
+    // Reload icon logic
     const reloadIcon = document.getElementById('reload-icon');
     if (reloadIcon) {
         reloadIcon.addEventListener('click', () => {
-            // Clear last seen item on reload
             localStorage.removeItem('lastSeenItemId');
             window.location.reload();
         });
     }
 
+    // Profile link logic
+    const profileLink = document.getElementById('profile-link');
+    const blinkText = document.getElementById('blink-text');
+    if (profileLink && blinkText) {
+        profileLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            blinkText.style.display = 'block';
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+        });
+    }
+
+    // Feed rendering and "last seen" logic
     const feedContainer = document.getElementById('feed-container');
     let feedData = [];
     let lastSeenItemId = localStorage.getItem('lastSeenItemId');
-    let observer;
 
-    // Load feed data from the embedded JSON
     const feedDataElement = document.getElementById('feed-data');
     if (feedDataElement) {
         try {
             feedData = JSON.parse(feedDataElement.textContent);
         } catch (e) {
             console.error("Error parsing feed data:", e);
-        }
-    }
-
-    function renderFeed() {
-        if (!feedContainer || !feedData.length) {
             return;
         }
-
-        let html = '';
-        let lastSeenMarkerInserted = false;
-
-        feedData.forEach((item, index) => {
-            const itemId = item.id;
-
-            // Insert "last seen" marker
-            if (lastSeenItemId && itemId === lastSeenItemId && !lastSeenMarkerInserted) {
-                html += '<div class="last-seen-marker">New items above</div>';
-                lastSeenMarkerInserted = true;
-            }
-
-            html += generateItemHtml(item, index.toString());
-        });
-
-        feedContainer.innerHTML = html;
-        setupIntersectionObserver();
     }
 
     function generateItemHtml(item, itemId) {
@@ -82,19 +71,38 @@
         `;
     }
 
+    function renderFeed() {
+        if (!feedContainer || !feedData.length) {
+            return;
+        }
+
+        let html = '';
+        let lastSeenMarkerInserted = false;
+
+        feedData.forEach((item, index) => {
+            if (lastSeenItemId && item.id === lastSeenItemId && !lastSeenMarkerInserted) {
+                html += '<div class="last-seen-marker">New items above</div>';
+                lastSeenMarkerInserted = true;
+            }
+            html += generateItemHtml(item, index.toString());
+        });
+
+        feedContainer.innerHTML = html;
+        setupIntersectionObserver();
+    }
+
     function setupIntersectionObserver() {
         const options = {
             root: null,
             rootMargin: '0px',
-            threshold: 0.5 // Trigger when 50% of the item is visible
+            threshold: 0.5
         };
 
-        observer = new IntersectionObserver((entries, observer) => {
+        const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const itemId = entry.target.getAttribute('data-item-id');
                     if (itemId) {
-                        lastSeenItemId = itemId;
                         localStorage.setItem('lastSeenItemId', itemId);
                     }
                 }
@@ -105,8 +113,10 @@
         feedItems.forEach(item => observer.observe(item));
     }
 
+    // Event delegation for all clicks
     if (feedContainer) {
         feedContainer.addEventListener('click', (e) => {
+            // Handle summary toggling
             const toggleSummaryBtn = e.target.closest('.toggle-summary-btn');
             if (toggleSummaryBtn) {
                 const targetId = toggleSummaryBtn.getAttribute('data-target');
@@ -114,18 +124,20 @@
                 if (summaryDiv) {
                     summaryDiv.style.display = summaryDiv.style.display === 'none' ? 'block' : 'none';
                 }
+                return;
             }
 
+            // Handle video lazy loading
             const videoPlaceholder = e.target.closest('.video-placeholder');
             if (videoPlaceholder && !videoPlaceholder.classList.contains('video-loaded')) {
                 const videoId = videoPlaceholder.getAttribute('data-video-id');
                 if (videoId) {
                     const iframe = document.createElement('iframe');
-                    iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-                    iframe.frameBorder = '0';
-                    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-                    iframe.allowFullscreen = true;
-                    iframe.className = 'video-iframe';
+                    iframe.setAttribute('src', `https://www.youtube.com/embed/${videoId}?autoplay=1`);
+                    iframe.setAttribute('frameborder', '0');
+                    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+                    iframe.setAttribute('allowfullscreen', '');
+                    iframe.classList.add('video-iframe');
                     
                     videoPlaceholder.innerHTML = '';
                     videoPlaceholder.appendChild(iframe);
@@ -137,4 +149,3 @@
 
     renderFeed();
 });
-''
