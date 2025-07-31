@@ -62,9 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let summaryHtml = '';
         if (item.summary) {
             summaryHtml = `
+            <div class="feed-item-actions">
                 <span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>
                 <button class="toggle-summary-btn" data-target="summary-${itemId}">...</button>
-                <div id="summary-${itemId}" class="summary" style="display: none;">${item.summary}</div>
+            </div>
+            <div id="summary-${itemId}" class="summary" style="display: none;">${item.summary}</div>
             `;
         }
 

@@ -157,6 +157,12 @@ body {
     text-align: left;
 }
 
+.feed-item-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
 .feed-title {
     font-size: var(--font-size-small);
     color: var(--secondary-text-color);
