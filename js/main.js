@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (reloadIcon) {
         reloadIcon.addEventListener('click', () => {
             localStorage.removeItem('seenItemIds');
+            localStorage.removeItem('starredItems');
             window.location.reload();
         });
     }
@@ -23,7 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Feed rendering and "new items" logic
     const feedContainer = document.getElementById('feed-container');
+    const showStarredBtn = document.getElementById('show-starred-btn');
     let feedData = [];
+    let showingStarred = false;
 
     const feedDataElement = document.getElementById('feed-data');
     if (feedDataElement) {
@@ -33,6 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Error parsing feed data:", e);
             return;
         }
+    }
+
+    function getStarredItems() {
+        return JSON.parse(localStorage.getItem('starredItems') || '[]');
     }
 
     function generateItemHtml(item, itemId) {
@@ -57,10 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
 
+        const starredItems = getStarredItems();
+        const isStarred = starredItems.includes(item.id);
+
         return `
             <div class="feed-item" data-item-id="${item.id}">
                 ${mediaHtml}
                 <div class="feed-item-info">
+                    <span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>
                     <h2><a href="${item.link}" target="_blank">${item.title}</a></h2>
                     <p class="published-date">${item.published}</p>
                     <p class="feed-title">${item.feed_title}</p>
@@ -70,28 +81,32 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    function renderFeed() {
+    function renderFeed(filter = 'all') {
         if (!feedContainer || !feedData.length) {
             return;
         }
 
         const seenItemIds = JSON.parse(localStorage.getItem('seenItemIds') || '[]');
-        const newItems = feedData.filter(item => !seenItemIds.includes(item.id));
-        const oldItems = feedData.filter(item => seenItemIds.includes(item.id));
-        
+        const starredItems = getStarredItems();
+
+        let itemsToRender = feedData;
+        if (filter === 'starred') {
+            itemsToRender = feedData.filter(item => starredItems.includes(item.id));
+        }
+
+        const newItems = itemsToRender.filter(item => !seenItemIds.includes(item.id));
+        const oldItems = itemsToRender.filter(item => seenItemIds.includes(item.id));
+
         let html = '';
 
-        // Render new items
         newItems.forEach((item, index) => {
             html += generateItemHtml(item, `new-${index}`);
         });
 
-        // Render marker if there are new items and old items
         if (newItems.length > 0 && oldItems.length > 0) {
             html += '<div class="last-seen-marker">^ New ^</div>';
         }
 
-        // Render old items
         oldItems.forEach((item, index) => {
             html += generateItemHtml(item, `old-${index}`);
         });
@@ -99,10 +114,23 @@ document.addEventListener('DOMContentLoaded', () => {
         feedContainer.innerHTML = html;
     }
 
-    // Event delegation for all clicks
     if (feedContainer) {
         feedContainer.addEventListener('click', (e) => {
-            // Handle summary toggling
+            const starIcon = e.target.closest('.star-icon');
+            if (starIcon) {
+                const itemId = starIcon.getAttribute('data-item-id');
+                let starredItems = getStarredItems();
+                if (starredItems.includes(itemId)) {
+                    starredItems = starredItems.filter(id => id !== itemId);
+                    starIcon.classList.remove('starred');
+                } else {
+                    starredItems.push(itemId);
+                    starIcon.classList.add('starred');
+                }
+                localStorage.setItem('starredItems', JSON.stringify(starredItems));
+                return;
+            }
+            
             const toggleSummaryBtn = e.target.closest('.toggle-summary-btn');
             if (toggleSummaryBtn) {
                 const targetId = toggleSummaryBtn.getAttribute('data-target');
@@ -113,7 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Handle video lazy loading
             const videoPlaceholder = e.target.closest('.video-placeholder');
             if (videoPlaceholder && !videoPlaceholder.classList.contains('video-loaded')) {
                 const videoId = videoPlaceholder.getAttribute('data-video-id');
@@ -133,9 +160,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (showStarredBtn) {
+        showStarredBtn.addEventListener('click', () => {
+            showingStarred = !showingStarred;
+            if (showingStarred) {
+                renderFeed('starred');
+                showStarredBtn.textContent = 'Show All';
+            } else {
+                renderFeed('all');
+                showStarredBtn.textContent = 'Show Starred';
+            }
+        });
+    }
+
     renderFeed();
 
-    // Update seen items for next visit
     const allItemIds = feedData.map(item => item.id);
     localStorage.setItem('seenItemIds', JSON.stringify(allItemIds));
 });
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        }, err => {
+            console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+}
