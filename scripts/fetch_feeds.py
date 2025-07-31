@@ -179,14 +179,20 @@ class FeedProcessor:
         for i, url in enumerate(urls):
             logger.info(f"Processing feed {i+1}/{len(urls)}: {url}")
             try:
-                feed = feedparser.parse(url, agent=USER_AGENT)
+                response = requests.get(url, headers={'User-Agent': USER_AGENT}, timeout=REQUEST_TIMEOUT)
+                response.raise_for_status()
+                
+                feed = feedparser.parse(response.content)
                 if feed.bozo and isinstance(feed.bozo_exception, Exception):
                     logger.warning(f"Parse error for {url}: {feed.bozo_exception}")
-                    continue
+                    if not feed.entries:
+                        continue
                 
                 items = self._process_feed_entries(feed, url)
                 all_items.extend(items)
                 
+            except requests.RequestException as e:
+                logger.error(f"Error fetching feed {url}: {e}")
             except Exception as e:
                 logger.error(f"Error processing feed {url}: {e}")
         

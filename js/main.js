@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Render marker if there are new items and old items
         if (newItems.length > 0 && oldItems.length > 0) {
-            html += '<div class="last-seen-marker">New items above</div>';
+            html += '<div class="last-seen-marker">^ New ^</div>';
         }
 
         // Render old items
