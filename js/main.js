@@ -1,24 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Reload icon logic
-    const reloadIcon = document.getElementById('reload-icon');
-    if (reloadIcon) {
-        reloadIcon.addEventListener('click', () => {
-            localStorage.removeItem('seenItemIds');
-            localStorage.removeItem('starredItems');
-            window.location.reload();
-        });
-    }
-
     // Profile link logic
     const profileLink = document.getElementById('profile-link');
-    const blinkText = document.getElementById('blink-text');
-    if (profileLink && blinkText) {
+    if (profileLink) {
         profileLink.addEventListener('click', (e) => {
             e.preventDefault();
-            blinkText.style.display = 'block';
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1000);
+            window.location.reload();
         });
     }
 
@@ -67,6 +53,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="toggle-summary-btn" data-target="summary-${itemId}">...</button>
             </div>
             <div id="summary-${itemId}" class="summary" style="display: none;">${item.summary}</div>
+            `;
+        } else {
+            summaryHtml = `
+            <div class="feed-item-actions">
+                <span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>
+            </div>
             `;
         }
 
