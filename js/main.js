@@ -168,12 +168,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isStandalone) {
         let startY = 0;
         let isPulling = false;
+        let shouldRefresh = false;
         const pullThreshold = 80;
+        const maxPull = pullThreshold * 2;
+        const pullIndicator = document.getElementById('pull-to-refresh');
 
         document.addEventListener('touchstart', (e) => {
             if (window.scrollY === 0) {
                 startY = e.touches[0].clientY;
                 isPulling = true;
+                pullIndicator.classList.add('visible');
+                pullIndicator.textContent = 'Pull to refresh';
+                pullIndicator.style.transform = `translateY(-${pullIndicator.offsetHeight}px)`;
             }
         }, { passive: true });
 
@@ -182,14 +188,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             const currentY = e.touches[0].clientY;
-            if (currentY - startY > pullThreshold) {
-                window.location.reload();
-                isPulling = false;
+            const pullDistance = currentY - startY;
+            if (pullDistance < 0) {
+                return;
+            }
+            const translateY = Math.min(pullDistance * 2, maxPull) - pullIndicator.offsetHeight;
+            pullIndicator.style.transform = `translateY(${translateY}px)`;
+            if (pullDistance > pullThreshold) {
+                pullIndicator.textContent = 'Release to refresh';
+                shouldRefresh = true;
+            } else {
+                pullIndicator.textContent = 'Pull to refresh';
+                shouldRefresh = false;
             }
         }, { passive: true });
 
         document.addEventListener('touchend', () => {
+            if (isPulling) {
+                if (shouldRefresh) {
+                    pullIndicator.textContent = 'Refreshing...';
+                    pullIndicator.style.transform = `translateY(${pullThreshold - pullIndicator.offsetHeight}px)`;
+                    window.location.reload();
+                } else {
+                    pullIndicator.classList.remove('visible');
+                    pullIndicator.style.transform = '';
+                }
+            }
             isPulling = false;
+            shouldRefresh = false;
         });
     }
 });
