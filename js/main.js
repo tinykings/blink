@@ -173,6 +173,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const allItemIds = feedData.map(item => item.id);
     localStorage.setItem('seenItemIds', JSON.stringify(allItemIds));
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isStandalone) {
+        let startY = 0;
+        let isPulling = false;
+        const pullThreshold = 80;
+
+        document.addEventListener('touchstart', (e) => {
+            if (window.scrollY === 0) {
+                startY = e.touches[0].clientY;
+                isPulling = true;
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isPulling) {
+                return;
+            }
+            const currentY = e.touches[0].clientY;
+            if (currentY - startY > pullThreshold) {
+                window.location.reload();
+                isPulling = false;
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', () => {
+            isPulling = false;
+        });
+    }
 });
 
 if ('serviceWorker' in navigator) {
