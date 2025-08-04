@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const profileLink = document.getElementById('profile-link');
+    const profileImage = document.getElementById('reload-icon');
     const feedContainer = document.getElementById('feed-container');
     let feedData = [];
     let showingStarred = false;
@@ -152,6 +153,9 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             showingStarred = !showingStarred;
             renderFeed(showingStarred ? 'starred' : 'all');
+            if (profileImage) {
+                profileImage.classList.toggle('starred-active', showingStarred);
+            }
         });
     }
 
