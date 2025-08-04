@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/icon.jpg" alt="Blink Logo" width="150"/>
+  <img src="images/icon.png" alt="Blink Logo" width="150"/>
 </p>
 
 <h1 align="center">Blink</h1>
