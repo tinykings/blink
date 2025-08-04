@@ -1,19 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Profile link logic
     const profileLink = document.getElementById('profile-link');
-    if (profileLink) {
-        profileLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.reload();
-        });
-    }
-
-    // Feed rendering and "new items" logic
     const feedContainer = document.getElementById('feed-container');
-    const showStarredBtn = document.getElementById('show-starred-btn');
     let feedData = [];
     let showingStarred = false;
 
+    // Feed rendering and "new items" logic
     const feedDataElement = document.getElementById('feed-data');
     if (feedDataElement) {
         try {
@@ -156,16 +147,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (showStarredBtn) {
-        showStarredBtn.addEventListener('click', () => {
+    if (profileLink) {
+        profileLink.addEventListener('click', (e) => {
+            e.preventDefault();
             showingStarred = !showingStarred;
-            if (showingStarred) {
-                renderFeed('starred');
-                showStarredBtn.textContent = 'Show All';
-            } else {
-                renderFeed('all');
-                showStarredBtn.textContent = 'Show Starred';
-            }
+            renderFeed(showingStarred ? 'starred' : 'all');
         });
     }
 
