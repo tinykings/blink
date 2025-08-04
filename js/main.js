@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let startY = 0;
         let isPulling = false;
         let shouldRefresh = false;
-        const pullThreshold = 80;
+        const pullThreshold = 160;
         const pullIndicator = document.getElementById('pull-to-refresh');
 
         document.addEventListener('touchstart', (e) => {

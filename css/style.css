@@ -77,7 +77,7 @@ body {
 }
 
 .pull-to-refresh.visible {
-    transform: translateY(0);
+    transform: translateY(100%);
 }
 
 #blink-text {
