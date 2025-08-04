@@ -81,6 +81,10 @@ body {
     object-fit: cover;
 }
 
+.profile-image.starred-active {
+    box-shadow: 0 0 10px 3px gold;
+}
+
 #profile-link {
     display: inline-block;
     margin-top: var(--spacing-xlarge);
