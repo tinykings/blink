@@ -74,15 +74,18 @@ body {
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    margin-bottom: var(--spacing-medium);
-    margin-top: var(--spacing-xlarge);
     /* Image loading fixes */
     max-width: 100%;
     height: auto;
     display: block;
     object-fit: cover;
-    margin-left: auto;
-    margin-right: auto;
+}
+
+#profile-link {
+    display: inline-block;
+    margin-top: var(--spacing-xlarge);
+    margin-bottom: var(--spacing-medium);
+    line-height: 0;
 }
 
 .last-updated {
