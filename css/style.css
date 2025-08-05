@@ -245,6 +245,34 @@ body {
     color: gold;
 }
 
+.floating-menu {
+    position: fixed;
+    right: var(--spacing-medium);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-medium);
+    z-index: 1000;
+}
+
+.floating-menu button {
+    background-color: var(--button-bg-color);
+    color: var(--button-text-color);
+    border: 1px solid var(--button-border-color);
+    border-radius: var(--border-radius-small);
+    padding: var(--spacing-small);
+    cursor: pointer;
+}
+
+.floating-menu button:hover {
+    background-color: var(--button-hover-bg-color);
+}
+
+#toggle-star-btn.active {
+    color: gold;
+}
+
 
 .toggle-summary-btn:hover {
     background-color: var(--button-hover-bg-color);
