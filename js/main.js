@@ -178,6 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 isPulling = true;
                 pullIndicator.classList.add('visible');
                 pullIndicator.textContent = 'Pull to refresh';
+                document.body.style.transition = 'none';
             }
         }, { passive: true });
 
@@ -186,7 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             const currentY = e.touches[0].clientY;
-            const pullDistance = currentY - startY;
+            const pullDistance = Math.max(0, currentY - startY);
+            document.body.style.transform = `translateY(${pullDistance}px)`;
             if (pullDistance > pullThreshold) {
                 pullIndicator.textContent = 'Release to refresh';
                 shouldRefresh = true;
@@ -198,12 +200,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.addEventListener('touchend', () => {
             if (isPulling) {
+                document.body.style.transition = 'transform 0.2s ease';
+                document.body.style.transform = 'translateY(0)';
                 if (shouldRefresh) {
                     pullIndicator.textContent = 'Refreshing...';
-                    window.location.reload();
+                    setTimeout(() => window.location.reload(), 200);
                 } else {
                     pullIndicator.classList.remove('visible');
                 }
+                setTimeout(() => {
+                    document.body.style.transition = '';
+                    document.body.style.transform = '';
+                }, 200);
             }
             isPulling = false;
             shouldRefresh = false;
