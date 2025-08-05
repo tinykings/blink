@@ -35,11 +35,13 @@ body {
 
     --border-radius-small: 5px;
     --border-radius-medium: 8px;
+    --header-height: 200px;
 
     font-family: var(--font-family-main);
     line-height: var(--line-height-normal);
     margin: 0;
     padding: var(--spacing-xlarge);
+    padding-top: calc(var(--spacing-xlarge) + var(--header-height));
     background-color: var(--background-color);
     color: var(--primary-text-color);
     
@@ -51,16 +53,17 @@ body {
 
 .header {
     text-align: center;
-    margin-bottom: var(--spacing-xxlarge);
     /* iOS safe area support */
     padding-top: env(safe-area-inset-top);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
+    padding-left: calc(env(safe-area-inset-left) + var(--spacing-xlarge));
+    padding-right: calc(env(safe-area-inset-right) + var(--spacing-xlarge));
     /* Prevent text selection issues */
     -webkit-user-select: none;
     user-select: none;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 999;
     background-color: var(--background-color);
 }
