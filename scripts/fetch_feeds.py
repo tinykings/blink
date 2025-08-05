@@ -92,39 +92,75 @@ class FeedProcessor:
             logger.error(f"URLs file {file_path} not found")
             return []
         
-        rss_urls = []
-        youtube_urls = []
+        rss_urls: List[str] = []
+        youtube_entries: List[Tuple[str, Optional[str]]] = []
+        youtube_rss_urls: List[Tuple[str, Optional[str]]] = []
         current_section = None
-        
-        # Parse file sections
-        for line in lines:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                if line.lower() == '#rss':
-                    current_section = 'rss'
-                elif line.lower() == '#youtube':
-                    current_section = 'youtube'
+        pending_comment: Optional[str] = None
+
+        # Parse file sections, preserving comments for YouTube entries
+        for raw_line in lines:
+            line = raw_line.strip()
+            if not line:
                 continue
-                
+            if line.startswith('#'):
+                lowered = line.lower()
+                if lowered == '#rss':
+                    current_section = 'rss'
+                    pending_comment = None
+                elif lowered == '#youtube':
+                    current_section = 'youtube'
+                    pending_comment = None
+                else:
+                    if current_section == 'youtube':
+                        pending_comment = line
+                continue
+
             if current_section == 'rss':
-                rss_urls.append(line)
+                if 'youtube.com/feeds/videos.xml' in line:
+                    youtube_rss_urls.append((line, None))
+                else:
+                    rss_urls.append(line)
             elif current_section == 'youtube':
-                youtube_urls.append(line)
-        
-        # Convert YouTube URLs to RSS feeds
-        converted_entries = []
-        youtube_log_entries = []
-        
-        for youtube_url in youtube_urls:
+                youtube_entries.append((line, pending_comment))
+                pending_comment = None
+
+        # Combine any YouTube RSS URLs found in the RSS section
+        youtube_entries.extend(youtube_rss_urls)
+
+        # Convert YouTube URLs to RSS feeds and collect channel names
+        converted_entries: List[Tuple[str, str, Optional[str]]] = []
+        youtube_log_entries: List[Tuple[str, str]] = []
+
+        for youtube_url, comment in youtube_entries:
+            channel_name: Optional[str] = None
+
+            if 'youtube.com/feeds/videos.xml' in youtube_url:
+                # Already an RSS feed; try to determine channel name
+                match = re.search(r'channel_id=([\w-]+)', youtube_url)
+                channel_id = match.group(1) if match else None
+                if comment:
+                    channel_name = comment.lstrip('#').strip()
+                elif channel_id:
+                    _, channel_name = self.get_youtube_channel_info(
+                        f"https://www.youtube.com/channel/{channel_id}"
+                    )
+                converted_entries.append((youtube_url, youtube_url, channel_name))
+                continue
+
             channel_id, channel_name = self.get_youtube_channel_info(youtube_url)
             if channel_id:
                 rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
                 converted_entries.append((rss_url, youtube_url, channel_name))
                 youtube_log_entries.append((channel_id, channel_name))
-                logger.info(f"Converted YouTube channel '{channel_name}' to RSS feed")
+                logger.info(
+                    f"Converted YouTube channel '{channel_name}' to RSS feed"
+                )
             else:
-                converted_entries.append((youtube_url, youtube_url, None))
-                logger.warning(f"Could not convert YouTube channel: {youtube_url}")
+                converted_entries.append((youtube_url, youtube_url, channel_name))
+                logger.warning(
+                    f"Could not convert YouTube channel: {youtube_url}"
+                )
         
         # Write YouTube log
         self._write_youtube_log(youtube_log_entries)
@@ -148,25 +184,31 @@ class FeedProcessor:
         except IOError as e:
             logger.error(f"Could not write YouTube log: {e}")
     
-    def _update_feeds_file(self, file_path: str, rss_urls: List[str], converted_entries: List[Tuple[str, str, Optional[str]]]) -> None:
+    def _update_feeds_file(
+        self,
+        file_path: str,
+        rss_urls: List[str],
+        converted_entries: List[Tuple[str, str, Optional[str]]],
+    ) -> None:
         """Update the feeds.txt file with converted YouTube URLs."""
         try:
             with open(file_path, 'w') as f:
                 f.write("#rss\n")
-                
-                # Write original RSS URLs
+
+                # Write original non-YouTube RSS URLs
                 for url in rss_urls:
                     f.write(f"{url}\n")
-                
-                # Write converted YouTube RSS URLs
-                for rss_url, _, _ in converted_entries:
-                    if rss_url.startswith("https://www.youtube.com/feeds/videos.xml"):
-                        f.write(f"{rss_url}\n")
-                
-                # Write failed conversions back to YouTube section
+
+                # Write YouTube feeds under their own section
                 f.write("\n#youtube\n")
-                for rss_url, original_url, _ in converted_entries:
-                    if not rss_url.startswith("https://www.youtube.com/feeds/videos.xml"):
+                for rss_url, original_url, channel_name in converted_entries:
+                    if rss_url.startswith("https://www.youtube.com/feeds/videos.xml"):
+                        name = channel_name or 'Unknown channel'
+                        f.write(f"# {name}\n")
+                        f.write(f"{rss_url}\n")
+                    else:
+                        if channel_name:
+                            f.write(f"# {channel_name}\n")
                         f.write(f"{original_url}\n")
         except IOError as e:
             logger.error(f"Could not update feeds file: {e}")
