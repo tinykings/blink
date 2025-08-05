@@ -2,6 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileLink = document.getElementById('profile-link');
     const profileImage = document.getElementById('reload-icon');
     const feedContainer = document.getElementById('feed-container');
+    const scrollTopBtn = document.getElementById('scroll-top-btn');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const toggleStarBtn = document.getElementById('toggle-star-btn');
     let feedData = [];
     let showingStarred = false;
 
@@ -153,6 +156,32 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             showingStarred = !showingStarred;
             renderFeed(showingStarred ? 'starred' : 'all');
+            if (profileImage) {
+                profileImage.classList.toggle('starred-active', showingStarred);
+            }
+            if (toggleStarBtn) {
+                toggleStarBtn.classList.toggle('active', showingStarred);
+            }
+        });
+    }
+
+    if (scrollTopBtn) {
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            window.location.reload();
+        });
+    }
+
+    if (toggleStarBtn) {
+        toggleStarBtn.addEventListener('click', () => {
+            showingStarred = !showingStarred;
+            renderFeed(showingStarred ? 'starred' : 'all');
+            toggleStarBtn.classList.toggle('active', showingStarred);
             if (profileImage) {
                 profileImage.classList.toggle('starred-active', showingStarred);
             }
