@@ -60,6 +60,10 @@ body {
     /* Prevent text selection issues */
     -webkit-user-select: none;
     user-select: none;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background-color: var(--background-color);
 }
 
 .pull-to-refresh {
