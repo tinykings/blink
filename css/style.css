@@ -248,7 +248,8 @@ body {
 .floating-menu {
     position: fixed;
     right: var(--spacing-medium);
-    top: 50%;
+    /* Use viewport height so menu stays centered regardless of page length */
+    top: 50vh;
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
