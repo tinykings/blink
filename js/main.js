@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const profileLink = document.getElementById('profile-link');
-    const profileImage = document.getElementById('reload-icon');
     const feedContainer = document.getElementById('feed-container');
+    const topIcon = document.getElementById('top-icon');
+    const starToggle = document.getElementById('star-toggle');
+    const refreshIcon = document.getElementById('refresh-icon');
     let feedData = [];
     let showingStarred = false;
 
@@ -148,14 +149,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (profileLink) {
-        profileLink.addEventListener('click', (e) => {
+    if (starToggle) {
+        starToggle.addEventListener('click', (e) => {
             e.preventDefault();
             showingStarred = !showingStarred;
             renderFeed(showingStarred ? 'starred' : 'all');
-            if (profileImage) {
-                profileImage.classList.toggle('starred-active', showingStarred);
-            }
+            starToggle.classList.toggle('starred-active', showingStarred);
+        });
+    }
+
+    if (topIcon) {
+        topIcon.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    if (refreshIcon) {
+        refreshIcon.addEventListener('click', () => {
+            window.location.reload();
         });
     }
 
