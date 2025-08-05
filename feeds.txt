@@ -16,6 +16,7 @@ https://www.macstories.net/feed/
 https://www.thelazyadministrator.com/feed/
 https://feeds.feedburner.com/StudyHacks
 https://www.404media.co/rss
+https://openai.com/news/rss.xml
 
 #youtube
 # Theo - t3․gg
