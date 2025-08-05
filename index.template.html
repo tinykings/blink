@@ -35,14 +35,16 @@
     <meta name="msapplication-tap-highlight" content="no">
 </head>
 <body>
-    <div id="pull-to-refresh" class="pull-to-refresh">Pull to refresh</div>
-    <div class="header">
-        <a id="profile-link"><img src="images/icon.png" alt="Profile Image" class="profile-image" id="reload-icon"></a>
-        <span id="blink-text">blink</span>
-        <p class="last-updated"><!-- last_updated_placeholder --></p>
-        <!-- refresh_button_placeholder -->
+    <div id="pull-to-refresh">Refresh</div>
+    <div id="content">
+        <div class="header">
+            <a id="profile-link"><img src="images/icon.png" alt="Profile Image" class="profile-image" id="reload-icon"></a>
+            <span id="blink-text">blink</span>
+            <p class="last-updated"><!-- last_updated_placeholder --></p>
+            <!-- refresh_button_placeholder -->
+        </div>
+        <div id="feed-container"></div>
     </div>
-    <div id="feed-container"></div>
     <script src="js/main.js"></script>
 </body>
 </html>

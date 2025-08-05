@@ -169,15 +169,13 @@ document.addEventListener('DOMContentLoaded', () => {
         let startY = 0;
         let isPulling = false;
         let shouldRefresh = false;
-        const pullThreshold = 160;
-        const pullIndicator = document.getElementById('pull-to-refresh');
+        const pullThreshold = 100;
+        const content = document.getElementById('content');
 
         document.addEventListener('touchstart', (e) => {
             if (window.scrollY === 0) {
                 startY = e.touches[0].clientY;
                 isPulling = true;
-                pullIndicator.classList.add('visible');
-                pullIndicator.textContent = 'Pull to refresh';
             }
         }, { passive: true });
 
@@ -187,24 +185,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const currentY = e.touches[0].clientY;
             const pullDistance = currentY - startY;
-            if (pullDistance > pullThreshold) {
-                pullIndicator.textContent = 'Release to refresh';
-                shouldRefresh = true;
+            if (pullDistance > 0) {
+                content.style.transform = `translateY(${pullDistance}px)`;
+                shouldRefresh = pullDistance > pullThreshold;
             } else {
-                pullIndicator.textContent = 'Pull to refresh';
-                shouldRefresh = false;
+                content.style.transform = 'translateY(0)';
+                isPulling = false;
             }
         }, { passive: true });
 
         document.addEventListener('touchend', () => {
-            if (isPulling) {
-                if (shouldRefresh) {
-                    pullIndicator.textContent = 'Refreshing...';
-                    window.location.reload();
-                } else {
-                    pullIndicator.classList.remove('visible');
-                }
+            if (!isPulling) {
+                return;
             }
+            content.style.transition = 'transform 0.2s ease';
+            if (shouldRefresh) {
+                window.location.reload();
+            } else {
+                content.style.transform = 'translateY(0)';
+            }
+            content.addEventListener('transitionend', () => {
+                content.style.transition = '';
+            }, { once: true });
             isPulling = false;
             shouldRefresh = false;
         });
