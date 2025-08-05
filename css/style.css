@@ -47,7 +47,6 @@ body {
     -webkit-overflow-scrolling: touch;
     position: relative;
     min-height: 100vh;
-    transform: translateZ(0);
 }
 
 .header {
