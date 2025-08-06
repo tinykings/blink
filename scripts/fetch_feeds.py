@@ -411,7 +411,7 @@ class FeedProcessor:
         
         # Update timestamp
         now = self.utc_now.astimezone(self.local_tz)
-        timestamp = now.strftime("%Y-%m-%d %I:%M:%S %p %Z")
+        timestamp = now.strftime("%m-%d %I:%M")
         template = template.replace('<!-- last_updated_placeholder -->', timestamp)
         
         try:
