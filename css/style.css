@@ -119,6 +119,7 @@ body {
 .last-updated {
     font-size: var(--font-size-medium);
     color: var(--secondary-text-color);
+    text-align: left;
 }
 
 .header-icons {
