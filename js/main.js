@@ -175,51 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const allItemIds = feedData.map(item => item.id);
     localStorage.setItem('seenItemIds', JSON.stringify(allItemIds));
 
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (isStandalone) {
-        let startY = 0;
-        let isPulling = false;
-        let shouldRefresh = false;
-        const pullThreshold = 160;
-        const pullIndicator = document.getElementById('pull-to-refresh');
-
-        document.addEventListener('touchstart', (e) => {
-            if (window.scrollY === 0) {
-                startY = e.touches[0].clientY;
-                isPulling = true;
-                pullIndicator.classList.add('visible');
-                pullIndicator.textContent = 'Pull to refresh';
-            }
-        }, { passive: true });
-
-        document.addEventListener('touchmove', (e) => {
-            if (!isPulling) {
-                return;
-            }
-            const currentY = e.touches[0].clientY;
-            const pullDistance = currentY - startY;
-            if (pullDistance > pullThreshold) {
-                pullIndicator.textContent = 'Release to refresh';
-                shouldRefresh = true;
-            } else {
-                pullIndicator.textContent = 'Pull to refresh';
-                shouldRefresh = false;
-            }
-        }, { passive: true });
-
-        document.addEventListener('touchend', () => {
-            if (isPulling) {
-                if (shouldRefresh) {
-                    pullIndicator.textContent = 'Refreshing...';
-                    window.location.reload();
-                } else {
-                    pullIndicator.classList.remove('visible');
-                }
-            }
-            isPulling = false;
-            shouldRefresh = false;
-        });
-    }
 });
 
 if ('serviceWorker' in navigator) {
