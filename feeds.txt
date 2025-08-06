@@ -83,8 +83,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UC8JOgFXp-I3YV6dsKqqQdUw
 https://www.youtube.com/feeds/videos.xml?channel_id=UCtinbF-Q-fVthA0qrFQTgXQ
 # Check the Box & Learn
 https://www.youtube.com/feeds/videos.xml?channel_id=UCx-r1eCcoptNTPwfTjaPlfA
-# Cheese Turbulence
-https://www.youtube.com/feeds/videos.xml?channel_id=UCdpkTMgFiDkcAnNV7TmXntA
 # Chloe Shih
 https://www.youtube.com/feeds/videos.xml?channel_id=UCC5zwcadCvNiNm5JCe7hjAQ
 # Chris Titus Tech
