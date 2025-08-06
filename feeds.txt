@@ -121,8 +121,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCP7WmQ_U4GB3K51Od9QvM0w
 https://www.youtube.com/feeds/videos.xml?channel_id=UCiVWjDbSQMGFddqRwToBRbg
 # Destin
 https://www.youtube.com/feeds/videos.xml?channel_id=UCgUOWrjLEhmHE9tqYtoeS_g
-# Devin Chase
-https://www.youtube.com/feeds/videos.xml?channel_id=UC9blgd3sldR7mQkRFc9uxmQ
 # DIY Perks
 https://www.youtube.com/feeds/videos.xml?channel_id=UCUQo7nzH1sXVpzL92VesANw
 # Dwell
