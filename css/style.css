@@ -35,7 +35,7 @@ body {
 
     --border-radius-small: 5px;
     --border-radius-medium: 8px;
-    --header-height: 200px;
+    --header-height: 50px;
 
     font-family: var(--font-family-main);
     line-height: var(--line-height-normal);
