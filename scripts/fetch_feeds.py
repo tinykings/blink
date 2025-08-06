@@ -1,11 +1,9 @@
 import feedparser
 import json
 import logging
-import os
 import re
 import requests
 import warnings
-from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple, Any
 
@@ -34,17 +32,6 @@ class FeedProcessor:
         self.local_tz = pytz.timezone(timezone)
         self.utc_now = datetime.now(pytz.utc)
         
-    def _parse_datetime(self, dt_str: str) -> Optional[datetime]:
-        """Parse datetime string to datetime object."""
-        if not dt_str:
-            return None
-        try:
-            dt = datetime.fromisoformat(dt_str)
-            return dt if dt.tzinfo else dt.replace(tzinfo=pytz.utc)
-        except ValueError:
-            return None
-
-    
     def get_youtube_channel_info(self, url: str) -> Tuple[Optional[str], Optional[str]]:
         """Extract YouTube channel ID and name from URL."""
         logger.debug(f"Extracting YouTube channel info from: {url}")
