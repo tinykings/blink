@@ -67,8 +67,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCswF-Mg6JuPBdHHzoK9ftDQ
 https://www.youtube.com/feeds/videos.xml?channel_id=UCpZy-Hfqcxf-R7nQzlv9Bvw
 # Bread on Penguins
 https://www.youtube.com/feeds/videos.xml?channel_id=UCwHwDuNd9lCdA7chyyquDXw
-# Brodie Robertson
-https://www.youtube.com/feeds/videos.xml?channel_id=UCld68syR8Wi-GY_n4CaoJGA
 # Byte Review
 https://www.youtube.com/feeds/videos.xml?channel_id=UCg3tygBbdzyLEZ4lPMpCAFw
 # Caitlin Shoemaker
@@ -195,8 +193,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCgWfS_47YPVbKx5EK4FLm4A
 https://www.youtube.com/feeds/videos.xml?channel_id=UCM3hWnv_tshvTS660fhHH7A
 # Josh Fenn
 https://www.youtube.com/feeds/videos.xml?channel_id=UCm4_Wd1EW7kGYvVhC77Yzpg
-# Joyce
-https://www.youtube.com/feeds/videos.xml?channel_id=UCM5WDzGvGCiSj7_KWea72hw
 # Kai Notebook
 https://www.youtube.com/feeds/videos.xml?channel_id=UCNhWSOlt_UoCzS2YSMhHYmA
 # KDigitalStudio
