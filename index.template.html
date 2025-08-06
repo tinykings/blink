@@ -33,15 +33,18 @@
     <!-- iOS Safari specific fixes -->
     <meta name="format-detection" content="telephone=no">
     <meta name="msapplication-tap-highlight" content="no">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 </head>
 <body>
     <div id="pull-to-refresh" class="pull-to-refresh">Pull to refresh</div>
     <div class="header">
         <p class="last-updated"><!-- last_updated_placeholder --></p>
         <div class="header-icons">
-            <span id="top-icon" class="header-icon">&uarr;</span>
-            <span id="star-toggle" class="header-icon">&#9733;</span>
-            <span id="refresh-icon" class="header-icon">&#8635;</span>
+            <span id="top-icon" class="header-icon"><i class="fas fa-arrow-up"></i></span>
+            <span id="star-toggle" class="header-icon"><i class="fas fa-star"></i></span>
+            <span id="refresh-icon" class="header-icon"><i class="fas fa-rotate-right"></i></span>
         </div>
     </div>
     <div id="feed-container"></div>
