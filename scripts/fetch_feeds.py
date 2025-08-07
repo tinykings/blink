@@ -368,7 +368,7 @@ class FeedProcessor:
 <p class="feed-title">{item["feed_title"]}</p>
 '''
         if item.get('leaving_soon'):
-            html += '<p class="leaving-soon">Leaving soon</p>\n'
+            html += '<p class="leaving-soon">⏰ Leaving soon</p>\n'
 
         if item['summary']:
             html += f'''<button class="toggle-summary-btn" data-target="summary-{item_id}">...</button>
