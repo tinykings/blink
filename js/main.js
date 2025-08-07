@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
 
-        const leavingSoonHtml = item.leaving_soon ? '<p class="leaving-soon">Leaving soon</p>' : '';
+        const leavingSoonHtml = item.leaving_soon ? '<p class="leaving-soon">⏰ Leaving soon</p>' : '';
 
         return `
             <div class="feed-item" data-item-id="${item.id}">

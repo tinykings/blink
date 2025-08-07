@@ -206,6 +206,10 @@ body {
     font-size: var(--font-size-small);
     color: var(--accent-color);
     font-style: italic;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-small);
 }
 
 .summary {
