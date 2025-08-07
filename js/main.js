@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
 
-
+        const leavingSoonHtml = item.leaving_soon ? '<p class="leaving-soon">Leaving soon</p>' : '';
 
         return `
             <div class="feed-item" data-item-id="${item.id}">
@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h2><a href="${item.link}" target="_blank">${item.title}</a></h2>
                     <p class="published-date">${item.published}</p>
                     <p class="feed-title">${item.feed_title}</p>
+                    ${leavingSoonHtml}
                     ${summaryHtml}
                 </div>
             </div>
