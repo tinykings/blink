@@ -233,26 +233,29 @@ class FeedProcessor:
         items = []
         is_youtube_feed = 'youtube.com' in url
         cutoff_time = self.utc_now - timedelta(days=ITEMS_RETENTION_DAYS)
-        
+
         for entry in feed.entries:
             item_id = entry.get('id') or entry.get('link')
             if not item_id:
                 continue
-            
+
             # Parse published time
             published_time = self._get_entry_time(entry)
             if published_time < cutoff_time:
                 continue
             
+            # Determine if item is about to be removed
+            is_leaving_soon = (self.utc_now - published_time) >= timedelta(days=ITEMS_RETENTION_DAYS)
+
             # Convert to local timezone
             published_time = published_time.astimezone(self.local_tz)
-            
+
             # Extract thumbnail and video info
             thumbnail_url, video_id = self._extract_media_info(entry, is_youtube_feed)
-            
+
             # Extract summary
             summary = self._extract_summary(entry)
-            
+
             items.append({
                 'id': item_id,
                 'title': entry.title,
@@ -262,6 +265,7 @@ class FeedProcessor:
                 'feed_title': getattr(feed.feed, 'title', ''),
                 'summary': summary,
                 'video_id': video_id,
+                'leaving_soon': is_leaving_soon,
             })
         
         return items
@@ -360,6 +364,8 @@ class FeedProcessor:
 <p class="published-date">{published_str}</p>
 <p class="feed-title">{item["feed_title"]}</p>
 '''
+        if item.get('leaving_soon'):
+            html += '<p class="leaving-soon">Leaving soon</p>\n'
 
         if item['summary']:
             html += f'''<button class="toggle-summary-btn" data-target="summary-{item_id}">...</button>
@@ -399,7 +405,8 @@ class FeedProcessor:
         # Update timestamp
         now = self.utc_now.astimezone(self.local_tz)
         timestamp = now.strftime("%m-%d %I:%M")
-        template = template.replace('<!-- last_updated_placeholder -->', timestamp)
+        last_updated_text = f"{timestamp} | {ITEMS_RETENTION_DAYS}d"
+        template = template.replace('<!-- last_updated_placeholder -->', last_updated_text)
         
         try:
             with open(output_path, 'w', encoding='utf-8') as f:

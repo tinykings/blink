@@ -202,6 +202,12 @@ body {
     font-style: italic;
 }
 
+.leaving-soon {
+    font-size: var(--font-size-small);
+    color: var(--accent-color);
+    font-style: italic;
+}
+
 .summary {
     font-size: 1em;
     color: var(--summary-text-color);
