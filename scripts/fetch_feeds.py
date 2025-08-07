@@ -244,8 +244,11 @@ class FeedProcessor:
             if published_time < cutoff_time:
                 continue
             
-            # Determine if item is about to be removed
-            is_leaving_soon = (self.utc_now - published_time) >= timedelta(days=ITEMS_RETENTION_DAYS)
+            # Determine if item is about to be removed within the next day
+            # We flag items that are at least ITEMS_RETENTION_DAYS days old
+            is_leaving_soon = (
+                self.utc_now - published_time
+            ) >= timedelta(days=ITEMS_RETENTION_DAYS)
 
             # Convert to local timezone
             published_time = published_time.astimezone(self.local_tz)
