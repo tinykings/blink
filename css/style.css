@@ -103,26 +103,6 @@ body {
     font-size: var(--font-size-medium);
     color: var(--secondary-text-color);
     text-align: left;
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-.feed-updates {
-    display: none;
-    position: fixed;
-    top: calc(var(--header-height) + var(--spacing-small));
-    left: calc(env(safe-area-inset-left) + var(--spacing-xlarge));
-    background-color: var(--surface-color);
-    border: 1px solid var(--border-color);
-    padding: var(--spacing-medium);
-    max-height: 80vh;
-    overflow-y: auto;
-    z-index: 1000;
-}
-
-.feed-updates div {
-    margin-bottom: var(--spacing-small);
 }
 
 .header-icons {
