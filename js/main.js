@@ -3,7 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const topIcon = document.getElementById('top-icon');
     const starToggle = document.getElementById('star-toggle');
     const refreshIcon = document.getElementById('refresh-icon');
+    const lastUpdatedButton = document.getElementById('last-updated-button');
+    const feedUpdatesContainer = document.getElementById('feed-updates');
+    const feedUpdateDataElement = document.getElementById('feed-update-data');
     let feedData = [];
+    let feedUpdates = [];
     let showingStarred = false;
 
     // Feed rendering and "new items" logic
@@ -14,6 +18,14 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.error("Error parsing feed data:", e);
             return;
+        }
+    }
+
+    if (feedUpdateDataElement) {
+        try {
+            feedUpdates = JSON.parse(feedUpdateDataElement.textContent);
+        } catch (e) {
+            console.error("Error parsing feed update data:", e);
         }
     }
 
@@ -168,6 +180,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (refreshIcon) {
         refreshIcon.addEventListener('click', () => {
             window.location.reload();
+        });
+    }
+
+    if (lastUpdatedButton && feedUpdatesContainer) {
+        lastUpdatedButton.addEventListener('click', () => {
+            if (feedUpdatesContainer.style.display === 'block') {
+                feedUpdatesContainer.style.display = 'none';
+                return;
+            }
+
+            let html = '';
+            feedUpdates.forEach(update => {
+                html += `<div>${update.feed_title} - ${update.last_updated}</div>`;
+            });
+            feedUpdatesContainer.innerHTML = html;
+            feedUpdatesContainer.style.display = 'block';
         });
     }
 

@@ -321,6 +321,26 @@ class FeedProcessor:
     def sort_items(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Sort items by published date."""
         return sorted(items, key=lambda x: x['published'], reverse=True)
+
+    def compute_feed_updates(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Compute last updated time for each feed."""
+        feed_map: Dict[str, datetime] = {}
+        for item in items:
+            title = item.get('feed_title', 'Unknown')
+            published = item.get('published')
+            if isinstance(published, datetime):
+                current = feed_map.get(title)
+                if not current or published > current:
+                    feed_map[title] = published
+
+        updates = [
+            {'feed_title': title, 'last_updated': dt.astimezone(self.local_tz)}
+            for title, dt in feed_map.items()
+        ]
+        updates.sort(key=lambda x: x['last_updated'], reverse=True)
+        for entry in updates:
+            entry['last_updated'] = entry['last_updated'].strftime("%Y-%m-%d %H:%M")
+        return updates
     
     def process_items_for_display(self, items: List[Dict[str, Any]]) -> Tuple[str, str]:
         """Generate HTML and JSON for all items."""
@@ -387,7 +407,7 @@ class FeedProcessor:
             serializable_items.append(item_copy)
         return json.dumps(serializable_items, indent=2)
     
-    def update_html_file(self, html_snippet: str, json_data: str, template_path: str = 'index.template.html', output_path: str = 'index.html') -> None:
+    def update_html_file(self, html_snippet: str, json_data: str, updates_json: str, template_path: str = 'index.template.html', output_path: str = 'index.html') -> None:
         """Update the HTML file with feed data."""
         logger.info(f"Updating {output_path}")
         
@@ -403,7 +423,8 @@ class FeedProcessor:
         
         # Add JSON data
         json_script = f'<script id="feed-data" type="application/json">{json_data}</script>'
-        template = template.replace('</body>', f'{json_script}\n</body>')
+        updates_script = f'<script id="feed-update-data" type="application/json">{updates_json}</script>'
+        template = template.replace('</body>', f'{json_script}\n{updates_script}\n</body>')
         
         # Update timestamp
         now = self.utc_now.astimezone(self.local_tz)
@@ -427,12 +448,16 @@ def main():
     feed_urls = processor.process_urls_file('feeds.txt')
     feed_items = processor.fetch_feeds(feed_urls)
     sorted_items = processor.sort_items(feed_items)
-    
+
     # Generate HTML and JSON
     html_snippet, json_data = processor.process_items_for_display(sorted_items)
-    
+
+    # Feed update info
+    feed_updates = processor.compute_feed_updates(sorted_items)
+    updates_json = json.dumps(feed_updates, indent=2)
+
     # Update HTML file
-    processor.update_html_file(html_snippet, json_data)
+    processor.update_html_file(html_snippet, json_data, updates_json)
     
     logger.info(f"Successfully processed {len(sorted_items)} items")
 
