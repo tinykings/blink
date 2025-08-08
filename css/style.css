@@ -30,7 +30,8 @@ body {
 
     --border-radius-small: 8px;
     --border-radius-medium: 12px;
-    --header-height: 64px;
+    /* Increased header height to allow extra space below top buttons */
+    --header-height: calc(64px + var(--spacing-xlarge));
 
     color-scheme: dark light;
     font-family: var(--font-family-main);
@@ -65,6 +66,8 @@ body {
     padding-top: env(safe-area-inset-top);
     padding-left: calc(env(safe-area-inset-left) + var(--spacing-xlarge));
     padding-right: calc(env(safe-area-inset-right) + var(--spacing-xlarge));
+    /* Add bottom padding to create more space below the top buttons */
+    padding-bottom: var(--spacing-xlarge);
     -webkit-user-select: none;
     user-select: none;
     position: fixed;
