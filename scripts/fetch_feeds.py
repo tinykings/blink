@@ -256,9 +256,6 @@ class FeedProcessor:
             # Extract thumbnail and video info
             thumbnail_url, video_id = self._extract_media_info(entry, is_youtube_feed)
 
-            # Extract summary
-            summary = self._extract_summary(entry)
-
             items.append({
                 'id': item_id,
                 'title': entry.title,
@@ -266,7 +263,6 @@ class FeedProcessor:
                 'published': published_time,
                 'thumbnail': thumbnail_url,
                 'feed_title': getattr(feed.feed, 'title', ''),
-                'summary': summary,
                 'video_id': video_id,
                 'leaving_soon': is_leaving_soon,
             })
@@ -295,8 +291,8 @@ class FeedProcessor:
             if hasattr(entry, 'media_thumbnail') and entry.media_thumbnail:
                 thumbnail_url = entry.media_thumbnail[0]['url']
             else:
-                # Look in content or summary
-                for content_attr in ['content', 'summary']:
+                # Look in content for image
+                for content_attr in ['content']:
                     if hasattr(entry, content_attr):
                         content = getattr(entry, content_attr)
                         if isinstance(content, list):
@@ -309,14 +305,6 @@ class FeedProcessor:
                             break
         
         return thumbnail_url, video_id
-    
-    def _extract_summary(self, entry: feedparser.FeedParserDict) -> str:
-        """Extract clean text summary from entry."""
-        if not hasattr(entry, 'summary'):
-            return ''
-        
-        soup = BeautifulSoup(entry.summary, 'html.parser')
-        return soup.get_text(strip=True)
     
     def sort_items(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Sort items by published date."""
@@ -369,11 +357,6 @@ class FeedProcessor:
 '''
         if item.get('leaving_soon'):
             html += '<p class="leaving-soon">⏰ Leaving soon</p>\n'
-
-        if item['summary']:
-            html += f'''<button class="toggle-summary-btn" data-target="summary-{item_id}">...</button>
-<div id="summary-{item_id}" class="summary" style="display: none;">{item["summary"]}</div>
-'''
 
         html += '</div>\n</div>\n'
         return html
