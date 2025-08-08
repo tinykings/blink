@@ -6,36 +6,33 @@ html, body {
 }
 
 body {
-    --background-color: #2e3440;           /* Nord Polar Night */
-    --primary-text-color: #e5e9f0;         /* Snow Storm */
-    --secondary-text-color: #d8dee9;       /* Lighter Snow Storm */
-    --accent-color: #88c0d0;               /* Frost cyan */
-    --accent-color-hover: #8fbcbb;         /* Frost teal */
-    --surface-color: #3b4252;              /* Polar Night lighter */
-    --border-color: #434c5e;               /* Polar Night border */
-    --box-shadow-color: rgba(0, 0, 0, 0.25);
-    --button-bg-color: #4c566a;            /* Dark gray button */
-    --button-text-color: #e5e9f0;          /* Light text */
-    --button-border-color: #434c5e;        /* Border match */
-    --button-hover-bg-color: #5e81ac;      /* Frost blue hover */
-    --visited-link-color: #b48ead;         /* Frost purple */
+    --background-color: #2e3440;           /* Dark background */
+    --primary-text-color: #e5e9f0;         /* Text on dark */
+    --secondary-text-color: #d8dee9;       /* Muted text */
+    --accent-color: #88c0d0;               /* Accent */
+    --accent-color-hover: #8fbcbb;         /* Accent hover */
+    --surface-color: #3b4252;              /* Card bg */
+    --border-color: #434c5e;               /* Borders */
+    --box-shadow-color: rgba(0, 0, 0, 0.18);
+    --visited-link-color: #b48ead;         /* Visited */
 
-    --font-family-main: 'Inter', sans-serif;
+    --font-family-main: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
     --line-height-normal: 1.6;
-    --font-size-small: 0.8em;
-    --font-size-medium: 0.9em;
-    --font-size-large: 1.4em;
+    --font-size-small: 0.85rem;
+    --font-size-medium: 0.95rem;
+    --font-size-large: 1.25rem;
 
-    --spacing-small: 5px;
-    --spacing-medium: 10px;
-    --spacing-large: 15px;
-    --spacing-xlarge: 20px;
-    --spacing-xxlarge: 40px;
+    --spacing-small: 4px;
+    --spacing-medium: 8px;
+    --spacing-large: 12px;
+    --spacing-xlarge: 18px;
+    --spacing-xxlarge: 36px;
 
-    --border-radius-small: 5px;
-    --border-radius-medium: 8px;
-    --header-height: 100px;
+    --border-radius-small: 8px;
+    --border-radius-medium: 12px;
+    --header-height: 64px;
 
+    color-scheme: dark light;
     font-family: var(--font-family-main);
     line-height: var(--line-height-normal);
     margin: 0;
@@ -43,20 +40,30 @@ body {
     padding-top: calc(var(--spacing-xlarge) + var(--header-height));
     background-color: var(--background-color);
     color: var(--primary-text-color);
-    
-    /* iOS PWA fixes */
     -webkit-overflow-scrolling: touch;
     position: relative;
     min-height: 100vh;
 }
 
+@media (prefers-color-scheme: light) {
+  body {
+    --background-color: #f7f7f8;
+    --primary-text-color: #1c1f24;
+    --secondary-text-color: #3c434d;
+    --accent-color: #2a7ea2;
+    --accent-color-hover: #2b6f8c;
+    --surface-color: #ffffff;
+    --border-color: #e3e5e8;
+    --box-shadow-color: rgba(0,0,0,0.06);
+    --visited-link-color: #6c3fa4;
+  }
+}
+
 .header {
     text-align: center;
-    /* iOS safe area support */
     padding-top: env(safe-area-inset-top);
     padding-left: calc(env(safe-area-inset-left) + var(--spacing-xlarge));
     padding-right: calc(env(safe-area-inset-right) + var(--spacing-xlarge));
-    /* Prevent text selection issues */
     -webkit-user-select: none;
     user-select: none;
     position: fixed;
@@ -64,7 +71,9 @@ body {
     left: 0;
     right: 0;
     z-index: 999;
-    background-color: var(--background-color);
+    background-color: color-mix(in oklab, var(--background-color) 90%, transparent);
+    backdrop-filter: saturate(140%) blur(10px);
+    border-bottom: 1px solid var(--border-color);
 }
 
 
@@ -102,9 +111,7 @@ body {
     font-size: var(--font-size-medium);
     color: var(--secondary-text-color);
     text-align: left;
-    background: none;
-    border: none;
-    cursor: pointer;
+    margin: 12px 0;
 }
 
 .feed-updates {
@@ -132,23 +139,39 @@ body {
     gap: var(--spacing-medium);
 }
 
-.header-icon {
-    cursor: pointer;
-    font-size: 1.5em;
+.icon-btn {
+    appearance: none;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
     color: var(--accent-color);
+    border-radius: 10px;
+    padding: 8px;
+    line-height: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
 }
-
-.header-icon.starred-active {
+.icon-btn:hover {
+    background: color-mix(in oklab, var(--surface-color), var(--accent-color) 8%);
+    border-color: color-mix(in oklab, var(--border-color), var(--accent-color) 35%);
+}
+.icon-btn:active {
+    transform: translateY(1px) scale(0.98);
+}
+.icon-btn:focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--accent-color), white 20%);
+    outline-offset: 2px;
+}
+.icon-btn.active {
     color: gold;
 }
 
 #feed-container {
-    max-width: 800px;
+    max-width: 820px;
     margin: 0 auto;
-    /* iOS safe area support */
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
-    /* Hardware acceleration */
     will-change: transform;
     transform: translateZ(0);
 }
@@ -157,12 +180,12 @@ body {
     background-color: var(--surface-color);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-medium);
-    padding: var(--spacing-xlarge);
-    margin-bottom: var(--spacing-xlarge);
-    box-shadow: 0 4px 8px var(--box-shadow-color);
+    padding: calc(var(--spacing-xlarge) + 2px);
+    margin-bottom: var(--spacing-xxlarge);
+    box-shadow: 0 2px 8px var(--box-shadow-color);
     text-align: left;
-    /* Performance optimization */
-    contain: layout;
+    content-visibility: auto;
+    contain-intrinsic-size: 300px;
 }
 
 .feed-item h2 {
@@ -199,7 +222,6 @@ body {
     height: auto;
     border-radius: var(--border-radius-small);
     margin-bottom: var(--spacing-large);
-    /* Prevent image load crashes */
     object-fit: cover;
 }
 
@@ -239,7 +261,6 @@ body {
     max-width: 100%;
     border-radius: var(--border-radius-small);
     margin-bottom: var(--spacing-large);
-    /* Prevent video-related crashes */
     contain: layout;
 }
 
@@ -254,10 +275,9 @@ body {
 .star-icon {
     font-size: 1.5em;
     cursor: pointer;
-    color: #ccc;
+    color: #bbb;
     margin-right: 10px;
 }
-
 .star-icon.starred {
     color: gold;
 }

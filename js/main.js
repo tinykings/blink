@@ -61,36 +61,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderFeed(filter = 'all') {
-        if (!feedContainer || !feedData.length) {
-            return;
+        if (!feedContainer) return;
+
+        if (feedData.length) {
+            const seenItemIds = JSON.parse(localStorage.getItem('seenItemIds') || '[]');
+            const starredItems = getStarredItems();
+
+            let itemsToRender = feedData;
+            if (filter === 'starred') {
+                itemsToRender = feedData.filter(item => starredItems.includes(item.id));
+            }
+
+            const newItems = itemsToRender.filter(item => !seenItemIds.includes(item.id));
+            const oldItems = itemsToRender.filter(item => seenItemIds.includes(item.id));
+
+            let html = '';
+
+            newItems.forEach((item) => { html += generateItemHtml(item); });
+            if (newItems.length > 0 && oldItems.length > 0) {
+                html += '<div class="last-seen-marker">^ New ^</div>';
+            }
+            oldItems.forEach((item) => { html += generateItemHtml(item); });
+
+            feedContainer.innerHTML = html;
+        } else {
+            // Static DOM mode: toggle visibility based on starred items
+            const starredItems = getStarredItems();
+            const items = Array.from(feedContainer.querySelectorAll('.feed-item'));
+            if (filter === 'starred') {
+                items.forEach(el => {
+                    const id = el.getAttribute('data-item-id');
+                    el.style.display = starredItems.includes(id) ? '' : 'none';
+                });
+            } else {
+                items.forEach(el => { el.style.display = ''; });
+            }
         }
-
-        const seenItemIds = JSON.parse(localStorage.getItem('seenItemIds') || '[]');
-        const starredItems = getStarredItems();
-
-        let itemsToRender = feedData;
-        if (filter === 'starred') {
-            itemsToRender = feedData.filter(item => starredItems.includes(item.id));
-        }
-
-        const newItems = itemsToRender.filter(item => !seenItemIds.includes(item.id));
-        const oldItems = itemsToRender.filter(item => seenItemIds.includes(item.id));
-
-        let html = '';
-
-        newItems.forEach((item) => {
-            html += generateItemHtml(item);
-        });
-
-        if (newItems.length > 0 && oldItems.length > 0) {
-            html += '<div class="last-seen-marker">^ New ^</div>';
-        }
-
-        oldItems.forEach((item) => {
-            html += generateItemHtml(item);
-        });
-
-        feedContainer.innerHTML = html;
     }
 
     if (feedContainer) {
@@ -134,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             showingStarred = !showingStarred;
             renderFeed(showingStarred ? 'starred' : 'all');
-            starToggle.classList.toggle('starred-active', showingStarred);
+            starToggle.classList.toggle('active', showingStarred);
         });
     }
 
@@ -150,10 +156,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    renderFeed();
+    // Enhance static DOM if needed: add star icons and lazy-loading
+    if (feedContainer && !feedData.length) {
+        const starred = new Set(getStarredItems());
+        feedContainer.querySelectorAll('.feed-item').forEach(itemEl => {
+            const id = itemEl.getAttribute('data-item-id');
+            // Inject actions row if missing
+            let actions = itemEl.querySelector('.feed-item-actions');
+            if (!actions) {
+                actions = document.createElement('div');
+                actions.className = 'feed-item-actions';
+                const info = itemEl.querySelector('.feed-item-info') || itemEl;
+                info.appendChild(actions);
+            }
+            // Inject star icon if missing
+            if (!actions.querySelector('.star-icon')) {
+                const star = document.createElement('span');
+                star.className = 'star-icon' + (starred.has(id) ? ' starred' : '');
+                star.dataset.itemId = id;
+                star.textContent = '★';
+                actions.prepend(star);
+            }
+        });
+        // Mark seen IDs
+        const ids = Array.from(feedContainer.querySelectorAll('.feed-item'))
+            .map(el => el.getAttribute('data-item-id'))
+            .filter(Boolean);
+        localStorage.setItem('seenItemIds', JSON.stringify(ids));
+    } else {
+        // Dynamic render path
+        renderFeed();
+        const allItemIds = feedData.map(item => item.id);
+        localStorage.setItem('seenItemIds', JSON.stringify(allItemIds));
+    }
 
-    const allItemIds = feedData.map(item => item.id);
-    localStorage.setItem('seenItemIds', JSON.stringify(allItemIds));
+    // Progressive image hints
+    document.querySelectorAll('img.feed-thumbnail, img.video-thumbnail').forEach(img => {
+        img.loading = img.loading || 'lazy';
+        img.decoding = img.decoding || 'async';
+        img.referrerPolicy = img.referrerPolicy || 'no-referrer-when-downgrade';
+    });
 
 });
 
