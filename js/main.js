@@ -38,21 +38,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const starredItems = getStarredItems();
         const isStarred = starredItems.includes(item.id);
 
-        const actionsHtml = `
-            <div class="feed-item-actions">
-                <span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>
-            </div>
-        `;
+        const starHtml = `<span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>`;
 
         const leavingSoonHtml = item.leaving_soon ? '<p class="leaving-soon">⏰ Leaving soon</p>' : '';
 
         return `
             <div class="feed-item" data-item-id="${item.id}">
+                ${starHtml}
                 ${mediaHtml}
                 <div class="feed-item-info">
                     <h2><a href="${item.link}" target="_blank">${item.title}</a></h2>
                     ${leavingSoonHtml}
-                    ${actionsHtml}
                 </div>
             </div>
         `;
@@ -159,21 +155,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const starred = new Set(getStarredItems());
         feedContainer.querySelectorAll('.feed-item').forEach(itemEl => {
             const id = itemEl.getAttribute('data-item-id');
-            // Inject actions row if missing
-            let actions = itemEl.querySelector('.feed-item-actions');
-            if (!actions) {
-                actions = document.createElement('div');
-                actions.className = 'feed-item-actions';
-                const info = itemEl.querySelector('.feed-item-info') || itemEl;
-                info.appendChild(actions);
-            }
-            // Inject star icon if missing
-            if (!actions.querySelector('.star-icon')) {
+            // Inject star icon as a floating tab if missing
+            if (!itemEl.querySelector('.star-icon')) {
                 const star = document.createElement('span');
                 star.className = 'star-icon' + (starred.has(id) ? ' starred' : '');
                 star.dataset.itemId = id;
                 star.textContent = '★';
-                actions.prepend(star);
+                itemEl.prepend(star);
             }
         });
         // Mark seen IDs

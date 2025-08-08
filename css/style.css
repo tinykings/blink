@@ -185,11 +185,14 @@ body {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-medium);
     padding: var(--spacing-large);
+    /* Reserve space for right-side star tab */
+    padding-right: calc(var(--spacing-large) + 44px);
     margin-bottom: var(--spacing-xlarge);
     box-shadow: 0 2px 8px var(--box-shadow-color);
     text-align: left;
     content-visibility: auto;
     contain-intrinsic-size: 300px;
+    position: relative;
 }
 
 .feed-item h2 {
@@ -276,11 +279,25 @@ body {
     height: 100%;
 }
 
-.star-icon {
-    font-size: 1.5em;
+.feed-item .star-icon {
+    position: absolute;
+    top: 50%;
+    right: var(--spacing-medium);
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    border-radius: 10px;
+    box-shadow: 0 1px 4px var(--box-shadow-color);
+    font-size: 1.2rem;
+    line-height: 1;
     cursor: pointer;
     color: #bbb;
-    margin-right: 10px;
+    z-index: 2;
 }
 .star-icon.starred {
     color: gold;
@@ -419,12 +436,4 @@ html {
 
 
 
-.star-icon {
-    font-size: 1.5em;
-    cursor: pointer;
-    color: #ccc;
-}
-
-.star-icon.starred {
-    color: gold;
-}
+/* Legacy duplicates removed above; keep single rule set */
