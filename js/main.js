@@ -51,8 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${mediaHtml}
                 <div class="feed-item-info">
                     <h2><a href="${item.link}" target="_blank">${item.title}</a></h2>
-                    <p class="published-date">${item.published}</p>
-                    <p class="feed-title">${item.feed_title}</p>
                     ${leavingSoonHtml}
                     ${actionsHtml}
                 </div>

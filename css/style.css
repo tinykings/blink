@@ -184,8 +184,8 @@ body {
     background-color: var(--surface-color);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-medium);
-    padding: calc(var(--spacing-xlarge) + 2px);
-    margin-bottom: var(--spacing-xxlarge);
+    padding: var(--spacing-large);
+    margin-bottom: var(--spacing-xlarge);
     box-shadow: 0 2px 8px var(--box-shadow-color);
     text-align: left;
     content-visibility: auto;
@@ -194,7 +194,7 @@ body {
 
 .feed-item h2 {
     font-size: var(--font-size-large);
-    margin: 0 0 var(--spacing-medium);
+    margin: 0 0 var(--spacing-small);
     text-align: left;
 }
 
@@ -225,7 +225,7 @@ body {
     max-width: 100%;
     height: auto;
     border-radius: var(--border-radius-small);
-    margin-bottom: var(--spacing-large);
+    margin-bottom: var(--spacing-medium);
     object-fit: cover;
 }
 
@@ -264,7 +264,7 @@ body {
     overflow: hidden;
     max-width: 100%;
     border-radius: var(--border-radius-small);
-    margin-bottom: var(--spacing-large);
+    margin-bottom: var(--spacing-medium);
     contain: layout;
 }
 
@@ -363,7 +363,7 @@ html {
     cursor: pointer;
     background-color: #000; /* Black background for video area */
     border-radius: var(--border-radius-small);
-    margin-bottom: var(--spacing-large);
+    margin-bottom: var(--spacing-medium);
     overflow: hidden;
 }
 

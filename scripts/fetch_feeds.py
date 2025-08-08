@@ -347,13 +347,9 @@ class FeedProcessor:
         elif item['thumbnail']:
             html += f'<a href="{item["link"]}" target="_blank"><img src="{item["thumbnail"]}" alt="{item["title"]}" class="feed-thumbnail"></a>\n'
 
-        # Add item info
-        published_str = item["published"].strftime("%Y-%m-%d %H:%M:%S") if isinstance(item["published"], datetime) else str(item["published"])
-
+        # Add item info (compact: omit published date and feed title)
         html += f'''<div class="feed-item-info">
 <h2><a href="{item["link"]}" target="_blank">{item["title"]}</a></h2>
-<p class="published-date">{published_str}</p>
-<p class="feed-title">{item["feed_title"]}</p>
 '''
         if item.get('leaving_soon'):
             html += '<p class="leaving-soon">⏰ Leaving soon</p>\n'
