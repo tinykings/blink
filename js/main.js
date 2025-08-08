@@ -136,15 +136,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 const videoId = videoPlaceholder.getAttribute('data-video-id');
                 if (videoId) {
                     const iframe = document.createElement('iframe');
-                    iframe.setAttribute('src', `https://www.youtube.com/embed/${videoId}?autoplay=1`);
+                    iframe.setAttribute('src', `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1`);
                     iframe.setAttribute('frameborder', '0');
                     iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
                     iframe.setAttribute('allowfullscreen', '');
                     iframe.classList.add('video-iframe');
-                    
+
                     videoPlaceholder.innerHTML = '';
                     videoPlaceholder.appendChild(iframe);
                     videoPlaceholder.classList.add('video-loaded');
+
+                    if (document.pictureInPictureEnabled && typeof iframe.requestPictureInPicture === 'function') {
+                        const pipBtn = document.createElement('button');
+                        pipBtn.className = 'pip-button';
+                        pipBtn.textContent = '⧉';
+                        pipBtn.addEventListener('click', async (event) => {
+                            event.stopPropagation();
+                            try {
+                                if (document.pictureInPictureElement) {
+                                    await document.exitPictureInPicture();
+                                } else {
+                                    await iframe.requestPictureInPicture();
+                                }
+                            } catch (err) {
+                                console.error('Error using Picture-in-Picture:', err);
+                            }
+                        });
+                        videoPlaceholder.appendChild(pipBtn);
+                    }
                 }
             }
         });
