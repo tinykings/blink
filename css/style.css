@@ -398,20 +398,6 @@ html {
     height: 100%;
 }
 
-.video-placeholder .pip-button {
-    position: absolute;
-    bottom: var(--spacing-small);
-    right: var(--spacing-small);
-    background-color: rgba(0, 0, 0, 0.6);
-    color: var(--accent-color);
-    border: none;
-    border-radius: var(--border-radius-small);
-    padding: var(--spacing-small) var(--spacing-medium);
-    cursor: pointer;
-    z-index: 5;
-    font-size: var(--font-size-small);
-}
-
 
 
 .star-icon {
