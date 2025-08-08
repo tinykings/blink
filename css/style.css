@@ -6,20 +6,20 @@ html, body {
 }
 
 body {
-    --background-color: #2e3440;           /* Nord Polar Night */
-    --primary-text-color: #e5e9f0;         /* Snow Storm */
-    --secondary-text-color: #d8dee9;       /* Lighter Snow Storm */
-    --accent-color: #88c0d0;               /* Frost cyan */
-    --accent-color-hover: #8fbcbb;         /* Frost teal */
-    --surface-color: #3b4252;              /* Polar Night lighter */
-    --border-color: #434c5e;               /* Polar Night border */
-    --box-shadow-color: rgba(0, 0, 0, 0.25);
-    --button-bg-color: #4c566a;            /* Dark gray button */
-    --button-text-color: #e5e9f0;          /* Light text */
-    --button-border-color: #434c5e;        /* Border match */
-    --button-hover-bg-color: #5e81ac;      /* Frost blue hover */
-    --summary-text-color: #d8dee9;         /* Muted text */
-    --visited-link-color: #b48ead;  
+    --background-color: #282a36;       /* dark background */
+    --primary-text-color: #f8f8f2;     /* main text */
+    --secondary-text-color: #6272a4;   /* muted text */
+    --accent-color: #ff79c6;           /* pink */
+    --accent-color-hover: #bd93f9;     /* purple */
+    --surface-color: #44475a;          /* panels/cards */
+    --border-color: #6272a4;           /* muted border */
+    --box-shadow-color: rgba(0, 0, 0, 0.3);
+    --button-bg-color: #44475a;
+    --button-text-color: #f8f8f2;
+    --button-border-color: #6272a4;
+    --button-hover-bg-color: #6272a4;
+    --summary-text-color: #8be9fd;     /* cyan */
+    --visited-link-color: #bd93f9;     /* purple */
 
     --font-family-main: 'Inter', sans-serif;
     --line-height-normal: 1.6;
