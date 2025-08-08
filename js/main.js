@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return JSON.parse(localStorage.getItem('starredItems') || '[]');
     }
 
-    function generateItemHtml(item, itemId) {
+    function generateItemHtml(item) {
         let mediaHtml = '';
         if (item.video_id) {
             const thumbnailUrl = `https://img.youtube.com/vi/${item.video_id}/hqdefault.jpg`;
@@ -38,22 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const starredItems = getStarredItems();
         const isStarred = starredItems.includes(item.id);
 
-        let summaryHtml = '';
-        if (item.summary) {
-            summaryHtml = `
-            <div class="feed-item-actions">
-                <span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>
-                <button class="toggle-summary-btn" data-target="summary-${itemId}">...</button>
-            </div>
-            <div id="summary-${itemId}" class="summary" style="display: none;">${item.summary}</div>
-            `;
-        } else {
-            summaryHtml = `
+        const actionsHtml = `
             <div class="feed-item-actions">
                 <span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>
             </div>
-            `;
-        }
+        `;
 
         const leavingSoonHtml = item.leaving_soon ? '<p class="leaving-soon">⏰ Leaving soon</p>' : '';
 
@@ -65,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p class="published-date">${item.published}</p>
                     <p class="feed-title">${item.feed_title}</p>
                     ${leavingSoonHtml}
-                    ${summaryHtml}
+                    ${actionsHtml}
                 </div>
             </div>
         `;
@@ -89,16 +78,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let html = '';
 
-        newItems.forEach((item, index) => {
-            html += generateItemHtml(item, `new-${index}`);
+        newItems.forEach((item) => {
+            html += generateItemHtml(item);
         });
 
         if (newItems.length > 0 && oldItems.length > 0) {
             html += '<div class="last-seen-marker">^ New ^</div>';
         }
 
-        oldItems.forEach((item, index) => {
-            html += generateItemHtml(item, `old-${index}`);
+        oldItems.forEach((item) => {
+            html += generateItemHtml(item);
         });
 
         feedContainer.innerHTML = html;
@@ -121,16 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            const toggleSummaryBtn = e.target.closest('.toggle-summary-btn');
-            if (toggleSummaryBtn) {
-                const targetId = toggleSummaryBtn.getAttribute('data-target');
-                const summaryDiv = document.getElementById(targetId);
-                if (summaryDiv) {
-                    summaryDiv.style.display = summaryDiv.style.display === 'none' ? 'block' : 'none';
-                }
-                return;
-            }
-
             const videoPlaceholder = e.target.closest('.video-placeholder');
             if (videoPlaceholder && !videoPlaceholder.classList.contains('video-loaded')) {
                 const videoId = videoPlaceholder.getAttribute('data-video-id');
