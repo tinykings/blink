@@ -6,20 +6,20 @@ html, body {
 }
 
 body {
-    --background-color: #121212;
-    --primary-text-color: #e0e0e0;
-    --secondary-text-color: #888;
-    --accent-color: #cdffd8;
-    --accent-color-hover: #708090;
-    --surface-color: #1e1e1e;
-    --border-color: #333;
-    --box-shadow-color: rgba(0, 0, 0, 0.2);
-    --button-bg-color: #333;
-    --button-text-color: #e0e0e0;
-    --button-border-color: #555;
-    --button-hover-bg-color: #555;
-    --summary-text-color: #b0b0b0;
-    --visited-link-color: #888;
+    --background-color: #2e3440;           /* Nord Polar Night */
+    --primary-text-color: #e5e9f0;         /* Snow Storm */
+    --secondary-text-color: #d8dee9;       /* Lighter Snow Storm */
+    --accent-color: #88c0d0;               /* Frost cyan */
+    --accent-color-hover: #8fbcbb;         /* Frost teal */
+    --surface-color: #3b4252;              /* Polar Night lighter */
+    --border-color: #434c5e;               /* Polar Night border */
+    --box-shadow-color: rgba(0, 0, 0, 0.25);
+    --button-bg-color: #4c566a;            /* Dark gray button */
+    --button-text-color: #e5e9f0;          /* Light text */
+    --button-border-color: #434c5e;        /* Border match */
+    --button-hover-bg-color: #5e81ac;      /* Frost blue hover */
+    --summary-text-color: #d8dee9;         /* Muted text */
+    --visited-link-color: #b48ead;  
 
     --font-family-main: 'Inter', sans-serif;
     --line-height-normal: 1.6;
@@ -103,6 +103,26 @@ body {
     font-size: var(--font-size-medium);
     color: var(--secondary-text-color);
     text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.feed-updates {
+    display: none;
+    position: fixed;
+    top: calc(var(--header-height) + var(--spacing-small));
+    left: calc(env(safe-area-inset-left) + var(--spacing-xlarge));
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    padding: var(--spacing-medium);
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.feed-updates div {
+    margin-bottom: var(--spacing-small);
 }
 
 .header-icons {
