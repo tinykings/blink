@@ -351,10 +351,17 @@ class FeedProcessor:
         html += f'''<div class="feed-item-info">
 <h2><a href="{item["link"]}" target="_blank">{item["title"]}</a></h2>
 '''
-        if item.get('leaving_soon'):
-            html += '<p class="leaving-soon">⏰ Leaving soon</p>\n'
+        html += '</div>\n'
 
-        html += '</div>\n</div>\n'
+        # Add leaving-soon indicator as a corner icon (no text)
+        if item.get('leaving_soon'):
+            html += (
+                '<span class="leaving-soon-icon" ' \
+                'title="one day left, leaving tomorrow" ' \
+                'aria-label="one day left, leaving tomorrow" role="img">⏰</span>\n'
+            )
+
+        html += '</div>\n'
         return html
 
     def _generate_all_items_json(self, items: List[Dict[str, Any]]) -> str:

@@ -40,7 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const starHtml = `<span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>`;
 
-        const leavingSoonHtml = item.leaving_soon ? '<p class="leaving-soon">⏰ Leaving soon</p>' : '';
+        const leavingSoonIconHtml = item.leaving_soon
+            ? '<span class="leaving-soon-icon" title="one day left, leaving tomorrow" aria-label="one day left, leaving tomorrow" role="img">⏰</span>'
+            : '';
 
         return `
             <div class="feed-item" data-item-id="${item.id}">
@@ -48,8 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${mediaHtml}
                 <div class="feed-item-info">
                     <h2><a href="${item.link}" target="_blank">${item.title}</a></h2>
-                    ${leavingSoonHtml}
                 </div>
+                ${leavingSoonIconHtml}
             </div>
         `;
     }
