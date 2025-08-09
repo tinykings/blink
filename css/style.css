@@ -62,12 +62,12 @@ body {
 }
 
 .footer-bar {
-    text-align: center;
+    text-align: left;
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: calc(env(safe-area-inset-left) + var(--spacing-xlarge));
     padding-right: calc(env(safe-area-inset-right) + var(--spacing-xlarge));
-    /* Add top padding to create more space above the bottom buttons */
-    padding-top: var(--spacing-xlarge);
+    /* Keep footer compact */
+    padding-top: var(--spacing-medium);
     -webkit-user-select: none;
     user-select: none;
     position: fixed;
@@ -78,6 +78,23 @@ body {
     background-color: color-mix(in oklab, var(--background-color) 70%, transparent);
     backdrop-filter: saturate(140%) blur(10px);
     border-top: 1px solid var(--border-color);
+}
+
+.footer-bar .repo-link {
+    display: inline-block;
+    font-size: var(--font-size-medium);
+    color: var(--accent-color);
+    text-decoration: none;
+    margin-bottom: var(--spacing-small);
+}
+.footer-bar .repo-link:hover {
+    color: var(--accent-color-hover);
+    text-decoration: underline;
+}
+
+/* Compact spacing for the footer timestamp */
+.footer-bar .last-updated {
+    margin: 2px 0 var(--spacing-small);
 }
 
 
