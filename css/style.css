@@ -415,29 +415,29 @@ html {
 
 .video-placeholder .play-button {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60px;
-    height: 60px;
-    background-color: rgba(255, 0, 0, 0.8); /* Red play button */
+    bottom: var(--spacing-medium);
+    left: var(--spacing-medium);
+    width: 36px;
+    height: 36px;
+    background-color: rgba(255, 0, 0, 0.55); /* Subtle red indicator */
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
 
 .video-placeholder .play-button::before {
     content: '';
     border-style: solid;
-    border-width: 15px 0 15px 25px;
+    border-width: 9px 0 9px 14px; /* Smaller triangle */
     border-color: transparent transparent transparent #fff; /* White triangle */
-    margin-left: 5px; /* Adjust for visual centering */
+    margin-left: 3px; /* Visual centering in smaller button */
 }
 
 .video-placeholder:hover .play-button {
-    background-color: rgba(255, 0, 0, 1); /* Darker red on hover */
+    background-color: rgba(255, 0, 0, 0.7); /* Slightly stronger on hover */
 }
 
 .video-placeholder.video-loaded .video-thumbnail,
