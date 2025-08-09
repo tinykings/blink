@@ -38,11 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const starredItems = getStarredItems();
         const isStarred = starredItems.includes(item.id);
 
-        const starHtml = `<span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>`;
-
-        const leavingSoonIconHtml = item.leaving_soon
+        // If item is leaving soon, replace the star with the leaving-soon icon
+        const starHtml = item.leaving_soon
             ? '<span class="leaving-soon-icon" title="one day left, leaving tomorrow" aria-label="one day left, leaving tomorrow" role="img">⏰</span>'
-            : '';
+            : `<span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>`;
+
+        // No separate bottom-right indicator anymore; icon now lives in star slot
+        const leavingSoonIconHtml = '';
 
         return `
             <div class="feed-item" data-item-id="${item.id}">

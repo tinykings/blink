@@ -322,11 +322,12 @@ body {
     color: gold;
 }
 
-/* Bottom-right leaving-soon indicator, styled like star icon */
+/* Leaving-soon icon now replaces the star and uses the same slot */
 .feed-item .leaving-soon-icon {
     position: absolute;
-    bottom: var(--spacing-medium);
+    top: 50%;
     right: var(--spacing-medium);
+    transform: translateY(-50%);
     width: 36px;
     height: 36px;
     display: inline-flex;
@@ -336,7 +337,7 @@ body {
     background: var(--surface-color);
     border-radius: 10px;
     box-shadow: 0 1px 4px var(--box-shadow-color);
-    font-size: 1.05rem;
+    font-size: 1.2rem;
     line-height: 1;
     color: var(--accent-color);
     user-select: none;
