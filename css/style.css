@@ -38,8 +38,8 @@ body {
     line-height: var(--line-height-normal);
     margin: 0;
     padding: var(--spacing-xlarge);
-    /* Extra top space so content clears the fixed header on mobile */
-    padding-top: calc(env(safe-area-inset-top) + var(--header-height) + var(--spacing-xxlarge));
+    /* Extra bottom space so content clears the fixed footer on mobile */
+    padding-bottom: calc(env(safe-area-inset-bottom) + var(--header-height) + var(--spacing-xxlarge));
     background-color: var(--background-color);
     color: var(--primary-text-color);
     -webkit-overflow-scrolling: touch;
@@ -61,23 +61,23 @@ body {
   }
 }
 
-.header {
+.footer-bar {
     text-align: center;
-    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
     padding-left: calc(env(safe-area-inset-left) + var(--spacing-xlarge));
     padding-right: calc(env(safe-area-inset-right) + var(--spacing-xlarge));
-    /* Add bottom padding to create more space below the top buttons */
-    padding-bottom: var(--spacing-xlarge);
+    /* Add top padding to create more space above the bottom buttons */
+    padding-top: var(--spacing-xlarge);
     -webkit-user-select: none;
     user-select: none;
     position: fixed;
-    top: 0;
+    bottom: 0;
     left: 0;
     right: 0;
     z-index: 999;
     background-color: color-mix(in oklab, var(--background-color) 70%, transparent);
     backdrop-filter: saturate(140%) blur(10px);
-    border-bottom: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-color);
 }
 
 
@@ -137,7 +137,7 @@ body {
 
 .header-icons {
     position: absolute;
-    top: calc(env(safe-area-inset-top) + var(--spacing-medium));
+    bottom: calc(env(safe-area-inset-bottom) + var(--spacing-medium));
     right: calc(env(safe-area-inset-right) + var(--spacing-xlarge));
     display: flex;
     gap: var(--spacing-medium);
