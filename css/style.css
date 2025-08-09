@@ -191,6 +191,8 @@ body {
 #feed-container {
     max-width: 820px;
     margin: 0 auto;
+    /* Extra top offset so first item clears iOS top bar */
+    margin-top: calc(env(safe-area-inset-top) + var(--spacing-xxlarge));
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
     will-change: transform;
