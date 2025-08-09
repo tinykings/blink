@@ -1,57 +1,98 @@
 <p align="center">
-  <img src="images/icon.png" alt="Blink Logo" width="150"/>
+  <img src="images/icon.png" alt="Blink Logo" width="120" />
 </p>
 
 <h1 align="center">Blink</h1>
 
+Blink is a minimalist, static feed reader that blends your favorite RSS sources and YouTube channels into one fast page. A small Python script builds a single `index.html`; a lightweight front‑end adds starring, a "new items" divider, and installable PWA support.
 
+## Features
 
-Blink is a minimalist, Python-powered aggregator for your favorite RSS and YouTube feeds. It's designed for speed and simplicity, generating a single-page HTML file.
+- 📰 Unified feed: Mix plain RSS and YouTube channels in one view.
+- 📺 YouTube auto‑RSS: Paste channel URLs — Blink resolves them to RSS and records channel names.
+- ⭐ Starring + filter: Star any item (persisted in `localStorage`) and toggle a "Show starred" view.
+- ⬆️ Handy controls: Back‑to‑top, refresh, and a footer timestamp with retention days.
+- 🆕 New marker: Remembers what you’ve seen and inserts a "^ New ^" divider for unseen items.
+- ▶️ Lazy videos: YouTube embeds load only when you click, keeping the page light.
+- ⏰ Leaving soon: Labels items nearing the rolling retention window (default 5 days).
+- 📱 PWA + offline: Install to home screen; a Service Worker caches core assets for offline reading.
+- 🌗 Polished UI: Compact card layout, light/dark via system preference, iOS safe‑area and PWA fixes.
+- 🤖 Automated updates: GitHub Actions fetches feeds on a schedule and commits updated `index.html` and a normalized `feeds.txt`.
 
-## Key Features
+## Quick Start
 
--   **📰 Unified Feed:**
-    - Combines RSS and YouTube channels into a single, streamlined view.
--   **📺 Smart YouTube Integration:**
-    - Automatically converts YouTube channel URLs into RSS feeds—no more hunting for hidden feed links!
--   **⚡ Kind of Fast I guess:**
-    - By generating a static HTML file and prioritizing today's content, Blink loads instantly, even with hundreds of feeds.
--   **📱 Progressive Web App (PWA):**
-    - Install Blink on your desktop or mobile device for an app-like experience, complete with an icon and offline access.
--   **🚀 Automated & Self-Hosted:**
-    - Deploy your personalized feed to GitHub Pages for free and keep it updated automatically with the included GitHub Actions workflow.
+1) Requirements
 
-## How It Works
+- Python 3.x
+- `pip install feedparser beautifulsoup4 lxml requests pytz`
 
-1.  **📝 Add Your Feeds:**  
-    Populate the `feeds.txt` file with your favorite RSS and YouTube channel URLs, organized under the `#rss` and `#youtube` sections.
+2) Add feeds
 
-2.  **⚙️ Fetch & Process:**  
-    Run the main Python script: `python3 scripts/fetch_feeds.py`.
-    - It automatically converts YouTube URLs to their corresponding RSS feeds.
-    - It fetches content from all sources and groups items by date (based on your configured timezone).
+- Edit `feeds.txt` and place URLs under the `#rss` and `#youtube` headers.
+- You can paste full YouTube channel URLs or existing YouTube RSS URLs — Blink will normalize them.
 
-3.  **📄 Generate the Page:**  
-    The script injects the fresh content into the `index.template.html` and generates the final `index.html`, ready for viewing.
+3) Build the page
 
-## Self-Hosting on GitHub Pages (with Automation)
+- Run: `python3 scripts/fetch_feeds.py`
+- Output: `index.html` is generated from `index.template.html` with items injected and JSON data embedded.
+- Open `index.html` in your browser.
 
-Host your personal Blink feed on GitHub Pages and let GitHub Actions keep it updated automatically.
+## Usage Notes
 
-### 1. Prepare Your Repository
+- Starred items are stored in your browser and persist across visits. Use the star button in the footer to filter.
+- A "^ New ^" divider appears between items you haven’t seen and ones you have (tracked via `localStorage`).
+- YouTube thumbnails are shown; clicking plays the embed inline. Other feeds show a thumbnail if one can be extracted.
+- The UI intentionally omits per‑item dates and feed titles to stay compact.
 
--   Push your project to a new GitHub repository.
--   Customize `feeds.txt` with your desired sources.
+## Configuration
 
-### 2. Enable GitHub Pages
+Tune behavior at the top of `scripts/fetch_feeds.py`:
 
--   In your repository, go to **Settings > Pages**.
--   Under "Build and deployment," set the **Source** to **GitHub Actions**. The workflow included in `.github/workflows/main.yml` will handle the rest.
+- `TIMEZONE`: Timezone used for timestamps and the footer.
+- `ITEMS_RETENTION_DAYS`: Rolling window for items included and for the "Leaving soon" label.
+- `REQUEST_TIMEOUT`, `USER_AGENT`: Network fetch tuning.
 
-### 3. Access Your Feed
+When you run the script:
 
-After the workflow runs for the first time, your feed will be live at:
-`https://<your-username>.github.io/<your-repo-name>/`
+- YouTube channel URLs are converted to RSS; `feeds.txt` is rewritten in a normalized format and annotated with channel names.
+- A simple `yt.log` is generated with channel IDs and names.
 
-The workflow is configured to run on a schedule (e.g., every 6 hours) and can also be triggered manually from the **Actions** tab in your repository.
+## Deploy
 
+### GitHub Pages (automated)
+
+This repo includes `.github/workflows/main.yml`:
+
+- Fetches feeds and regenerates `index.html` on a schedule (hourly by default via cron).
+- Commits changes to `index.html` and `feeds.txt` and pushes them.
+
+Steps:
+
+1) Push this project to GitHub.
+2) In the repo, open Settings → Pages and set Source to GitHub Actions.
+3) Visit `https://<username>.github.io/<repo>/` once the action completes.
+
+Paths and PWA:
+
+- `manifest.json` is set for a repo named `blink` (`start_url` and `scope` use `/blink/`). Update these if your repo name differs or you use a custom domain.
+- The Service Worker is registered at `/sw.js` in `js/main.js`. If you serve under a sub‑path, consider changing to `./sw.js` or adjusting the scope.
+
+### Any static host
+
+Serve the generated `index.html` and the `css/`, `js/`, `images/`, `manifest.json`, and `sw.js` files from any static server.
+
+## File Map
+
+- `feeds.txt`: Your sources (`#rss`, `#youtube`).
+- `scripts/fetch_feeds.py`: Fetch/convert/normalize feeds, generate HTML + JSON, write `index.html`.
+- `index.template.html`: HTML shell with placeholders.
+- `index.html`: Built page (committed by CI).
+- `js/main.js`: Starring, filtering, lazy YouTube embeds, PWA registration.
+- `css/style.css`: UI styles, light/dark, iOS PWA fixes.
+- `manifest.json`, `sw.js`, `images/icon.png`: PWA and caching assets.
+
+## FAQ
+
+- Can I paste a YouTube channel URL? Yes. The script resolves it to an RSS feed and rewrites `feeds.txt` accordingly.
+- Where do starred items live? In your browser (`localStorage`) — they don’t sync between devices.
+- Why don’t I see dates/feed names on cards? The layout is intentionally compact; the footer shows last updated time and retention window.
