@@ -163,8 +163,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UC9Uej_tQ-kXssFR4eSjeXCg
 https://www.youtube.com/feeds/videos.xml?channel_id=UC9bORzxOWiewqMXxkmhAwAg
 # Glass Reflection
 https://www.youtube.com/feeds/videos.xml?channel_id=UCmEbe0XH51CI09gm_9Fcn8Q
-# GQ
-https://www.youtube.com/feeds/videos.xml?channel_id=UCsEukrAd64fqA7FjwkmZ_Dw
 # Hacked
 https://www.youtube.com/feeds/videos.xml?channel_id=UCAK7m6PYjsffzG5Wn5RVO4g
 # Hak5
