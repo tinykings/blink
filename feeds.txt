@@ -1,6 +1,5 @@
 #rss
 https://www.reddit.com/r/apple/top.rss?t=week
-https://www.reddit.com/r/anime/top.rss?t=week
 https://www.reddit.com/r/openai/top.rss?t=week
 https://www.reddit.com/r/sysadmin/top.rss?t=week
 https://www.reddit.com/r/technology/top.rss?t=week
@@ -390,8 +389,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCKJgBJcJkc0Q4kZeGIyNTYA
 https://www.youtube.com/feeds/videos.xml?channel_id=UCsm-uFE1pEJnmySSCRTStaA
 # Tiff In Tech
 https://www.youtube.com/feeds/videos.xml?channel_id=UC4MZ7zUHb5eAxU75Dc_nqdQ
-# Tim Dessaint
-https://www.youtube.com/feeds/videos.xml?channel_id=UCfJrdVVcWZMHLC--a4ovLLQ
 # toka -暮らしの記録-
 https://www.youtube.com/feeds/videos.xml?channel_id=UC4hSJgj8TMuOBmsgHRmE-VA
 # Track Star*
