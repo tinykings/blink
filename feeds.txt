@@ -1,6 +1,5 @@
 #rss
 https://www.reddit.com/r/apple/top.rss?t=week
-https://www.reddit.com/r/iosgaming/top.rss?t=week
 https://www.reddit.com/r/openai/top.rss?t=week
 https://www.reddit.com/r/sysadmin/top.rss?t=week
 https://www.reddit.com/r/technology/top.rss?t=week
