@@ -18,6 +18,7 @@ https://www.404media.co/rss
 https://openai.com/news/rss.xml
 
 #youtube
+https://m.youtube.com/@HaylsWorld/videos
 # Moebius FM
 https://www.youtube.com/feeds/videos.xml?channel_id=UCpiM1VjFQ5Ke7lW6LICmYzA
 # Cassette Invaders
