@@ -13,7 +13,6 @@ https://www.macstories.net/feed/
 https://www.thelazyadministrator.com/feed/
 https://feeds.feedburner.com/StudyHacks
 https://www.404media.co/rss
-https://openai.com/news/rss.xml
 
 #youtube
 # Skill Up
@@ -274,8 +273,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UC-l69It3hxAY3tkBH_utLNQ
 https://www.youtube.com/feeds/videos.xml?channel_id=UCDivkE8Ckgk14fu1XChEp7w
 # Linus Tech Tips
 https://www.youtube.com/feeds/videos.xml?channel_id=UCXuqSBlHAE6Xw-yeJA0Tunw
-# Linux Network
-https://www.youtube.com/feeds/videos.xml?channel_id=UC7txXhmfldON1qREhxMGNXA
 # Living Big In A Tiny House
 https://www.youtube.com/feeds/videos.xml?channel_id=UCoNTMWgGuXtGPLv9UeJZwBw
 # Lucile
