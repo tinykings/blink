@@ -78,8 +78,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // merge strategy: union of item ids, keep updated_at = now
         function merge(localObj, remoteObj) {
-            const set = new Set([...(localObj.items || []), ...(remoteObj?.items || [])]);
-            return { items: Array.from(set), updated_at: new Date().toISOString() };
+            const localTime = localObj && localObj.updated_at ? new Date(localObj.updated_at).getTime() : 0;
+            const remoteTime = remoteObj && remoteObj.updated_at ? new Date(remoteObj.updated_at).getTime() : 0;
+
+            // If remote is newer, adopt remote (so removals propagate)
+            if (remoteTime > localTime) {
+                return { items: Array.from(new Set(remoteObj.items || [])), updated_at: remoteObj.updated_at || new Date().toISOString() };
+            }
+
+            // Otherwise keep local (local wins); ensure uniqueness
+            return { items: Array.from(new Set(localObj.items || [])), updated_at: localObj.updated_at || new Date().toISOString() };
         }
 
         function schedulePush() {
@@ -108,8 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     try { await pushRemote(local); } catch (e) { console.warn('Push remote failed (startup):', e); }
                     return;
                 }
-                const merged = merge(local, remote);
-                setLocal(merged);
+                // Use LWW merge/resolution so deletions on another device are respected
+                const resolved = merge(local, remote);
+                setLocal(resolved);
             },
             pushSoon: schedulePush
         };
