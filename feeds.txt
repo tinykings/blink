@@ -14,9 +14,10 @@ https://www.404media.co/rss
 https://openai.com/news/rss.xml
 
 #youtube
-https://www.youtube.com/@diggingthegreats
-https://www.youtube.com/@BetterCreating
-
+# Digging The Greats
+https://www.youtube.com/feeds/videos.xml?channel_id=UCGSg3iQgRQ5M9CpluqkMAZg
+# Better Creating
+https://www.youtube.com/feeds/videos.xml?channel_id=UCdKvOz1yqCbty9TwmEUQSiA
 # Hayls World
 https://www.youtube.com/feeds/videos.xml?channel_id=UCIxLxlan8q9WA7sjuq6LdTQ
 # Moebius FM
