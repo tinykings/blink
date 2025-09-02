@@ -205,7 +205,6 @@ body {
     border-radius: var(--border-radius-medium);
     padding: var(--spacing-large);
     /* Reserve space for right-side star tab */
-    padding-right: calc(var(--spacing-large) + 44px);
     margin-bottom: var(--spacing-xlarge);
     box-shadow: 0 2px 8px var(--box-shadow-color);
     text-align: left;
@@ -300,9 +299,9 @@ body {
 
 .feed-item .star-icon {
     position: absolute;
-    top: 50%;
+    bottom: var(--spacing-medium);
     right: var(--spacing-medium);
-    transform: translateY(-50%);
+    transform: none; /* remove translateY */
     width: 36px;
     height: 36px;
     display: inline-flex;
@@ -326,8 +325,9 @@ body {
 .feed-item .leaving-soon-icon {
     position: absolute;
     top: 50%;
+    bottom: var(--spacing-medium);
     right: var(--spacing-medium);
-    transform: translateY(-50%);
+    transform: none;
     width: 36px;
     height: 36px;
     display: inline-flex;
