@@ -249,8 +249,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCm4_Wd1EW7kGYvVhC77Yzpg
 https://www.youtube.com/feeds/videos.xml?channel_id=UCNhWSOlt_UoCzS2YSMhHYmA
 # KDigitalStudio
 https://www.youtube.com/feeds/videos.xml?channel_id=UCSGzChAG2DNHh6DlAY1XRPA
-# kirawasareactor
-https://www.youtube.com/feeds/videos.xml?channel_id=UCQDwLZlZkonozQp6zeIXXlA
 # Kirsten Dirksen
 https://www.youtube.com/feeds/videos.xml?channel_id=UCDsElQQt_gCZ9LgnW-7v-cQ
 # Kyle Erickson
