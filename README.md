@@ -10,7 +10,7 @@ Blink is a minimalist, static feed reader that blends your favorite RSS sources 
 
 - 📰 Unified feed: Mix plain RSS and YouTube channels in one view.
 - 📺 YouTube auto‑RSS: Paste channel URLs — Blink resolves them to RSS and records channel names.
-- ⭐ Starring + filter: Star any item (persisted in `localStorage`) and toggle a "Show starred" view.
+- ⭐ Starring + filter: Sync stars across devices using Github Gist, or use local browser storage.
 - ⬆️ Handy controls: Back‑to‑top, refresh, and a footer timestamp with retention days.
 - 🆕 New marker: Remembers what you’ve seen and inserts a "^ New ^" divider for unseen items.
 - ▶️ Lazy videos: YouTube embeds load only when you click, keeping the page light.
@@ -80,6 +80,15 @@ Paths and PWA:
 ### Any static host
 
 Serve the generated `index.html` and the `css/`, `js/`, `images/`, `manifest.json`, and `sw.js` files from any static server.
+
+## Star Gist Sync
+
+- Create a private Gist at `gist.github.com`
+- File name `starred.json`
+- Save the gist ID
+- Create a personal access token (classic), with Gist access
+
+When loading the page for the first time on a device enter the ID and token to add the device to the sync group.
 
 ## File Map
 
