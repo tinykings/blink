@@ -3,6 +3,9 @@ https://www.reddit.com/r/apple/top.rss?t=week
 https://www.reddit.com/r/sysadmin/top.rss?t=week
 https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
+https://www.reddit.com/r/gaming/top.rss?t=week
+https://www.reddit.com/r/games/top.rss?t=week
+https://www.reddit.com/r/pcgaming/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.bleepingcomputer.com/feed/
@@ -13,6 +16,32 @@ https://www.404media.co/rss
 https://openai.com/news/rss.xml
 
 #youtube
+https://www.youtube.com/@SkillUp
+https://www.youtube.com/@gameranxTV
+https://www.youtube.com/@DigitalFoundry
+https://www.youtube.com/@fireb0rn
+https://www.youtube.com/@RetroGameCorps
+https://www.youtube.com/@Em_Wins
+https://www.youtube.com/@DestinL
+https://www.youtube.com/@nocapsbb
+https://www.youtube.com/@DFClipsChannel
+https://www.youtube.com/@ETAPRIME
+https://www.youtube.com/@IGNGames
+https://www.youtube.com/@DarylTalksGames
+https://www.youtube.com/@mossbag69
+https://www.youtube.com/@NoisyPixelNews
+https://www.youtube.com/@WulffDen
+https://www.youtube.com/@TechDweeb
+https://www.youtube.com/@NoclipDocs
+https://www.youtube.com/@BBKDRAGOON
+https://www.youtube.com/@TeamCherry
+https://www.youtube.com/@razbutwo
+https://www.youtube.com/@GMTK
+https://www.youtube.com/@Gingy
+https://www.youtube.com/@polygon
+https://www.youtube.com/@cantpause
+https://www.youtube.com/@Raycevick
+
 # Digging The Greats
 https://www.youtube.com/feeds/videos.xml?channel_id=UCGSg3iQgRQ5M9CpluqkMAZg
 # Better Creating
