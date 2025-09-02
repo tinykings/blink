@@ -338,7 +338,7 @@ class FeedProcessor:
 
         # Add thumbnail/video placeholder
         if item['video_id']:
-            thumbnail_url = f"https://img.youtube.com/vi/{item['video_id']}/maxresdefault.jpg"
+            thumbnail_url = f"https://img.youtube.com/vi/{item['video_id']}/sddefault.jpg"
             html += f'''<div class="video-placeholder" data-video-id="{item['video_id']}">
 <img src="{thumbnail_url}" alt="Video Thumbnail" class="video-thumbnail">
 <div class="play-button"></div>
