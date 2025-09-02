@@ -21,10 +21,105 @@ document.addEventListener('DOMContentLoaded', () => {
         return JSON.parse(localStorage.getItem('starredItems') || '[]');
     }
 
+    /* === BEGIN: Gist-based cross-device starred sync helper === */
+    const gistSync = (function () {
+        const API_BASE = 'https://api.github.com/gists';
+        let pushTimeout = null;
+        const DEBOUNCE_MS = 1000;
+
+        function getConfig() {
+            return {
+                gistId: localStorage.getItem('GIST_ID'),
+                token: localStorage.getItem('GITHUB_TOKEN')
+            };
+        }
+
+        function promptForConfig() {
+            const gistId = prompt('Enter your GIST ID to sync starred items (leave blank to disable sync):', localStorage.getItem('GIST_ID') || '');
+            if (gistId) localStorage.setItem('GIST_ID', gistId.trim());
+            const token = prompt('Enter your GitHub personal access token (gist scope) to allow sync (stored locally):', localStorage.getItem('GITHUB_TOKEN') || '');
+            if (token) localStorage.setItem('GITHUB_TOKEN', token.trim());
+        }
+
+        function getLocal() {
+            const raw = localStorage.getItem('starredMeta');
+            if (!raw) return { items: getStarredItems(), updated_at: null };
+            try { return JSON.parse(raw); } catch { return { items: getStarredItems(), updated_at: null }; }
+        }
+
+        function setLocal(obj) {
+            localStorage.setItem('starredMeta', JSON.stringify(obj));
+            localStorage.setItem('starredItems', JSON.stringify(obj.items || []));
+        }
+
+        async function fetchRemote() {
+            const { gistId, token } = getConfig();
+            if (!gistId || !token) return null;
+            const res = await fetch(`${API_BASE}/${gistId}`, {
+                headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }
+            });
+            if (!res.ok) return null;
+            const data = await res.json();
+            const file = data.files && data.files['starred.json'];
+            if (!file || !file.content) return null;
+            try { return JSON.parse(file.content); } catch { return null; }
+        }
+
+        async function pushRemote(obj) {
+            const { gistId, token } = getConfig();
+            if (!gistId || !token) return;
+            const payload = { files: { 'starred.json': { content: JSON.stringify(obj, null, 2) } } };
+            await fetch(`${API_BASE}/${gistId}`, {
+                method: 'PATCH',
+                headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        }
+
+        // merge strategy: union of item ids, keep updated_at = now
+        function merge(localObj, remoteObj) {
+            const set = new Set([...(localObj.items || []), ...(remoteObj?.items || [])]);
+            return { items: Array.from(set), updated_at: new Date().toISOString() };
+        }
+
+        function schedulePush() {
+            if (pushTimeout) clearTimeout(pushTimeout);
+            pushTimeout = setTimeout(async () => {
+                const local = getLocal();
+                try {
+                    await pushRemote(local);
+                    // ignore result; best-effort
+                } catch (e) { console.warn('Failed pushing starred gist:', e); }
+            }, DEBOUNCE_MS);
+        }
+
+        return {
+            promptIfMissing: () => {
+                const cfg = getConfig();
+                if (!cfg.gistId || !cfg.token) promptForConfig();
+            },
+            syncOnStartup: async () => {
+                const cfg = getConfig();
+                if (!cfg.gistId || !cfg.token) return;
+                const remote = await fetchRemote();
+                const local = getLocal();
+                if (!remote) {
+                    // if remote missing, push local (create file must exist in gist)
+                    try { await pushRemote(local); } catch (e) { console.warn('Push remote failed (startup):', e); }
+                    return;
+                }
+                const merged = merge(local, remote);
+                setLocal(merged);
+            },
+            pushSoon: schedulePush
+        };
+    })();
+    /* === END gistSync helper === */
+
     function generateItemHtml(item) {
         let mediaHtml = '';
         if (item.video_id) {
-            const thumbnailUrl = `https://img.youtube.com/vi/${item.video_id}/maxresdefault.jpg`;
+            const thumbnailUrl = `https://img.youtube.com/vi/${item.video_id}/hqdefault.jpg`;
             mediaHtml = `
                 <div class="video-placeholder" data-video-id="${item.video_id}">
                     <img src="${thumbnailUrl}" alt="Video Thumbnail" class="video-thumbnail">
@@ -111,6 +206,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     starIcon.classList.add('starred');
                 }
                 localStorage.setItem('starredItems', JSON.stringify(starredItems));
+                // keep metadata in sync and schedule push to gist
+                const meta = { items: starredItems, updated_at: new Date().toISOString() };
+                localStorage.setItem('starredMeta', JSON.stringify(meta));
+                gistSync.pushSoon();
                 return;
             }
             
@@ -174,10 +273,14 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter(Boolean);
         localStorage.setItem('seenItemIds', JSON.stringify(ids));
     } else {
-        // Dynamic render path
-        renderFeed();
-        const allItemIds = feedData.map(item => item.id);
-        localStorage.setItem('seenItemIds', JSON.stringify(allItemIds));
+        // Dynamic render path with startup gist sync
+        (async () => {
+            gistSync.promptIfMissing();
+            await gistSync.syncOnStartup();
+            renderFeed();
+            const allItemIds = feedData.map(item => item.id);
+            localStorage.setItem('seenItemIds', JSON.stringify(allItemIds));
+        })();
     }
 
     // Progressive image hints
