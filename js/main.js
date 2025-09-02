@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateItemHtml(item) {
         let mediaHtml = '';
         if (item.video_id) {
-            const thumbnailUrl = `https://img.youtube.com/vi/${item.video_id}/maxresdefault.jpg`;
+            const thumbnailUrl = `https://img.youtube.com/vi/${item.video_id}/sddefault.jpg`;
             mediaHtml = `
                 <div class="video-placeholder" data-video-id="${item.video_id}">
                     <img src="${thumbnailUrl}" alt="Video Thumbnail" class="video-thumbnail">
