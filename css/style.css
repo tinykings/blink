@@ -1,3 +1,62 @@
+/* Settings modal styles */
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.45);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-modal-content {
+    background: var(--surface-color);
+    color: var(--primary-text-color);
+    border-radius: var(--border-radius-medium);
+    box-shadow: 0 4px 24px var(--box-shadow-color);
+    padding: 32px 24px 24px 24px;
+    min-width: 320px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settings-modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.3em;
+    color: var(--accent-color);
+}
+
+.settings-modal-content label {
+    margin-top: 8px;
+    margin-bottom: 4px;
+    font-size: var(--font-size-medium);
+    color: var(--secondary-text-color);
+}
+
+.settings-modal-content input[type="text"],
+.settings-modal-content input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    border-radius: var(--border-radius-small);
+    border: 1px solid var(--border-color);
+    background: var(--background-color);
+    color: var(--primary-text-color);
+    font-size: var(--font-size-medium);
+    margin-bottom: 12px;
+}
+
+.settings-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
 /* iOS PWA crash prevention - Critical fixes */
 html, body {
     overscroll-behavior: none;

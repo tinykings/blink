@@ -1,6 +1,43 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Settings modal logic
+    const settingsIcon = document.getElementById('settings-icon');
+    const settingsModal = document.getElementById('settings-modal');
+    const settingsForm = document.getElementById('settings-form');
+    const gistIdInput = document.getElementById('gist-id');
+    const githubTokenInput = document.getElementById('github-token');
+    const settingsCancel = document.getElementById('settings-cancel');
+
+    function openSettingsModal() {
+        gistIdInput.value = localStorage.getItem('GIST_ID') || '';
+        githubTokenInput.value = localStorage.getItem('GITHUB_TOKEN') || '';
+        settingsModal.style.display = 'flex';
+    }
+
+    function closeSettingsModal() {
+        settingsModal.style.display = 'none';
+    }
+
+    if (settingsIcon) {
+        settingsIcon.addEventListener('click', openSettingsModal);
+    }
+    if (settingsCancel) {
+        settingsCancel.addEventListener('click', closeSettingsModal);
+    }
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            localStorage.setItem('GIST_ID', gistIdInput.value.trim());
+            localStorage.setItem('GITHUB_TOKEN', githubTokenInput.value.trim());
+            closeSettingsModal();
+        });
+    }
+    // Close modal on outside click
+    if (settingsModal) {
+        settingsModal.addEventListener('click', function(e) {
+            if (e.target === settingsModal) closeSettingsModal();
+        });
+    }
     const feedContainer = document.getElementById('feed-container');
-    const topIcon = document.getElementById('top-icon');
     const starToggle = document.getElementById('star-toggle');
     const refreshIcon = document.getElementById('refresh-icon');
     let feedData = [];
@@ -34,12 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
-        function promptForConfig() {
-            const gistId = prompt('Enter your GIST ID to sync starred items (leave blank to disable sync):', localStorage.getItem('GIST_ID') || '');
-            if (gistId) localStorage.setItem('GIST_ID', gistId.trim());
-            const token = prompt('Enter your GitHub personal access token (gist scope) to allow sync (stored locally):', localStorage.getItem('GITHUB_TOKEN') || '');
-            if (token) localStorage.setItem('GITHUB_TOKEN', token.trim());
-        }
 
         function getLocal() {
             const raw = localStorage.getItem('starredMeta');
@@ -118,10 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         return {
-            promptIfMissing: () => {
-                const cfg = getConfig();
-                if (!cfg.gistId || !cfg.token) promptForConfig();
-            },
             syncOnStartup: async () => {
                 const cfg = getConfig();
                 if (!cfg.gistId || !cfg.token) return;
@@ -269,12 +296,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (topIcon) {
-        topIcon.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    }
-
     if (refreshIcon) {
         refreshIcon.addEventListener('click', () => {
             window.location.reload();
@@ -303,7 +324,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         // Dynamic render path with startup gist sync
         (async () => {
-            gistSync.promptIfMissing();
             await gistSync.syncOnStartup();
             renderFeed();
             const allItemIds = feedData.map(item => item.id);
