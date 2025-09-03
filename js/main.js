@@ -43,13 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function getLocal() {
             const raw = localStorage.getItem('starredMeta');
-            if (!raw) return { items: getStarredItems(), updated_at: null };
-            try { return JSON.parse(raw); } catch { return { items: getStarredItems(), updated_at: null }; }
+            if (!raw) return { items: getStarredItems().map(id => ({ id, date: new Date().toISOString() })), updated_at: null };
+            try { return JSON.parse(raw); } catch { return { items: getStarredItems().map(id => ({ id, date: new Date().toISOString() })), updated_at: null }; }
         }
 
         function setLocal(obj) {
             localStorage.setItem('starredMeta', JSON.stringify(obj));
-            localStorage.setItem('starredItems', JSON.stringify(obj.items || []));
+            localStorage.setItem('starredItems', JSON.stringify((obj.items || []).map(item => item.id)));
         }
 
         async function fetchRemote() {
@@ -68,7 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
         async function pushRemote(obj) {
             const { gistId, token } = getConfig();
             if (!gistId || !token) return;
-            const payload = { files: { 'starred.json': { content: JSON.stringify(obj, null, 2) } } };
+            // Remove items older than 5 days before pushing
+            const now = Date.now();
+            const filteredItems = (obj.items || []).filter(item => {
+                const itemDate = new Date(item.date).getTime();
+                return !isNaN(itemDate) && (now - itemDate) <= 5 * 24 * 60 * 60 * 1000;
+            });
+            const newObj = { ...obj, items: filteredItems };
+            const payload = { files: { 'starred.json': { content: JSON.stringify(newObj, null, 2) } } };
             await fetch(`${API_BASE}/${gistId}`, {
                 method: 'PATCH',
                 headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
@@ -80,14 +87,23 @@ document.addEventListener('DOMContentLoaded', () => {
         function merge(localObj, remoteObj) {
             const localTime = localObj && localObj.updated_at ? new Date(localObj.updated_at).getTime() : 0;
             const remoteTime = remoteObj && remoteObj.updated_at ? new Date(remoteObj.updated_at).getTime() : 0;
-
-            // If remote is newer, adopt remote (so removals propagate)
-            if (remoteTime > localTime) {
-                return { items: Array.from(new Set(remoteObj.items || [])), updated_at: remoteObj.updated_at || new Date().toISOString() };
+            // Helper to merge arrays of {id, date} and keep latest date for each id
+            function mergeItems(a, b) {
+                const map = new Map();
+                [...a, ...b].forEach(item => {
+                    if (!map.has(item.id) || new Date(item.date) > new Date(map.get(item.id).date)) {
+                        map.set(item.id, item);
+                    }
+                });
+                return Array.from(map.values());
             }
-
-            // Otherwise keep local (local wins); ensure uniqueness
-            return { items: Array.from(new Set(localObj.items || [])), updated_at: localObj.updated_at || new Date().toISOString() };
+            let items;
+            if (remoteTime > localTime) {
+                items = mergeItems(remoteObj.items || [], localObj.items || []);
+                return { items, updated_at: remoteObj.updated_at || new Date().toISOString() };
+            }
+            items = mergeItems(localObj.items || [], remoteObj.items || []);
+            return { items, updated_at: localObj.updated_at || new Date().toISOString() };
         }
 
         function schedulePush() {
@@ -206,22 +222,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const starIcon = e.target.closest('.star-icon');
             if (starIcon) {
                 const itemId = starIcon.getAttribute('data-item-id');
-                let starredItems = getStarredItems();
-                if (starredItems.includes(itemId)) {
-                    starredItems = starredItems.filter(id => id !== itemId);
+                let starredMeta = JSON.parse(localStorage.getItem('starredMeta') || '{"items":[],"updated_at":null}');
+                let items = starredMeta.items || [];
+                const now = new Date().toISOString();
+                if (items.some(item => item.id === itemId)) {
+                    items = items.filter(item => item.id !== itemId);
                     starIcon.classList.remove('starred');
                 } else {
-                    starredItems.push(itemId);
+                    // Find the feed item to get its date
+                    const feedItem = feedData.find(item => item.id === itemId);
+                    const date = (feedItem && feedItem.date) ? feedItem.date : now;
+                    items.push({ id: itemId, date });
                     starIcon.classList.add('starred');
                 }
-                localStorage.setItem('starredItems', JSON.stringify(starredItems));
+                localStorage.setItem('starredItems', JSON.stringify(items.map(item => item.id)));
                 // keep metadata in sync and schedule push to gist
-                const meta = { items: starredItems, updated_at: new Date().toISOString() };
+                const meta = { items, updated_at: now };
                 localStorage.setItem('starredMeta', JSON.stringify(meta));
                 gistSync.pushSoon();
                 return;
             }
-            
             const videoPlaceholder = e.target.closest('.video-placeholder');
             if (videoPlaceholder && !videoPlaceholder.classList.contains('video-loaded')) {
                 const videoId = videoPlaceholder.getAttribute('data-video-id');
@@ -232,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
                     iframe.setAttribute('allowfullscreen', '');
                     iframe.classList.add('video-iframe');
-                    
                     videoPlaceholder.innerHTML = '';
                     videoPlaceholder.appendChild(iframe);
                     videoPlaceholder.classList.add('video-loaded');
