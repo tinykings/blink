@@ -324,7 +324,6 @@ body {
 /* Leaving-soon icon now replaces the star and uses the same slot */
 .feed-item .leaving-soon-icon {
     position: absolute;
-    top: 50%;
     bottom: var(--spacing-medium);
     right: var(--spacing-medium);
     transform: none;
@@ -484,3 +483,4 @@ html {
 
 
 /* Legacy duplicates removed above; keep single rule set */
+
