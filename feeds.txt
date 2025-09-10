@@ -5,8 +5,6 @@ https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
 https://www.reddit.com/r/gaming/top.rss?t=week
 https://www.reddit.com/r/games/top.rss?t=week
-https://www.reddit.com/r/linux_gaming/top.rss?t=week
-https://www.reddit.com/r/bazzite/top.rss?t=week
 https://www.reddit.com/r/pcgaming/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
