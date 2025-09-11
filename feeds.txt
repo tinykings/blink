@@ -4,6 +4,7 @@ https://www.reddit.com/r/sysadmin/top.rss?t=week
 https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
 https://www.reddit.com/r/gaming/top.rss?t=week
+https://www.reddit.com/r/iosgaming/top.rss?t=week
 https://www.reddit.com/r/games/top.rss?t=week
 https://www.reddit.com/r/pcgaming/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
