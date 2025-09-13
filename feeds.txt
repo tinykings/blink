@@ -217,8 +217,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCRZ1OquIwGiUjJS7SXW4Fdg
 https://www.youtube.com/feeds/videos.xml?channel_id=UC-l69It3hxAY3tkBH_utLNQ
 # linh truong
 https://www.youtube.com/feeds/videos.xml?channel_id=UCDivkE8Ckgk14fu1XChEp7w
-# Linus Tech Tips
-https://www.youtube.com/feeds/videos.xml?channel_id=UCXuqSBlHAE6Xw-yeJA0Tunw
 # Living Big In A Tiny House
 https://www.youtube.com/feeds/videos.xml?channel_id=UCoNTMWgGuXtGPLv9UeJZwBw
 # Lucile
