@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const now = Date.now();
             const filteredItems = (obj.items || []).filter(item => {
                 const itemDate = new Date(item.date).getTime();
-                return !isNaN(itemDate) && (now - itemDate) <= 10 * 24 * 60 * 60 * 1000;
+                return !isNaN(itemDate) && (now - itemDate) <= 6 * 24 * 60 * 60 * 1000;
             });
             const newObj = { ...obj, items: filteredItems };
             const payload = { files: { 'starred.json': { content: JSON.stringify(newObj, null, 2) } } };
