@@ -34,13 +34,6 @@ Blink is a minimalist, static feed reader that blends your favorite RSS sources 
 - Output: `index.html` is generated from `index.template.html` with items injected and JSON data embedded.
 - Open `index.html` in your browser.
 
-## Usage Notes
-
-- Starred items are stored in your browser and persist across visits. Use the star button in the footer to filter.
-- A "^ New ^" divider appears between items you haven’t seen and ones you have (tracked via `localStorage`).
-- YouTube thumbnails are shown; clicking plays the embed inline. Other feeds show a thumbnail if one can be extracted.
-- The UI intentionally omits per‑item dates and feed titles to stay compact.
-
 ## Configuration
 
 Tune behavior at the top of `scripts/fetch_feeds.py`:
@@ -89,5 +82,4 @@ When loading the page for the first time on a device enter the ID and token to a
 ## FAQ
 
 - Can I paste a YouTube channel URL? Yes. The script resolves it to an RSS feed and rewrites `feeds.txt` accordingly.
-- Where do starred items live? In your browser (`localStorage`) — they don’t sync between devices.
-- Why don’t I see dates/feed names on cards? The layout is intentionally compact; the footer shows last updated time and retention window.
+- Where do starred items live? In your browser (`localStorage`). Or if you enter gist info in the settings starred items will sync across devices.
