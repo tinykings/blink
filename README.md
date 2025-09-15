@@ -12,11 +12,8 @@ Blink is a minimalist, static feed reader that blends your favorite RSS sources 
 - 📺 YouTube auto‑RSS: Paste channel URLs — Blink resolves them to RSS and records channel names.
 - ⭐ Starring + filter: Sync stars across devices using Github Gist, or use local browser storage.
 - ⬆️ Handy controls: Back‑to‑top, refresh, and a footer timestamp with retention days.
-- 🆕 New marker: Remembers what you’ve seen and inserts a "^ New ^" divider for unseen items.
 - ▶️ Lazy videos: YouTube embeds load only when you click, keeping the page light.
 - ⏰ Leaving soon: Labels items nearing the rolling retention window (default 5 days).
-- 📱 PWA + offline: Install to home screen; a Service Worker caches core assets for offline reading.
-- 🌗 Polished UI: Compact card layout, light/dark via system preference, iOS safe‑area and PWA fixes.
 - 🤖 Automated updates: GitHub Actions fetches feeds on a schedule and commits updated `index.html` and a normalized `feeds.txt`.
 
 ## Quick Start
@@ -55,7 +52,6 @@ Tune behavior at the top of `scripts/fetch_feeds.py`:
 When you run the script:
 
 - YouTube channel URLs are converted to RSS; `feeds.txt` is rewritten in a normalized format and annotated with channel names.
-- A simple `yt.log` is generated with channel IDs and names.
 
 ## Deploy
 
@@ -71,15 +67,6 @@ Steps:
 1) Push this project to GitHub.
 2) In the repo, open Settings → Pages and set Source to GitHub Actions.
 3) Visit `https://<username>.github.io/<repo>/` once the action completes.
-
-Paths and PWA:
-
-- `manifest.json` is set for a repo named `blink` (`start_url` and `scope` use `/blink/`). Update these if your repo name differs or you use a custom domain.
-- The Service Worker is registered at `/sw.js` in `js/main.js`. If you serve under a sub‑path, consider changing to `./sw.js` or adjusting the scope.
-
-### Any static host
-
-Serve the generated `index.html` and the `css/`, `js/`, `images/`, `manifest.json`, and `sw.js` files from any static server.
 
 ## Star Gist Sync
 
@@ -98,7 +85,6 @@ When loading the page for the first time on a device enter the ID and token to a
 - `index.html`: Built page (committed by CI).
 - `js/main.js`: Starring, filtering, lazy YouTube embeds, PWA registration.
 - `css/style.css`: UI styles, light/dark, iOS PWA fixes.
-- `manifest.json`, `sw.js`, `images/icon.png`: PWA and caching assets.
 
 ## FAQ
 
