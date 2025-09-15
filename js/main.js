@@ -209,7 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!feedContainer) return;
 
         if (feedData.length) {
-            const seenItemIds = JSON.parse(localStorage.getItem('seenItemIds') || '[]');
             const starredItems = getStarredItems();
 
             let itemsToRender = feedData;
@@ -217,17 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 itemsToRender = feedData.filter(item => starredItems.includes(item.id));
             }
 
-            const newItems = itemsToRender.filter(item => !seenItemIds.includes(item.id));
-            const oldItems = itemsToRender.filter(item => seenItemIds.includes(item.id));
-
             let html = '';
-
-            newItems.forEach((item) => { html += generateItemHtml(item); });
-            if (newItems.length > 0 && oldItems.length > 0) {
-                html += '<div class="last-seen-marker">^ New ^</div>';
-            }
-            oldItems.forEach((item) => { html += generateItemHtml(item); });
-
+            itemsToRender.forEach((item) => { html += generateItemHtml(item); });
             feedContainer.innerHTML = html;
         } else {
             // Static DOM mode: toggle visibility based on starred items
@@ -316,18 +306,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 itemEl.prepend(star);
             }
         });
-        // Mark seen IDs
-        const ids = Array.from(feedContainer.querySelectorAll('.feed-item'))
-            .map(el => el.getAttribute('data-item-id'))
-            .filter(Boolean);
-        localStorage.setItem('seenItemIds', JSON.stringify(ids));
     } else {
         // Dynamic render path with startup gist sync
         (async () => {
             await gistSync.syncOnStartup();
             renderFeed();
-            const allItemIds = feedData.map(item => item.id);
-            localStorage.setItem('seenItemIds', JSON.stringify(allItemIds));
         })();
     }
 
@@ -338,14 +321,4 @@ document.addEventListener('DOMContentLoaded', () => {
         img.referrerPolicy = img.referrerPolicy || 'no-referrer-when-downgrade';
     });
 
-});
-
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then(registration => {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        }, err => {
-            console.log('ServiceWorker registration failed: ', err);
-        });
-    });
-}
+})
