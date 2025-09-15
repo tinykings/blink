@@ -57,12 +57,6 @@
     justify-content: flex-end;
     margin-top: 8px;
 }
-/* iOS PWA crash prevention - Critical fixes */
-html, body {
-    overscroll-behavior: none;
-    -webkit-overflow-scrolling: touch;
-    overflow-x: hidden;
-}
 
 body {
     --background-color: #2e3440;           /* Dark background */
@@ -156,59 +150,11 @@ body {
     margin: 2px 0 var(--spacing-small);
 }
 
-
-#blink-text {
-    font-size: 3em;
-    font-weight: bold;
-    color: var(--accent-color);
-    display: none;
-    margin-top: 20px;
-}
-
-.profile-image {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    /* Image loading fixes */
-    max-width: 100%;
-    height: auto;
-    display: block;
-    object-fit: cover;
-}
-
-.profile-image.starred-active {
-    box-shadow: 0 0 10px 3px gold;
-}
-
-#profile-link {
-    display: inline-block;
-    margin-top: var(--spacing-xlarge);
-    margin-bottom: var(--spacing-medium);
-    line-height: 0;
-}
-
 .last-updated {
     font-size: var(--font-size-medium);
     color: var(--secondary-text-color);
     text-align: left;
     margin: 12px 0;
-}
-
-.feed-updates {
-    display: none;
-    position: fixed;
-    top: calc(var(--header-height) + var(--spacing-small));
-    left: calc(env(safe-area-inset-left) + var(--spacing-xlarge));
-    background-color: var(--surface-color);
-    border: 1px solid var(--border-color);
-    padding: var(--spacing-medium);
-    max-height: 80vh;
-    overflow-y: auto;
-    z-index: 1000;
-}
-
-.feed-updates div {
-    margin-bottom: var(--spacing-small);
 }
 
 .header-icons {
@@ -291,13 +237,6 @@ body {
     color: var(--accent-color-hover);
 }
 
-.published-date {
-    font-size: var(--font-size-small);
-    color: var(--secondary-text-color);
-    margin-bottom: var(--spacing-small);
-    text-align: left;
-}
-
 .feed-thumbnail {
     display: block;
     margin-left: auto;
@@ -313,47 +252,6 @@ body {
     padding: 0;
     position: relative;
     text-align: left;
-}
-
-.feed-item-actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-}
-
-.feed-title {
-    font-size: var(--font-size-small);
-    color: var(--secondary-text-color);
-    font-style: italic;
-}
-
-.leaving-soon {
-    font-size: var(--font-size-small);
-    color: var(--accent-color);
-    font-style: italic;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-small);
-}
-
-.video-container {
-    position: relative;
-    padding-bottom: 56.25%; /* 16:9 */
-    height: 0;
-    overflow: hidden;
-    max-width: 100%;
-    border-radius: var(--border-radius-small);
-    margin-bottom: var(--spacing-medium);
-    contain: layout;
-}
-
-.video-container iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
 }
 
 .feed-item .star-icon {
@@ -408,73 +306,11 @@ body {
     border-color: color-mix(in oklab, var(--border-color), var(--accent-color) 30%);
 }
 
-
-.last-seen-marker {
-    text-align: center;
-    margin: 20px 0;
-    padding: 10px;
-    background-color: var(--surface-color);
-    border-top: 1px solid var(--accent-color);
-    border-bottom: 1px solid var(--accent-color);
-    color: var(--accent-color);
-}
-
-.footer {
-    text-align: center;
-    margin-top: var(--spacing-xxlarge);
-    /* iOS safe area support */
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-    /* Prevent text selection issues */
-    -webkit-user-select: none;
-    user-select: none;
-}
-
-.github-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    /* Image loading fixes */
-    max-width: 100%;
-    height: auto;
-    display: block;
-    object-fit: cover;
-    margin-left: auto;
-    margin-right: auto;
-}
-
 /* Global image fixes */
 img {
     max-width: 100%;
     height: auto;
     display: block;
-}
-
-/* Prevent zoom on double tap */
-* {
-    -webkit-tap-highlight-color: transparent;
-}
-
-/* Fix for webkit scrolling issues */
-.feed-item, .day-section {
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-}
-
-/* Prevent iOS text size adjustment */
-html {
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-}
-
-/* Performance optimization for animations */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
 }
 
 /* Styles for lazy-loaded YouTube videos */
@@ -538,8 +374,3 @@ html {
     width: 100%;
     height: 100%;
 }
-
-
-
-/* Legacy duplicates removed above; keep single rule set */
-
