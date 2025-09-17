@@ -21,9 +21,9 @@ https://4sysops.com/feed/
 https://buttondown.com/hacker-newsletter/rss
 https://krebsonsecurity.com/feed/
 
-
 #youtube
-https://www.youtube.com/@gamespot
+# GameSpot
+https://www.youtube.com/feeds/videos.xml?channel_id=UCbu2SsF-Or3Rsn3NxqODImw
 # noclip_2
 https://www.youtube.com/feeds/videos.xml?channel_id=UCdievj3szPeYJzqqOjsLnfQ
 # Skill Up
