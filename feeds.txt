@@ -22,7 +22,8 @@ https://buttondown.com/hacker-newsletter/rss
 https://krebsonsecurity.com/feed/
 
 #youtube
-https://www.youtube.com/@Noclip2
+# noclip_2
+https://www.youtube.com/feeds/videos.xml?channel_id=UCdievj3szPeYJzqqOjsLnfQ
 # Skill Up
 https://www.youtube.com/feeds/videos.xml?channel_id=UCZ7AeeVbyslLM_8-nVy2B8Q
 # gameranx
