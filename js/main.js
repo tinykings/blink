@@ -134,28 +134,31 @@ document.addEventListener('DOMContentLoaded', () => {
             const localTime = localObj && localObj.updated_at ? new Date(localObj.updated_at).getTime() : 0;
             const remoteTime = remoteObj && remoteObj.updated_at ? new Date(remoteObj.updated_at).getTime() : 0;
 
-            const itemsById = new Map();
-            const allRawItems = [...(localObj.items || []), ...(remoteObj.items || [])];
+            if (!remoteObj || !remoteObj.items) return localObj || { items: [], updated_at: null };
+            if (!localObj || !localObj.items) return remoteObj;
 
-            for (const item of allRawItems) {
-                if (!item || !item.id) continue;
-                if (itemsById.has(item.id)) {
-                    const existing = itemsById.get(item.id);
-                    if (new Date(item.date) > new Date(existing.date)) {
-                        existing.date = item.date;
-                    }
-                    if (item.starred) {
-                        existing.starred = true;
-                    }
-                } else {
-                    itemsById.set(item.id, { ...item });
+            const itemsById = new Map();
+
+            const olderObj = remoteTime > localTime ? localObj : remoteObj;
+            const newerObj = remoteTime > localTime ? remoteObj : localObj;
+
+            // Add all items from the older object first.
+            for (const item of olderObj.items) {
+                if (item && item.id) {
+                    itemsById.set(item.id, item);
+                }
+            }
+
+            // Then overwrite with items from the newer object. This handles updates.
+            for (const item of newerObj.items) {
+                if (item && item.id) {
+                    itemsById.set(item.id, item);
                 }
             }
 
             const mergedItems = Array.from(itemsById.values());
-            const winner = remoteTime > localTime ? remoteObj : localObj;
 
-            return { items: mergedItems, updated_at: winner.updated_at };
+            return { items: mergedItems, updated_at: newerObj.updated_at };
         }
 
         function schedulePush() {
