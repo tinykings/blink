@@ -231,6 +231,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (showingNew) {
             viewToggleButton.textContent = 'new';
+
+            allItems.sort((a, b) => {
+                const aIsStarred = metaItemsById.get(a.dataset.itemId)?.starred;
+                const bIsStarred = metaItemsById.get(b.dataset.itemId)?.starred;
+                if (aIsStarred === bIsStarred) return 0;
+                return aIsStarred ? 1 : -1;
+            });
+
+            if (feedContainer) {
+                allItems.forEach(item => feedContainer.appendChild(item));
+            }
+
             allItems.forEach(item => {
                 const metaItem = metaItemsById.get(item.dataset.itemId);
                 item.style.display = (metaItem && !metaItem.starred) ? 'none' : '';
