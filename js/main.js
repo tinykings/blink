@@ -73,34 +73,23 @@ document.addEventListener('DOMContentLoaded', () => {
         function getLocal() {
             let raw = localStorage.getItem('blinkMeta');
             if (!raw) {
-                const oldRaw = localStorage.getItem('starredMeta');
-                if (oldRaw) {
-                    try {
-                        const oldData = JSON.parse(oldRaw);
-                        localStorage.setItem('blinkMeta', JSON.stringify(oldData));
-                        localStorage.removeItem('starredMeta');
-                        raw = JSON.stringify(oldData);
-                    } catch (e) { /* ignore */ }
-                }
-            }
-
-            if (!raw) {
-                return { items: getStarredItems().map(id => ({ id, date: new Date().toISOString() })), seenItems: [], updated_at: null };
+                const starred = JSON.parse(localStorage.getItem('starredItems') || '[]');
+                return { items: starred.map(id => ({ id, date: new Date().toISOString(), starred: true })), updated_at: null };
             }
             try {
                 const data = JSON.parse(raw);
-                if (!data.items) data.items = getStarredItems().map(id => ({ id, date: new Date().toISOString() }));
-                if (!data.seenItems) data.seenItems = [];
-                localStorage.setItem('starredItems', JSON.stringify((data.items || []).map(item => item.id)));
+                if (!data.items) data.items = [];
+                localStorage.setItem('starredItems', JSON.stringify((data.items || []).filter(item => item.starred).map(item => item.id)));
                 return data;
             } catch {
-                return { items: getStarredItems().map(id => ({ id, date: new Date().toISOString() })), seenItems: [], updated_at: null };
+                const starred = JSON.parse(localStorage.getItem('starredItems') || '[]');
+                return { items: starred.map(id => ({ id, date: new Date().toISOString(), starred: true })), updated_at: null };
             }
         }
 
         function setLocal(obj) {
             localStorage.setItem('blinkMeta', JSON.stringify(obj));
-            localStorage.setItem('starredItems', JSON.stringify((obj.items || []).map(item => item.id)));
+            localStorage.setItem('starredItems', JSON.stringify((obj.items || []).filter(item => item.starred).map(item => item.id)));
         }
 
         async function fetchRemote() {
@@ -124,16 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const now = Date.now();
             const filteredItems = (obj.items || []).filter(item => {
+                if (item.starred) return true;
                 const itemDate = new Date(item.date).getTime();
                 return !isNaN(itemDate) && (now - itemDate) <= 6 * 24 * 60 * 60 * 1000;
             });
 
-            const allDomIds = new Set(Array.from(document.querySelectorAll('#feed-container .feed-item')).map(el => el.dataset.itemId));
-            const filteredSeenItems = (obj.seenItems || []).filter(id => allDomIds.has(id));
-
             const { updated_at, ...payloadData } = obj;
             payloadData.items = filteredItems;
-            payloadData.seenItems = filteredSeenItems;
+            delete payloadData.seenItems;
 
             const payload = { files: { 'starred.json': { content: JSON.stringify(payloadData, null, 2) } } };
             await fetch(`${API_BASE}/${gistId}`, {
@@ -147,12 +134,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const localTime = localObj && localObj.updated_at ? new Date(localObj.updated_at).getTime() : 0;
             const remoteTime = remoteObj && remoteObj.updated_at ? new Date(remoteObj.updated_at).getTime() : 0;
 
-            const mergedItems = Array.from(new Set([...(localObj.items || []), ...(remoteObj.items || [])]));
-            const mergedSeenItems = Array.from(new Set([...(localObj.seenItems || []), ...(remoteObj.seenItems || [])]));
+            const itemsById = new Map();
+            const allRawItems = [...(localObj.items || []), ...(remoteObj.items || [])];
 
+            for (const item of allRawItems) {
+                if (!item || !item.id) continue;
+                if (itemsById.has(item.id)) {
+                    const existing = itemsById.get(item.id);
+                    if (new Date(item.date) > new Date(existing.date)) {
+                        existing.date = item.date;
+                    }
+                    if (item.starred) {
+                        existing.starred = true;
+                    }
+                } else {
+                    itemsById.set(item.id, { ...item });
+                }
+            }
+
+            const mergedItems = Array.from(itemsById.values());
             const winner = remoteTime > localTime ? remoteObj : localObj;
 
-            return { items: mergedItems, seenItems: mergedSeenItems, updated_at: winner.updated_at };
+            return { items: mergedItems, updated_at: winner.updated_at };
         }
 
         function schedulePush() {
@@ -219,14 +222,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function applyView(seenItems) {
+    function applyView(metaItems) {
         const allItems = Array.from(document.querySelectorAll('#feed-container .feed-item'));
-        const seenSet = new Set(seenItems);
+        const metaItemsById = new Map((metaItems || []).map(i => [i.id, i]));
 
         if (showingNew) {
             viewToggleButton.textContent = 'Show All';
             allItems.forEach(item => {
-                item.style.display = seenSet.has(item.dataset.itemId) ? 'none' : '';
+                const metaItem = metaItemsById.get(item.dataset.itemId);
+                item.style.display = (metaItem && !metaItem.starred) ? 'none' : '';
             });
         } else {
             viewToggleButton.textContent = 'Show New';
@@ -240,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         viewToggleButton.addEventListener('click', () => {
             showingNew = !showingNew;
             const meta = gistSync.getLocal();
-            applyView(meta.seenItems || []);
+            applyView(meta.items || []);
         });
     }
 
@@ -252,13 +256,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 let meta = gistSync.getLocal();
                 let items = meta.items || [];
                 const now = new Date().toISOString();
-                if (items.some(item => item.id === itemId)) {
-                    items = items.filter(item => item.id !== itemId);
-                    starIcon.classList.remove('starred');
+                let item = items.find(i => i.id === itemId);
+
+                if (item) {
+                    item.starred = !item.starred;
+                    starIcon.classList.toggle('starred', item.starred);
                 } else {
-                    const feedItem = feedData.find(item => item.id === itemId);
+                    const feedItem = feedData.find(fItem => fItem.id === itemId);
                     const date = (feedItem && feedItem.date) ? feedItem.date : now;
-                    items.push({ id: itemId, date });
+                    item = { id: itemId, date, starred: true };
+                    items.push(item);
                     starIcon.classList.add('starred');
                 }
                 meta.items = items;
@@ -301,7 +308,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const startupLogic = async () => {
         await gistSync.syncOnStartup();
         const meta = gistSync.getLocal();
-        const seenItems = meta.seenItems || [];
 
         if (feedData.length) {
             renderFeed();
@@ -322,13 +328,31 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
-        applyView(seenItems);
+        applyView(meta.items || []);
 
         const allDomIds = Array.from(document.querySelectorAll('#feed-container .feed-item')).map(el => el.dataset.itemId);
-        meta.seenItems = allDomIds;
-        meta.updated_at = new Date().toISOString();
-        gistSync.setLocal(meta);
-        gistSync.pushSoon();
+        const metaItemsById = new Map((meta.items || []).map(item => [item.id, item]));
+        let changed = false;
+        const now = new Date().toISOString();
+
+        allDomIds.forEach(id => {
+            if (!metaItemsById.has(id)) {
+                meta.items.push({ id, date: now, starred: false });
+                changed = true;
+            } else {
+                const item = metaItemsById.get(id);
+                if (!item.starred) {
+                    item.date = now;
+                    changed = true;
+                }
+            }
+        });
+
+        if (changed) {
+            meta.updated_at = now;
+            gistSync.setLocal(meta);
+            gistSync.pushSoon();
+        }
     };
 
     startupLogic();
