@@ -117,7 +117,6 @@ class FeedProcessor:
 
         # Convert YouTube URLs to RSS feeds and collect channel names
         converted_entries: List[Tuple[str, str, Optional[str]]] = []
-        youtube_log_entries: List[Tuple[str, str]] = []
 
         for youtube_url, comment in youtube_entries:
             channel_name: Optional[str] = None
@@ -139,7 +138,6 @@ class FeedProcessor:
             if channel_id:
                 rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
                 converted_entries.append((rss_url, youtube_url, channel_name))
-                youtube_log_entries.append((channel_id, channel_name))
                 logger.info(
                     f"Converted YouTube channel '{channel_name}' to RSS feed"
                 )
@@ -148,9 +146,6 @@ class FeedProcessor:
                 logger.warning(
                     f"Could not convert YouTube channel: {youtube_url}"
                 )
-        
-        # Write YouTube log
-        self._write_youtube_log(youtube_log_entries)
         
         # Update feeds.txt file
         self._update_feeds_file(file_path, rss_urls, converted_entries)
