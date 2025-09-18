@@ -227,13 +227,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const metaItemsById = new Map((metaItems || []).map(i => [i.id, i]));
 
         if (showingNew) {
-            viewToggleButton.textContent = 'Show All';
+            viewToggleButton.textContent = 'new';
             allItems.forEach(item => {
                 const metaItem = metaItemsById.get(item.dataset.itemId);
                 item.style.display = (metaItem && !metaItem.starred) ? 'none' : '';
             });
         } else {
-            viewToggleButton.textContent = 'Show New';
+            viewToggleButton.textContent = 'all';
             allItems.forEach(item => {
                 item.style.display = '';
             });
