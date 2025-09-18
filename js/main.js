@@ -31,26 +31,26 @@ document.addEventListener('DOMContentLoaded', () => {
             closeSettingsModal();
         });
     }
-    // Close modal on outside click
     if (settingsModal) {
         settingsModal.addEventListener('click', function(e) {
             if (e.target === settingsModal) closeSettingsModal();
         });
     }
+
     const feedContainer = document.getElementById('feed-container');
     const starToggle = document.getElementById('star-toggle');
     const refreshIcon = document.getElementById('refresh-icon');
+    const viewToggleButton = document.getElementById('view-toggle-button');
     let feedData = [];
     let showingStarred = false;
+    let showingNew = true;
 
-    // Feed rendering and "new items" logic
     const feedDataElement = document.getElementById('feed-data');
     if (feedDataElement) {
         try {
             feedData = JSON.parse(feedDataElement.textContent);
         } catch (e) {
             console.error("Error parsing feed data:", e);
-            return;
         }
     }
 
@@ -58,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return JSON.parse(localStorage.getItem('starredItems') || '[]');
     }
 
-    /* === BEGIN: Gist-based cross-device starred sync helper === */
     const gistSync = (function () {
         const API_BASE = 'https://api.github.com/gists';
         let pushTimeout = null;
@@ -71,42 +70,72 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
-
         function getLocal() {
-            const raw = localStorage.getItem('starredMeta');
-            if (!raw) return { items: getStarredItems().map(id => ({ id, date: new Date().toISOString() })), updated_at: null };
-            try { return JSON.parse(raw); } catch { return { items: getStarredItems().map(id => ({ id, date: new Date().toISOString() })), updated_at: null }; }
+            let raw = localStorage.getItem('blinkMeta');
+            if (!raw) {
+                const oldRaw = localStorage.getItem('starredMeta');
+                if (oldRaw) {
+                    try {
+                        const oldData = JSON.parse(oldRaw);
+                        localStorage.setItem('blinkMeta', JSON.stringify(oldData));
+                        localStorage.removeItem('starredMeta');
+                        raw = JSON.stringify(oldData);
+                    } catch (e) { /* ignore */ }
+                }
+            }
+
+            if (!raw) {
+                return { items: getStarredItems().map(id => ({ id, date: new Date().toISOString() })), seenItems: [], updated_at: null };
+            }
+            try {
+                const data = JSON.parse(raw);
+                if (!data.items) data.items = getStarredItems().map(id => ({ id, date: new Date().toISOString() }));
+                if (!data.seenItems) data.seenItems = [];
+                localStorage.setItem('starredItems', JSON.stringify((data.items || []).map(item => item.id)));
+                return data;
+            } catch {
+                return { items: getStarredItems().map(id => ({ id, date: new Date().toISOString() })), seenItems: [], updated_at: null };
+            }
         }
 
         function setLocal(obj) {
-            localStorage.setItem('starredMeta', JSON.stringify(obj));
+            localStorage.setItem('blinkMeta', JSON.stringify(obj));
             localStorage.setItem('starredItems', JSON.stringify((obj.items || []).map(item => item.id)));
         }
 
         async function fetchRemote() {
             const { gistId, token } = getConfig();
             if (!gistId || !token) return null;
-            const res = await fetch(`${API_BASE}/${gistId}`, {
-                headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }
-            });
+            const res = await fetch(`${API_BASE}/${gistId}`, { headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' } });
             if (!res.ok) return null;
             const data = await res.json();
             const file = data.files && data.files['starred.json'];
             if (!file || !file.content) return null;
-            try { return JSON.parse(file.content); } catch { return null; }
+            try {
+                const remoteData = JSON.parse(file.content);
+                remoteData.updated_at = data.updated_at;
+                return remoteData;
+            } catch { return null; }
         }
 
         async function pushRemote(obj) {
             const { gistId, token } = getConfig();
             if (!gistId || !token) return;
-            // Remove items older than 5 days before pushing
+
             const now = Date.now();
             const filteredItems = (obj.items || []).filter(item => {
                 const itemDate = new Date(item.date).getTime();
                 return !isNaN(itemDate) && (now - itemDate) <= 6 * 24 * 60 * 60 * 1000;
             });
-            const newObj = { ...obj, items: filteredItems };
-            const payload = { files: { 'starred.json': { content: JSON.stringify(newObj, null, 2) } } };
+
+            const allDomIds = new Set(Array.from(document.querySelectorAll('#feed-container .feed-item')).map(el => el.dataset.itemId));
+            const filteredSeenItems = (obj.seenItems || []).filter(id => allDomIds.has(id));
+
+            const { updated_at, ...payloadData } = obj;
+            payloadData.items = filteredItems;
+            payloadData.seenItems = filteredSeenItems;
+
+            const payload = { files: { 'starred.json': { content: JSON.stringify(payloadData, null, 2) } } };
             await fetch(`${API_BASE}/${gistId}`, {
                 method: 'PATCH',
                 headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
@@ -114,27 +143,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // merge strategy: union of item ids, keep updated_at = now
         function merge(localObj, remoteObj) {
             const localTime = localObj && localObj.updated_at ? new Date(localObj.updated_at).getTime() : 0;
             const remoteTime = remoteObj && remoteObj.updated_at ? new Date(remoteObj.updated_at).getTime() : 0;
-            // Helper to merge arrays of {id, date} and keep latest date for each id
-            function mergeItems(a, b) {
-                const map = new Map();
-                [...a, ...b].forEach(item => {
-                    if (!map.has(item.id) || new Date(item.date) > new Date(map.get(item.id).date)) {
-                        map.set(item.id, item);
-                    }
-                });
-                return Array.from(map.values());
-            }
-            let items;
-            if (remoteTime > localTime) {
-                items = mergeItems(remoteObj.items || [], localObj.items || []);
-                return { items, updated_at: remoteObj.updated_at || new Date().toISOString() };
-            }
-            items = mergeItems(localObj.items || [], remoteObj.items || []);
-            return { items, updated_at: localObj.updated_at || new Date().toISOString() };
+
+            const mergedItems = Array.from(new Set([...(localObj.items || []), ...(remoteObj.items || [])]));
+            const mergedSeenItems = Array.from(new Set([...(localObj.seenItems || []), ...(remoteObj.seenItems || [])]));
+
+            const winner = remoteTime > localTime ? remoteObj : localObj;
+
+            return { items: mergedItems, seenItems: mergedSeenItems, updated_at: winner.updated_at };
         }
 
         function schedulePush() {
@@ -143,95 +161,87 @@ document.addEventListener('DOMContentLoaded', () => {
                 const local = getLocal();
                 try {
                     await pushRemote(local);
-                    // ignore result; best-effort
-                } catch (e) { console.warn('Failed pushing starred gist:', e); }
+                } catch (e) { console.warn('Failed pushing to gist:', e); }
             }, DEBOUNCE_MS);
         }
 
         return {
+            getLocal,
+            setLocal,
             syncOnStartup: async () => {
                 const cfg = getConfig();
                 if (!cfg.gistId || !cfg.token) return;
                 const remote = await fetchRemote();
                 const local = getLocal();
                 if (!remote) {
-                    // if remote missing, push local (create file must exist in gist)
                     try { await pushRemote(local); } catch (e) { console.warn('Push remote failed (startup):', e); }
                     return;
                 }
-                // Use LWW merge/resolution so deletions on another device are respected
                 const resolved = merge(local, remote);
                 setLocal(resolved);
             },
             pushSoon: schedulePush
         };
     })();
-    /* === END gistSync helper === */
 
     function generateItemHtml(item) {
         let mediaHtml = '';
         if (item.video_id) {
             const thumbnailUrl = `https://img.youtube.com/vi/${item.video_id}/sddefault.jpg`;
-            mediaHtml = `
-                <div class="video-placeholder" data-video-id="${item.video_id}">
-                    <img src="${thumbnailUrl}" alt="Video Thumbnail" class="video-thumbnail">
-                    <div class="play-button"></div>
-                </div>
-            `;
+            mediaHtml = `<div class="video-placeholder" data-video-id="${item.video_id}"><img src="${thumbnailUrl}" alt="Video Thumbnail" class="video-thumbnail"><div class="play-button"></div></div>`;
         } else if (item.thumbnail) {
             mediaHtml = `<a href="${item.link}" target="_blank"><img src="${item.thumbnail}" alt="${item.title}" class="feed-thumbnail"></a>`;
         }
 
         const starredItems = getStarredItems();
         const isStarred = starredItems.includes(item.id);
+        const starHtml = item.leaving_soon ? '<span class="leaving-soon-icon" title="one day left, leaving tomorrow" aria-label="one day left, leaving tomorrow" role="img">⏰</span>' : `<span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>`;
 
-        // If item is leaving soon, replace the star with the leaving-soon icon
-        const starHtml = item.leaving_soon
-            ? '<span class="leaving-soon-icon" title="one day left, leaving tomorrow" aria-label="one day left, leaving tomorrow" role="img">⏰</span>'
-            : `<span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>`;
-
-        // No separate bottom-right indicator anymore; icon now lives in star slot
-        const leavingSoonIconHtml = '';
-
-        return `
-            <div class="feed-item" data-item-id="${item.id}">
-                ${starHtml}
-                ${mediaHtml}
-                <div class="feed-item-info">
-                    <h2><a href="${item.link}" target="_blank">${item.title}</a></h2>
-                </div>
-                ${leavingSoonIconHtml}
-            </div>
-        `;
+        return `<div class="feed-item" data-item-id="${item.id}">${starHtml}${mediaHtml}<div class="feed-item-info"><h2><a href="${item.link}" target="_blank">${item.title}</a></h2></div></div>`;
     }
 
     function renderFeed(filter = 'all') {
         if (!feedContainer) return;
-
         if (feedData.length) {
             const starredItems = getStarredItems();
-
             let itemsToRender = feedData;
             if (filter === 'starred') {
                 itemsToRender = feedData.filter(item => starredItems.includes(item.id));
             }
-
-            let html = '';
-            itemsToRender.forEach((item) => { html += generateItemHtml(item); });
-            feedContainer.innerHTML = html;
+            feedContainer.innerHTML = itemsToRender.map(generateItemHtml).join('');
         } else {
-            // Static DOM mode: toggle visibility based on starred items
             const starredItems = getStarredItems();
             const items = Array.from(feedContainer.querySelectorAll('.feed-item'));
-            if (filter === 'starred') {
-                items.forEach(el => {
-                    const id = el.getAttribute('data-item-id');
-                    el.style.display = starredItems.includes(id) ? '' : 'none';
-                });
-            } else {
-                items.forEach(el => { el.style.display = ''; });
-            }
+            items.forEach(el => {
+                const id = el.getAttribute('data-item-id');
+                el.style.display = (filter === 'starred' && !starredItems.includes(id)) ? 'none' : '';
+            });
         }
+    }
+
+    function applyView(seenItems) {
+        const allItems = Array.from(document.querySelectorAll('#feed-container .feed-item'));
+        const seenSet = new Set(seenItems);
+
+        if (showingNew) {
+            viewToggleButton.textContent = 'Show All';
+            allItems.forEach(item => {
+                item.style.display = seenSet.has(item.dataset.itemId) ? 'none' : '';
+            });
+        } else {
+            viewToggleButton.textContent = 'Show New';
+            allItems.forEach(item => {
+                item.style.display = '';
+            });
+        }
+    }
+
+    if (viewToggleButton) {
+        viewToggleButton.addEventListener('click', () => {
+            showingNew = !showingNew;
+            const meta = gistSync.getLocal();
+            applyView(meta.seenItems || []);
+        });
     }
 
     if (feedContainer) {
@@ -239,23 +249,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const starIcon = e.target.closest('.star-icon');
             if (starIcon) {
                 const itemId = starIcon.getAttribute('data-item-id');
-                let starredMeta = JSON.parse(localStorage.getItem('starredMeta') || '{"items":[],"updated_at":null}');
-                let items = starredMeta.items || [];
+                let meta = gistSync.getLocal();
+                let items = meta.items || [];
                 const now = new Date().toISOString();
                 if (items.some(item => item.id === itemId)) {
                     items = items.filter(item => item.id !== itemId);
                     starIcon.classList.remove('starred');
                 } else {
-                    // Find the feed item to get its date
                     const feedItem = feedData.find(item => item.id === itemId);
                     const date = (feedItem && feedItem.date) ? feedItem.date : now;
                     items.push({ id: itemId, date });
                     starIcon.classList.add('starred');
                 }
-                localStorage.setItem('starredItems', JSON.stringify(items.map(item => item.id)));
-                // keep metadata in sync and schedule push to gist
-                const meta = { items, updated_at: now };
-                localStorage.setItem('starredMeta', JSON.stringify(meta));
+                meta.items = items;
+                meta.updated_at = now;
+                gistSync.setLocal(meta);
                 gistSync.pushSoon();
                 return;
             }
@@ -264,11 +272,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const videoId = videoPlaceholder.getAttribute('data-video-id');
                 if (videoId) {
                     const iframe = document.createElement('iframe');
-                    iframe.setAttribute('src', `https://www.youtube.com/embed/${videoId}?autoplay=1`);
-                    iframe.setAttribute('frameborder', '0');
-                    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
-                    iframe.setAttribute('allowfullscreen', '');
-                    iframe.classList.add('video-iframe');
+                    iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                    iframe.frameBorder = '0';
+                    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                    iframe.allowFullscreen = true;
+                    iframe.className = 'video-iframe';
                     videoPlaceholder.innerHTML = '';
                     videoPlaceholder.appendChild(iframe);
                     videoPlaceholder.classList.add('video-loaded');
@@ -287,38 +295,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (refreshIcon) {
-        refreshIcon.addEventListener('click', () => {
-            window.location.reload();
-        });
+        refreshIcon.addEventListener('click', () => window.location.reload());
     }
 
-    // Enhance static DOM if needed: add star icons and lazy-loading
-    if (feedContainer && !feedData.length) {
-        const starred = new Set(getStarredItems());
-        feedContainer.querySelectorAll('.feed-item').forEach(itemEl => {
-            const id = itemEl.getAttribute('data-item-id');
-            // Inject star icon as a floating tab if missing
-            if (!itemEl.querySelector('.star-icon')) {
-                const star = document.createElement('span');
-                star.className = 'star-icon' + (starred.has(id) ? ' starred' : '');
-                star.dataset.itemId = id;
-                star.textContent = '★';
-                itemEl.prepend(star);
-            }
-        });
-    } else {
-        // Dynamic render path with startup gist sync
-        (async () => {
-            await gistSync.syncOnStartup();
+    const startupLogic = async () => {
+        await gistSync.syncOnStartup();
+        const meta = gistSync.getLocal();
+        const seenItems = meta.seenItems || [];
+
+        if (feedData.length) {
             renderFeed();
-        })();
-    }
+        } else {
+            const starred = new Set(getStarredItems());
+            feedContainer.querySelectorAll('.feed-item').forEach(itemEl => {
+                const id = itemEl.getAttribute('data-item-id');
+                const star = itemEl.querySelector('.star-icon');
+                if (!star) {
+                    const newStar = document.createElement('span');
+                    newStar.className = 'star-icon' + (starred.has(id) ? ' starred' : '');
+                    newStar.dataset.itemId = id;
+                    newStar.textContent = '★';
+                    itemEl.prepend(newStar);
+                } else {
+                    star.classList.toggle('starred', starred.has(id));
+                }
+            });
+        }
+        
+        applyView(seenItems);
 
-    // Progressive image hints
+        const allDomIds = Array.from(document.querySelectorAll('#feed-container .feed-item')).map(el => el.dataset.itemId);
+        meta.seenItems = allDomIds;
+        meta.updated_at = new Date().toISOString();
+        gistSync.setLocal(meta);
+        gistSync.pushSoon();
+    };
+
+    startupLogic();
+
     document.querySelectorAll('img.feed-thumbnail, img.video-thumbnail').forEach(img => {
-        img.loading = img.loading || 'lazy';
-        img.decoding = img.decoding || 'async';
-        img.referrerPolicy = img.referrerPolicy || 'no-referrer-when-downgrade';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.referrerPolicy = 'no-referrer-when-downgrade';
     });
-
-})
+});

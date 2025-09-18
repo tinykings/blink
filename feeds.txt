@@ -16,7 +16,6 @@ https://www.macstories.net/feed/
 https://www.thelazyadministrator.com/feed/
 https://feeds.feedburner.com/StudyHacks
 https://www.404media.co/rss
-https://www.jw.org/en/news/rss/FullNewsRSS/feed.xml
 https://4sysops.com/feed/
 https://buttondown.com/hacker-newsletter/rss
 https://krebsonsecurity.com/feed/

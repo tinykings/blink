@@ -162,15 +162,6 @@ class FeedProcessor:
         logger.info(f"Found {len(all_rss_urls)} RSS feeds to process")
         return all_rss_urls
     
-    def _write_youtube_log(self, entries: List[Tuple[str, str]]) -> None:
-        """Write YouTube channel info to log file."""
-        try:
-            with open('yt.log', 'w') as f:
-                for channel_id, channel_name in entries:
-                    f.write(f"{channel_id}: {channel_name}\n")
-        except IOError as e:
-            logger.error(f"Could not write YouTube log: {e}")
-    
     def _update_feeds_file(
         self,
         file_path: str,
