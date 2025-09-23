@@ -321,6 +321,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const startupLogic = async () => {
+        const feedContainer = document.getElementById('feed-container');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        if (loadingOverlay) loadingOverlay.style.display = 'flex';
+
         await gistSync.syncOnStartup();
         const meta = gistSync.getLocal();
 
@@ -368,6 +373,9 @@ document.addEventListener('DOMContentLoaded', () => {
             gistSync.setLocal(meta);
             gistSync.pushSoon();
         }
+
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
+        if (feedContainer) feedContainer.style.display = '';
     };
 
     startupLogic();
