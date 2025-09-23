@@ -1,3 +1,31 @@
+let onYouTubeIframeAPIReadyCallbacks = [];
+let ytApiLoaded = false;
+window.onYouTubeIframeAPIReady = function() {
+    ytApiLoaded = true;
+    onYouTubeIframeAPIReadyCallbacks.forEach(callback => callback());
+    onYouTubeIframeAPIReadyCallbacks = [];
+};
+
+function loadYouTubeAPI(callback) {
+    if (ytApiLoaded && typeof YT !== 'undefined' && YT.Player) {
+        callback();
+        return;
+    }
+    
+    onYouTubeIframeAPIReadyCallbacks.push(callback);
+
+    if (document.querySelector('script[src="https://www.youtube.com/iframe_api"]') === null) {
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        if (firstScriptTag) {
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        } else {
+            document.head.appendChild(tag);
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Settings modal logic
     const settingsIcon = document.getElementById('settings-icon');
