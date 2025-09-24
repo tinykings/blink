@@ -79,10 +79,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCGSg3iQgRQ5M9CpluqkMAZg
 https://www.youtube.com/feeds/videos.xml?channel_id=UCdKvOz1yqCbty9TwmEUQSiA
 # Hayls World
 https://www.youtube.com/feeds/videos.xml?channel_id=UCIxLxlan8q9WA7sjuq6LdTQ
-# Moebius FM
-https://www.youtube.com/feeds/videos.xml?channel_id=UCpiM1VjFQ5Ke7lW6LICmYzA
-# Cassette Invaders
-https://www.youtube.com/feeds/videos.xml?channel_id=UC5Op216TKum63nw34cy1pBA
 # Awesome
 https://www.youtube.com/feeds/videos.xml?channel_id=UCXzw-OdotBUcNA9yhuYQBwA
 # Bonsai Pop
@@ -209,8 +205,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCDumpETJYAtNsA9M1jabBrg
 https://www.youtube.com/feeds/videos.xml?channel_id=UCsBjURrPoezykLs9EqgamOA
 # First We Feast
 https://www.youtube.com/feeds/videos.xml?channel_id=UCPD_bxCRGpmmeQcbe2kpPaA
-# Frequency
-https://www.youtube.com/feeds/videos.xml?channel_id=UCXSlVr2hM09_ESKZxrxok2g
 # FromSergio
 https://www.youtube.com/feeds/videos.xml?channel_id=UCIDJH27tBTlA7jjMI5wnibA
 # gala studio
