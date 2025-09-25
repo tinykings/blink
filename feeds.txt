@@ -19,8 +19,8 @@ https://krebsonsecurity.com/feed/
 https://github.com/basecamp/omarchy/releases.atom
 
 #youtube
-https://www.youtube.com/@dhh37
-
+# David Heinemeier Hansson
+https://www.youtube.com/feeds/videos.xml?channel_id=UCUkM9uMpWatT7gVWShgtKFw
 # GameSpot
 https://www.youtube.com/feeds/videos.xml?channel_id=UCbu2SsF-Or3Rsn3NxqODImw
 # noclip_2
