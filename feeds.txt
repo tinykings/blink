@@ -19,6 +19,8 @@ https://krebsonsecurity.com/feed/
 https://github.com/basecamp/omarchy/releases.atom
 
 #youtube
+https://www.youtube.com/@dhh37
+
 # GameSpot
 https://www.youtube.com/feeds/videos.xml?channel_id=UCbu2SsF-Or3Rsn3NxqODImw
 # noclip_2
@@ -97,10 +99,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCgDqL4yzXb4BflimZaxL4Vg
 https://www.youtube.com/feeds/videos.xml?channel_id=UChgNGLBeUG7yC-3SxaZlSBg
 # Anna B.
 https://www.youtube.com/feeds/videos.xml?channel_id=UCeKK8ntn4oyHKUH7iFOg1zw
-# Apple
-https://www.youtube.com/feeds/videos.xml?channel_id=UCE_M8A5yxnLfW0KghEeajjw
-# Apple TV
-https://www.youtube.com/feeds/videos.xml?channel_id=UC1Myj674wRVXB9I4c6Hm5zA
 # Architectural Digest
 https://www.youtube.com/feeds/videos.xml?channel_id=UC0k238zFx-Z8xFH0sxCrPJg
 # arcologies
@@ -347,8 +345,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCpXLm3fQI7H-xgMwGkqZpRg
 https://www.youtube.com/feeds/videos.xml?channel_id=UC6QQXHTWzhjlLJQpRPoJ4IA
 # prestongoes
 https://www.youtube.com/feeds/videos.xml?channel_id=UCI3yTtc0kShZ-S_Qsd5VTSQ
-# Proper Honest Tech
-https://www.youtube.com/feeds/videos.xml?channel_id=UCi7eZm4CkFiLEZ4tF4Er4lA
 # Resident Advisor
 https://www.youtube.com/feeds/videos.xml?channel_id=UCDHvlud7Hf86FxFsogrBcMg
 # Reynard Lowell
