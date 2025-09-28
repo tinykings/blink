@@ -3,10 +3,7 @@ https://www.reddit.com/r/apple/top.rss?t=week
 https://www.reddit.com/r/sysadmin/top.rss?t=week
 https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
-https://www.reddit.com/r/gaming/top.rss?t=week
-https://www.reddit.com/r/games/top.rss?t=week
-https://www.reddit.com/r/pcgaming/top.rss?t=week
-https://www.reddit.com/r/linux_gaming/top.rss?t=week
+https://www.reddit.com/r/iosgaming/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.bleepingcomputer.com/feed/
@@ -17,63 +14,8 @@ https://www.404media.co/rss
 https://4sysops.com/feed/
 https://buttondown.com/hacker-newsletter/rss
 https://krebsonsecurity.com/feed/
-https://github.com/basecamp/omarchy/releases.atom
 
 #youtube
-# David Heinemeier Hansson
-https://www.youtube.com/feeds/videos.xml?channel_id=UCUkM9uMpWatT7gVWShgtKFw
-# GameSpot
-https://www.youtube.com/feeds/videos.xml?channel_id=UCbu2SsF-Or3Rsn3NxqODImw
-# noclip_2
-https://www.youtube.com/feeds/videos.xml?channel_id=UCdievj3szPeYJzqqOjsLnfQ
-# Skill Up
-https://www.youtube.com/feeds/videos.xml?channel_id=UCZ7AeeVbyslLM_8-nVy2B8Q
-# gameranx
-https://www.youtube.com/feeds/videos.xml?channel_id=UCNvzD7Z-g64bPXxGzaQaa4g
-# Digital Foundry
-https://www.youtube.com/feeds/videos.xml?channel_id=UC9PBzalIcEQCsiIkq36PyUA
-# Retro Game Corps
-https://www.youtube.com/feeds/videos.xml?channel_id=UCoZQiN0o7f36H7PaW4fVhFw
-# EmWins
-https://www.youtube.com/feeds/videos.xml?channel_id=UCq4CfirfepI5tN5tQme_9rQ
-# Destin
-https://www.youtube.com/feeds/videos.xml?channel_id=UCgUOWrjLEhmHE9tqYtoeS_g
-# nocaps
-https://www.youtube.com/feeds/videos.xml?channel_id=UCCghUBYXUjmJWBO5GlWcxCw
-# DF Clips
-https://www.youtube.com/feeds/videos.xml?channel_id=UCLdBr5f6RcP6l_TAP4GkhDQ
-# ETA PRIME
-https://www.youtube.com/feeds/videos.xml?channel_id=UC_0CVCfC_3iuHqmyClu59Uw
-# IGN Games
-https://www.youtube.com/feeds/videos.xml?channel_id=UCdVrPfq-B9N5v01axUoDfLA
-# Daryl Talks Games
-https://www.youtube.com/feeds/videos.xml?channel_id=UCJfJWct8jN1RpCuVWk3zHTA
-# mossbag
-https://www.youtube.com/feeds/videos.xml?channel_id=UCTvH45HvnOzqXvfNJqdc3xg
-# Noisy Pixel
-https://www.youtube.com/feeds/videos.xml?channel_id=UCYtuVAsWV5wTITaLgEGqqZg
-# WULFF DEN
-https://www.youtube.com/feeds/videos.xml?channel_id=UCr613nJgA50o8DUUT00qHvw
-# TechDweeb
-https://www.youtube.com/feeds/videos.xml?channel_id=UCgRaK4A7yi4ZELCLUjdP_pg
-# /noclip
-https://www.youtube.com/feeds/videos.xml?channel_id=UC0fDG3byEcMtbOqPMymDNbw
-# BBKDRAGOON
-https://www.youtube.com/feeds/videos.xml?channel_id=UC22GlzN_jFaGLhiO-8ZM7Gw
-# Team Cherry
-https://www.youtube.com/feeds/videos.xml?channel_id=UCZS2K8ZsUmujTuj3cNMyBSA
-# Raz
-https://www.youtube.com/feeds/videos.xml?channel_id=UCivETRAS-l1zO3RaR9f8PjA
-# Game Maker's Toolkit
-https://www.youtube.com/feeds/videos.xml?channel_id=UCqJ-Xo29CKyLTjn6z2XwYAw
-# Gingy
-https://www.youtube.com/feeds/videos.xml?channel_id=UC9bORzxOWiewqMXxkmhAwAg
-# Polygon
-https://www.youtube.com/feeds/videos.xml?channel_id=UCuVxaQDraOja6xKidcmoufA
-# CantPause
-https://www.youtube.com/feeds/videos.xml?channel_id=UC-2OWg_yYnoU_IAYHwJKeDw
-# Raycevick
-https://www.youtube.com/feeds/videos.xml?channel_id=UC1JTQBa5QxZCpXrFSkMxmPw
 # Digging The Greats
 https://www.youtube.com/feeds/videos.xml?channel_id=UCGSg3iQgRQ5M9CpluqkMAZg
 # Better Creating
@@ -106,8 +48,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCeKK8ntn4oyHKUH7iFOg1zw
 https://www.youtube.com/feeds/videos.xml?channel_id=UCE_M8A5yxnLfW0KghEeajjw
 # Apple TV
 https://www.youtube.com/feeds/videos.xml?channel_id=UC1Myj674wRVXB9I4c6Hm5zA
-# Architectural Digest
-https://www.youtube.com/feeds/videos.xml?channel_id=UC0k238zFx-Z8xFH0sxCrPJg
 # arcologies
 https://www.youtube.com/feeds/videos.xml?channel_id=UC-3EC9T_BOMN1mdM9ZS0rLw
 # ark.curate
@@ -182,8 +122,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCP7WmQ_U4GB3K51Od9QvM0w
 https://www.youtube.com/feeds/videos.xml?channel_id=UCiVWjDbSQMGFddqRwToBRbg
 # DIY Perks
 https://www.youtube.com/feeds/videos.xml?channel_id=UCUQo7nzH1sXVpzL92VesANw
-# Dwell
-https://www.youtube.com/feeds/videos.xml?channel_id=UCKdTgHHnrxr4idSp99Yo0fQ
 # Elena Taber
 https://www.youtube.com/feeds/videos.xml?channel_id=UCDBroOWVP4aN8SYM0br6sJQ
 # Ellen
@@ -198,8 +136,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCndv1-tgcYaxulGlPzbgbcQ
 https://www.youtube.com/feeds/videos.xml?channel_id=UCvbiD-x3mDmQZRsJi8CnG0A
 # Everyday Home Repairs
 https://www.youtube.com/feeds/videos.xml?channel_id=UCw1V3VC3xAzL66X4VwqaKlg
-# Exploring Alternatives
-https://www.youtube.com/feeds/videos.xml?channel_id=UC8EQAfueDGNeqb1ALm0LjHA
 # FILM CULT
 https://www.youtube.com/feeds/videos.xml?channel_id=UCDumpETJYAtNsA9M1jabBrg
 # Fireship
