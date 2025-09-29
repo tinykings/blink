@@ -321,15 +321,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (videoPlaceholder && !videoPlaceholder.classList.contains('video-loaded')) {
                 const videoId = videoPlaceholder.getAttribute('data-video-id');
                 if (videoId) {
-                    const iframe = document.createElement('iframe');
-                    iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-                    iframe.frameBorder = '0';
-                    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-                    iframe.allowFullscreen = true;
-                    iframe.className = 'video-iframe';
-                    videoPlaceholder.innerHTML = '';
-                    videoPlaceholder.appendChild(iframe);
                     videoPlaceholder.classList.add('video-loaded');
+                    const playerContainer = document.createElement('div');
+                    videoPlaceholder.innerHTML = '';
+                    videoPlaceholder.appendChild(playerContainer);
+
+                    loadYouTubeAPI(() => {
+                        new YT.Player(playerContainer, {
+                            videoId: videoId,
+                            width: '100%',
+                            height: '100%',
+                            playerVars: {
+                                'autoplay': 1,
+                                'playsinline': 1
+                            },
+                            events: {
+                                'onReady': (event) => {
+                                    event.target.getIframe().className = 'video-iframe';
+                                    event.target.playVideo();
+                                }
+                            }
+                        });
+                    });
                 }
             }
         });
