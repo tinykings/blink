@@ -15,6 +15,8 @@ https://buttondown.com/hacker-newsletter/rss
 https://krebsonsecurity.com/feed/
 
 #youtube
+https://www.youtube.com/@PewDiePie
+
 # MintCity
 https://www.youtube.com/feeds/videos.xml?channel_id=UCIoYxzjYbqkb7SWFzr6_u1Q
 # Digging The Greats
