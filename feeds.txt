@@ -15,7 +15,8 @@ https://buttondown.com/hacker-newsletter/rss
 https://krebsonsecurity.com/feed/
 
 #youtube
-https://www.youtube.com/@MintCity
+# MintCity
+https://www.youtube.com/feeds/videos.xml?channel_id=UCIoYxzjYbqkb7SWFzr6_u1Q
 # Digging The Greats
 https://www.youtube.com/feeds/videos.xml?channel_id=UCGSg3iQgRQ5M9CpluqkMAZg
 # Better Creating
