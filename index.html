@@ -5,13 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blink</title>
     <meta name="theme-color" content="#2e3440">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" type="image/png" sizes= href="images/icon.png">
+    <link rel="stylesheet" href="css/style.css">    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- PWA for iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RSS Reader">
+    
     <!-- iOS Icons -->
     <link rel="apple-touch-icon" href="images/icon.png">
     <link rel="apple-touch-icon" sizes="152x152" href="images/icon.png">
     <link rel="apple-touch-icon" sizes="180x180" href="images/icon.png">
     <link rel="apple-touch-icon" sizes="167x167" href="images/icon.png">
+    
+    <!-- Standard Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="images/icon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/icon.png">
+    
+    <!-- Viewport for mobile scaling - Fixed for iOS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- iOS Safari specific fixes -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <link rel="icon" type="image/png" sizes= href="images/icon.png">
 
  </head>
  <body>
@@ -21,7 +39,7 @@
      <div id="feed-container" style="display: none;"></div>
      <div class="footer-bar">
          <a class="repo-link" href="https://github.com/tinykings/blink" target="_blank" rel="noopener noreferrer">blink</a>
-         <p class="last-updated">09-30 03:07 | 5d</p>
+         <p class="last-updated">09-30 04:01 | 5d</p>
          <div class="header-icons" role="toolbar" aria-label="Actions">
             <button id="settings-icon" class="icon-btn" title="Settings" aria-label="Settings">Sync</button>
              <button id="refresh-icon" class="icon-btn" title="Refresh" aria-label="Refresh">Refresh</button>
@@ -69,7 +87,7 @@
   },
   {
     "id": "yt:video:xFBg-sqpv64",
-    "title": "The rise of products nobody asked for",
+    "title": "How social media fuels useless products",
     "link": "https://www.youtube.com/watch?v=xFBg-sqpv64",
     "published": "2025-09-30 14:29:35",
     "thumbnail": "",
@@ -259,7 +277,7 @@
   },
   {
     "id": "yt:video:1PaoWKvcJP0",
-    "title": "Sound on for Sora 2.",
+    "title": "Sound on for Sora 2",
     "link": "https://www.youtube.com/watch?v=1PaoWKvcJP0",
     "published": "2025-09-30 10:20:40",
     "thumbnail": "",
@@ -1679,7 +1697,7 @@
   },
   {
     "id": "yt:video:X_ClPE5Y2q4",
-    "title": "From Apple & Uber to Creating a Multi-Billion Dollar Wallet Industry | Magic Labs Documentary",
+    "title": "Stop Designing for Humans Only | Magic Labs Documentary",
     "link": "https://www.youtube.com/watch?v=X_ClPE5Y2q4",
     "published": "2025-09-28 07:10:01",
     "thumbnail": "",
@@ -1785,6 +1803,16 @@
     "thumbnail": "",
     "feed_title": "Nischa",
     "video_id": "nBvJ4JodIRw",
+    "leaving_soon": false
+  },
+  {
+    "id": "t3_1nsmk3h",
+    "title": "Apple\u2019s ChatGPT-Style Chatbot App Deserves a Public Release",
+    "link": "https://www.reddit.com/r/apple/comments/1nsmk3h/apples_chatgptstyle_chatbot_app_deserves_a_public/",
+    "published": "2025-09-28 05:01:09",
+    "thumbnail": "https://external-preview.redd.it/T6cmunlLT6IfSHvi7_hNLG6M1VVa-Er6mBvELKxm9OE.jpeg?width=640&crop=smart&auto=webp&s=ce54a6400321cc7d33db0be227ba51d85f043c79",
+    "feed_title": "top scoring links : apple",
+    "video_id": null,
     "leaving_soon": false
   },
   {
@@ -2235,7 +2263,7 @@
     "thumbnail": "",
     "feed_title": "Nautilus Files",
     "video_id": "n84duixcutE",
-    "leaving_soon": false
+    "leaving_soon": true
   },
   {
     "id": "yt:video:kyKPSIJEh4M",
@@ -2245,7 +2273,7 @@
     "thumbnail": "",
     "feed_title": "Apple TV",
     "video_id": "kyKPSIJEh4M",
-    "leaving_soon": false
+    "leaving_soon": true
   },
   {
     "id": "https://www.macstories.net/?p=79542",
@@ -2255,7 +2283,7 @@
     "thumbnail": "https://cdn.macstories.net/untitled-1738434411572.png",
     "feed_title": "MacStories",
     "video_id": null,
-    "leaving_soon": false
+    "leaving_soon": true
   },
   {
     "id": "yt:video:8CkVAQi-fnM",
@@ -3125,36 +3153,6 @@
     "thumbnail": "",
     "feed_title": "Andrew Ethan Zeng",
     "video_id": "7mS-ZBrN-ZI",
-    "leaving_soon": true
-  },
-  {
-    "id": "yt:video:SfhbiKyo3jY",
-    "title": "+RA LIVE TWOSHELL",
-    "link": "https://www.youtube.com/shorts/SfhbiKyo3jY",
-    "published": "2025-09-25 16:00:38",
-    "thumbnail": "",
-    "feed_title": "Resident Advisor",
-    "video_id": "SfhbiKyo3jY",
-    "leaving_soon": true
-  },
-  {
-    "id": "t3_1nqkw5r",
-    "title": "Alex Jones and Nick Fuentes taken off YouTube hours after rejoining despite MAGA reinstatement hopes",
-    "link": "https://www.reddit.com/r/technology/comments/1nqkw5r/alex_jones_and_nick_fuentes_taken_off_youtube/",
-    "published": "2025-09-25 15:39:48",
-    "thumbnail": "https://external-preview.redd.it/cnrGF7O0tNbeaQkoVNjqFUMBlgwKeXtT3yvvg1SHw7Q.jpeg?width=640&crop=smart&auto=webp&s=9e8a9d4bae42a38d1e867bdc5b0f92d3cbbec965",
-    "feed_title": "top scoring links : technology",
-    "video_id": null,
-    "leaving_soon": true
-  },
-  {
-    "id": "t3_1nqkq69",
-    "title": "Ukraine: Zelenskyy threatens attack on Kremlin",
-    "link": "https://www.reddit.com/r/worldnews/comments/1nqkq69/ukraine_zelenskyy_threatens_attack_on_kremlin/",
-    "published": "2025-09-25 15:32:34",
-    "thumbnail": "https://external-preview.redd.it/I9LIovnggOyCWzZKkHnE7vvkc3z1zUahgSFii6Wv0Hk.jpeg?width=640&crop=smart&auto=webp&s=f42ed90680a8ddeee36de92dd0a4cbab7cc0a614",
-    "feed_title": "top scoring links : worldnews",
-    "video_id": null,
     "leaving_soon": true
   }
 ]</script>
