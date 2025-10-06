@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 'autoplay': 0,
                                 'playsinline': 1,
                                 'controls': 1,
-                                'mute': 1
+                                'mute': 0
                                 
                             },
                             events: {
