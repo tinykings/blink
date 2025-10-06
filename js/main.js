@@ -332,8 +332,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             width: '100%',
                             height: '100%',
                             playerVars: {
-                                'autoplay': 1,
-                                'playsinline': 1
+                                'autoplay': 0,
+                                'playsinline': 1,
+                                'controls': 1,
+                                'mute': 1
+                                
                             },
                             events: {
                                 'onReady': (event) => {
