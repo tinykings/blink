@@ -20,10 +20,12 @@ https://buttondown.com/hacker-newsletter/rss
 https://krebsonsecurity.com/feed/
 
 #youtube
-https://www.youtube.com/@TonDoesLinux
-https://www.youtube.com/@gardiner_bryant
-https://www.youtube.com/@DamienWilde
-
+# Ton Does Linux and More!
+https://www.youtube.com/feeds/videos.xml?channel_id=UCUDdGb82Xsv4_LQprelLhqA
+# Gardiner Bryant
+https://www.youtube.com/feeds/videos.xml?channel_id=UCv1Kcz-CuGM6mxzL3B1_Eiw
+# Damien Wilde
+https://www.youtube.com/feeds/videos.xml?channel_id=UC9OGCVgbfKXsWAlpbo6TuNA
 # Gamespot
 https://www.youtube.com/feeds/videos.xml?channel_id=UCbu2SsF-Or3Rsn3NxqODImw
 # noclip_2
