@@ -22,6 +22,7 @@ https://krebsonsecurity.com/feed/
 #youtube
 https://www.youtube.com/@TonDoesLinux
 https://www.youtube.com/@gardiner_bryant
+https://www.youtube.com/@DamienWilde
 
 # Gamespot
 https://www.youtube.com/feeds/videos.xml?channel_id=UCbu2SsF-Or3Rsn3NxqODImw
