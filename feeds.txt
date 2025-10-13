@@ -20,6 +20,9 @@ https://buttondown.com/hacker-newsletter/rss
 https://krebsonsecurity.com/feed/
 
 #youtube
+https://www.youtube.com/@TonDoesLinux
+https://www.youtube.com/@gardiner_bryant
+
 # Gamespot
 https://www.youtube.com/feeds/videos.xml?channel_id=UCbu2SsF-Or3Rsn3NxqODImw
 # noclip_2
