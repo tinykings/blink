@@ -13,6 +13,10 @@ https://www.404media.co/rss
 https://4sysops.com/feed/
 https://buttondown.com/hacker-newsletter/rss
 https://krebsonsecurity.com/feed/
+https://wired.com/feed
+https://theatlantic.com/feed/all/
+https://theverge.com/rss/index.xml
+https://time.com/feed
 
 #youtube
 # PewDiePie
