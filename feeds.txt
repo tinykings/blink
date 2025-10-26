@@ -21,14 +21,17 @@ https://krebsonsecurity.com/feed/
 https://theatlantic.com/feed/all/
 https://theverge.com/rss/index.xml
 
-
 #youtube
-https://m.youtube.com/@Cadaea
-https://m.youtube.com/@Chucklefish
-https://m.youtube.com/@CyberDopamine
-https://m.youtube.com/@lostincult
-https://m.youtube.com/@SteamDeckHQ
-
+# Cadaea
+https://www.youtube.com/feeds/videos.xml?channel_id=UCNw8oK_m3j5W9ATu3AhsnAg
+# Chucklefish
+https://www.youtube.com/feeds/videos.xml?channel_id=UClwlgXslmWtaDR4sYGWxX0w
+# Cyber Dopamine
+https://www.youtube.com/feeds/videos.xml?channel_id=UC9HpbclQHCQCaQRYECETk0A
+# Lost In Cult
+https://www.youtube.com/feeds/videos.xml?channel_id=UCsrNdK16FYekze3gIiOAvhw
+# Steam Deck HQ
+https://www.youtube.com/feeds/videos.xml?channel_id=UCI49gT5yWGP7fLn2ql-DlgA
 # Damien Wilde
 https://www.youtube.com/feeds/videos.xml?channel_id=UC9OGCVgbfKXsWAlpbo6TuNA
 # Gamespot
