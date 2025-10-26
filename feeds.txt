@@ -8,7 +8,7 @@ https://www.reddit.com/r/pcgaming/top.rss?t=week
 https://www.reddit.com/r/linux_gaming/top.rss?t=week
 https://www.reddit.com/r/bazzite/top.rss?t=week
 https://www.reddit.com/r/games/top.rss?t=week
-https://www.reddit.com/r/moonlightstreaming/top.rss?t=week
+https://www.reddit.com/r/steamdeck/top.rss?t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.bleepingcomputer.com/feed/
 https://www.macstories.net/feed/
@@ -18,7 +18,6 @@ https://www.404media.co/rss
 https://4sysops.com/feed/
 https://buttondown.com/hacker-newsletter/rss
 https://krebsonsecurity.com/feed/
-https://theatlantic.com/feed/all/
 https://theverge.com/rss/index.xml
 
 #youtube
