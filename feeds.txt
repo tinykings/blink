@@ -19,7 +19,8 @@ https://krebsonsecurity.com/feed/
 https://theverge.com/rss/index.xml
 
 #youtube
-https://www.youtube.com/@thebackgroundnpc
+# TheBackgroundNPC 🧙‍♂️
+https://www.youtube.com/feeds/videos.xml?channel_id=UCuEAyHQajqJrWeVrJKgIS_Q
 # Cadaea
 https://www.youtube.com/feeds/videos.xml?channel_id=UCNw8oK_m3j5W9ATu3AhsnAg
 # Chucklefish
