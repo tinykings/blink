@@ -389,8 +389,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCovagaiL6pBYWfvThaXVniA
 https://www.youtube.com/feeds/videos.xml?channel_id=UC3fg6pL63upkXCc0T203wVg
 # Sarah Li
 https://www.youtube.com/feeds/videos.xml?channel_id=UC8ftoUtWYnN9Cw3w7UTgEug
-# Saturday Night Live
-https://www.youtube.com/feeds/videos.xml?channel_id=UCqFzWxSCi39LnW1JKFR3efg
 # Scott Yu-Jan
 https://www.youtube.com/feeds/videos.xml?channel_id=UCAbAsEZ-0LccTNbl8r-3EaQ
 # Search Engine
