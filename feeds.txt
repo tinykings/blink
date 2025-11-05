@@ -20,8 +20,8 @@ https://theverge.com/rss/index.xml
 
 #youtube
 https://www.youtube.com/@CheeseTurbulenc
-https://www.youtube.com/@GamingInTheWild
-
+# Gaming In The Wild
+https://www.youtube.com/feeds/videos.xml?channel_id=UC2CxEBWZNBMDV5evJvFWkpQ
 # Linus Tech Tips
 https://www.youtube.com/feeds/videos.xml?channel_id=UCXuqSBlHAE6Xw-yeJA0Tunw
 # Steam Deck Gaming
