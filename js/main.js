@@ -140,10 +140,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!gistId || !token) return;
 
             const now = Date.now();
+            const lastUpdatedElement = document.querySelector('.last-updated');
+            let retentionDays = 6; // Default to 6 days
+            if (lastUpdatedElement) {
+                const text = lastUpdatedElement.textContent;
+                const match = text.match(/\|\s*(\d+)d/);
+                if (match && match[1]) {
+                    retentionDays = parseInt(match[1], 10) + 1;
+                }
+            }
+            const retentionMs = retentionDays * 24 * 60 * 60 * 1000;
+
             const filteredItems = (obj.items || []).filter(item => {
-                if (item.starred) return true;
                 const itemDate = new Date(item.date).getTime();
-                return !isNaN(itemDate) && (now - itemDate) <= 6 * 24 * 60 * 60 * 1000;
+                return !isNaN(itemDate) && (now - itemDate) <= retentionMs;
             });
 
             const { updated_at, ...payloadData } = obj;
