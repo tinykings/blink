@@ -16,6 +16,8 @@ https://krebsonsecurity.com/feed/
 https://theverge.com/rss/index.xml
 
 #youtube
+https://www.youtube.com/@UrbanDeepChill
+https://www.youtube.com/@RussellWofford
 # PewDiePie
 https://www.youtube.com/feeds/videos.xml?channel_id=UC-lHJZR3Gqxm24_Vd_AJ5Yw
 # Digging The Greats
