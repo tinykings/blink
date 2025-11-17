@@ -54,8 +54,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (settingsForm) {
         settingsForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            localStorage.setItem('GIST_ID', gistIdInput.value.trim());
-            localStorage.setItem('GITHUB_TOKEN', githubTokenInput.value.trim());
+            const gistId = gistIdInput.value.trim();
+            const githubToken = githubTokenInput.value.trim();
+            localStorage.setItem('GIST_ID', gistId);
+            localStorage.setItem('GITHUB_TOKEN', githubToken);
+            
+            if (gistId && githubToken) {
+                gistSync.syncOnStartup();
+            }
+
             closeSettingsModal();
         });
     }
