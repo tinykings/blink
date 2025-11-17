@@ -250,8 +250,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCQySZfn3B_fnmcr0XYq6TZw
 https://www.youtube.com/feeds/videos.xml?channel_id=UCaJdujMPNjKIuIlwIHHzXrQ
 # Intune Training
 https://www.youtube.com/feeds/videos.xml?channel_id=UCfmMlhX5TW8cicxHw6ExYVA
-# Isabel Paige
-https://www.youtube.com/feeds/videos.xml?channel_id=UCdCottK2mn8T7VOHleKCYCg
 # Jack Rhysider
 https://www.youtube.com/feeds/videos.xml?channel_id=UCMIqrmh2lMdzhlCPK5ahsAg
 # jenn cho
