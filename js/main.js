@@ -1,6 +1,6 @@
 let onYouTubeIframeAPIReadyCallbacks = [];
 let ytApiLoaded = false;
-window.onYouTubeIframeAPIReady = function() {
+window.onYouTubeIframeAPIReady = function () {
     ytApiLoaded = true;
     onYouTubeIframeAPIReadyCallbacks.forEach(callback => callback());
     onYouTubeIframeAPIReadyCallbacks = [];
@@ -11,7 +11,7 @@ function loadYouTubeAPI(callback) {
         callback();
         return;
     }
-    
+
     onYouTubeIframeAPIReadyCallbacks.push(callback);
 
     if (document.querySelector('script[src="https://www.youtube.com/iframe_api"]') === null) {
@@ -52,22 +52,23 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsCancel.addEventListener('click', closeSettingsModal);
     }
     if (settingsForm) {
-        settingsForm.addEventListener('submit', function(e) {
+        settingsForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             const gistId = gistIdInput.value.trim();
             const githubToken = githubTokenInput.value.trim();
             localStorage.setItem('GIST_ID', gistId);
             localStorage.setItem('GITHUB_TOKEN', githubToken);
-            
+
             if (gistId && githubToken) {
-                gistSync.syncOnStartup();
+                await gistSync.pull();
+                window.location.reload();
             }
 
             closeSettingsModal();
         });
     }
     if (settingsModal) {
-        settingsModal.addEventListener('click', function(e) {
+        settingsModal.addEventListener('click', function (e) {
             if (e.target === settingsModal) closeSettingsModal();
         });
     }
@@ -231,7 +232,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const resolved = merge(local, remote);
                 setLocal(resolved);
             },
-            pushSoon: schedulePush
+            pushSoon: schedulePush,
+            pull: async () => {
+                const cfg = getConfig();
+                if (!cfg.gistId || !cfg.token) return;
+                const remote = await fetchRemote();
+                if (remote) {
+                    const local = getLocal();
+                    const resolved = merge(local, remote);
+                    setLocal(resolved);
+                }
+            }
         };
     })();
 
@@ -353,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 'playsinline': 1,
                                 'controls': 1,
                                 'mute': 0
-                                
+
                             },
                             events: {
                                 'onReady': (event) => {
@@ -408,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
-        
+
         applyView(meta.items || []);
 
         const allDomIds = Array.from(document.querySelectorAll('#feed-container .feed-item')).map(el => el.dataset.itemId);
