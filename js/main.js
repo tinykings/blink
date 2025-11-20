@@ -60,8 +60,16 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('GITHUB_TOKEN', githubToken);
 
             if (gistId && githubToken) {
-                await gistSync.pull();
-                window.location.reload();
+                localStorage.removeItem('blinkMeta');
+                const success = await gistSync.pull();
+                if (success) {
+                    const meta = gistSync.getLocal();
+                    renderFeed(showingStarred ? 'starred' : 'all');
+                    applyView(meta.items || []);
+                    alert('Loaded from Gist!');
+                } else {
+                    alert('Could not load from Gist. Please check your ID and Token.');
+                }
             }
 
             closeSettingsModal();
@@ -160,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const retentionMs = retentionDays * 24 * 60 * 60 * 1000;
 
             const filteredItems = (obj.items || []).filter(item => {
+                if (item.starred) return true;
                 const itemDate = new Date(item.date).getTime();
                 return !isNaN(itemDate) && (now - itemDate) <= retentionMs;
             });
@@ -224,24 +233,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cfg = getConfig();
                 if (!cfg.gistId || !cfg.token) return;
                 const remote = await fetchRemote();
-                const local = getLocal();
-                if (!remote) {
-                    try { await pushRemote(local); } catch (e) { console.warn('Push remote failed (startup):', e); }
-                    return;
-                }
-                const resolved = merge(local, remote);
-                setLocal(resolved);
-            },
-            pushSoon: schedulePush,
-            pull: async () => {
-                const cfg = getConfig();
-                if (!cfg.gistId || !cfg.token) return;
-                const remote = await fetchRemote();
                 if (remote) {
                     const local = getLocal();
                     const resolved = merge(local, remote);
                     setLocal(resolved);
                 }
+            },
+            pushSoon: schedulePush,
+            pull: async () => {
+                const cfg = getConfig();
+                if (!cfg.gistId || !cfg.token) return false;
+                const remote = await fetchRemote();
+                if (remote) {
+                    const local = getLocal();
+                    const resolved = merge(local, remote);
+                    setLocal(resolved);
+                    return true;
+                }
+                return false;
             }
         };
     })();
