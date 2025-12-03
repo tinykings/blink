@@ -15,6 +15,7 @@ https://4sysops.com/feed/
 https://buttondown.com/hacker-newsletter/rss
 https://krebsonsecurity.com/feed/
 https://theverge.com/rss/index.xml
+https://hnrss.org/newest?points=150
 
 #youtube
 # PewDiePie
