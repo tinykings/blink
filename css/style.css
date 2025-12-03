@@ -409,3 +409,190 @@ img {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Settings hint */
+.settings-hint {
+    font-size: var(--font-size-small);
+    color: var(--secondary-text-color);
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+.settings-hint code {
+    background: var(--background-color);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, monospace;
+}
+
+/* Feeds Modal Styles */
+.feeds-modal-content {
+    max-width: 500px;
+    width: 90vw;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.feeds-status {
+    padding: 8px 12px;
+    border-radius: var(--border-radius-small);
+    margin-bottom: 12px;
+    display: none;
+    font-size: var(--font-size-small);
+}
+.feeds-status.error {
+    display: block;
+    background: rgba(191, 97, 106, 0.2);
+    color: #bf616a;
+    border: 1px solid #bf616a;
+}
+.feeds-status.success {
+    display: block;
+    background: rgba(163, 190, 140, 0.2);
+    color: #a3be8c;
+    border: 1px solid #a3be8c;
+}
+.feeds-status.info {
+    display: block;
+    background: rgba(136, 192, 208, 0.2);
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+}
+
+.feeds-add-section {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.feeds-add-section input {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: var(--border-radius-small);
+    border: 1px solid var(--border-color);
+    background: var(--background-color);
+    color: var(--primary-text-color);
+    font-size: var(--font-size-medium);
+}
+.feeds-add-section input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.feeds-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.feeds-tab {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    background: var(--background-color);
+    color: var(--secondary-text-color);
+    border-radius: var(--border-radius-small);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: var(--font-size-medium);
+}
+.feeds-tab:hover {
+    border-color: var(--accent-color);
+    color: var(--primary-text-color);
+}
+.feeds-tab.active {
+    background: var(--accent-color);
+    color: var(--background-color);
+    border-color: var(--accent-color);
+}
+
+.feeds-list {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-small);
+    background: var(--background-color);
+    min-height: 200px;
+    max-height: 300px;
+}
+
+.feeds-loading {
+    padding: 24px;
+    text-align: center;
+    color: var(--secondary-text-color);
+}
+
+.feed-entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.1s ease;
+}
+.feed-entry:last-child {
+    border-bottom: none;
+}
+.feed-entry:hover {
+    background: color-mix(in oklab, var(--background-color), var(--accent-color) 5%);
+}
+.feed-entry.pending-add {
+    background: rgba(163, 190, 140, 0.1);
+}
+.feed-entry.pending-remove {
+    background: rgba(191, 97, 106, 0.1);
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+
+.feed-entry-name {
+    font-size: var(--font-size-small);
+    color: var(--secondary-text-color);
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.feed-entry-url {
+    flex: 1;
+    font-size: var(--font-size-small);
+    color: var(--primary-text-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: ui-monospace, monospace;
+}
+.feed-entry-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.feed-entry-remove {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--secondary-text-color);
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 1.1rem;
+    line-height: 1;
+    border-radius: 4px;
+    transition: all 0.1s ease;
+}
+.feed-entry-remove:hover {
+    background: rgba(191, 97, 106, 0.2);
+    color: #bf616a;
+}
+.feed-entry.pending-remove .feed-entry-remove {
+    color: #a3be8c;
+}
+.feed-entry.pending-remove .feed-entry-remove:hover {
+    background: rgba(163, 190, 140, 0.2);
+    color: #a3be8c;
+}
+
+.feeds-empty {
+    padding: 24px;
+    text-align: center;
+    color: var(--secondary-text-color);
+    font-size: var(--font-size-medium);
+}

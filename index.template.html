@@ -41,6 +41,7 @@
          <a class="repo-link" href="https://github.com/tinykings/blink" target="_blank" rel="noopener noreferrer">blink</a>
          <p class="last-updated"><!-- last_updated_placeholder --></p>
          <div class="header-icons" role="toolbar" aria-label="Actions">
+            <button id="feeds-icon" class="icon-btn" title="Manage Feeds" aria-label="Manage Feeds">Feeds</button>
             <button id="settings-icon" class="icon-btn" title="Settings" aria-label="Settings">Sync</button>
              <button id="refresh-icon" class="icon-btn" title="Refresh" aria-label="Refresh">Refresh</button>
             <button id="view-toggle-button" class="icon-btn">all</button>
@@ -52,10 +53,13 @@
             <h2>Settings</h2>
             <p>Create a gist and add the details here, or leave blank to use local storage.</p>
             <form id="settings-form">
+                <label for="github-repo">GitHub Repo (owner/repo):</label>
+                <input type="text" id="github-repo" name="github-repo" autocomplete="off" placeholder="e.g. tinykings/blink">
                 <label for="gist-id">GIST ID:</label>
                 <input type="text" id="gist-id" name="gist-id" autocomplete="off">
                 <label for="github-token">GitHub Token:</label>
                 <input type="password" id="github-token" name="github-token" autocomplete="off">
+                <p class="settings-hint">Token needs <code>repo</code> scope to edit feeds, <code>gist</code> scope to sync stars.</p>
                 <div class="settings-modal-actions">
                     <button type="submit" id="settings-save" class="icon-btn">Save</button>
                     <button type="button" id="settings-cancel" class="icon-btn">Cancel</button>
@@ -64,5 +68,32 @@
         </div>
     </div>
     <!-- Settings modal markup is above in the footer-bar -->
+    
+    <!-- Feeds Management Modal -->
+    <div id="feeds-modal" class="settings-modal" style="display:none;">
+        <div class="settings-modal-content feeds-modal-content">
+            <h2>Manage Feeds</h2>
+            <div id="feeds-status" class="feeds-status"></div>
+            
+            <div class="feeds-add-section">
+                <input type="text" id="new-feed-url" placeholder="Enter RSS or YouTube URL" autocomplete="off">
+                <button type="button" id="add-feed-btn" class="icon-btn">Add</button>
+            </div>
+            
+            <div class="feeds-tabs">
+                <button type="button" class="feeds-tab active" data-section="rss">RSS</button>
+                <button type="button" class="feeds-tab" data-section="youtube">YouTube</button>
+            </div>
+            
+            <div id="feeds-list" class="feeds-list">
+                <div class="feeds-loading">Loading feeds...</div>
+            </div>
+            
+            <div class="settings-modal-actions">
+                <button type="button" id="feeds-save" class="icon-btn" disabled>Save Changes</button>
+                <button type="button" id="feeds-cancel" class="icon-btn">Close</button>
+            </div>
+        </div>
+    </div>
  </body>
 </html>

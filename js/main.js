@@ -31,11 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsIcon = document.getElementById('settings-icon');
     const settingsModal = document.getElementById('settings-modal');
     const settingsForm = document.getElementById('settings-form');
+    const githubRepoInput = document.getElementById('github-repo');
     const gistIdInput = document.getElementById('gist-id');
     const githubTokenInput = document.getElementById('github-token');
     const settingsCancel = document.getElementById('settings-cancel');
 
     function openSettingsModal() {
+        githubRepoInput.value = localStorage.getItem('GITHUB_REPO') || '';
         gistIdInput.value = localStorage.getItem('GIST_ID') || '';
         githubTokenInput.value = localStorage.getItem('GITHUB_TOKEN') || '';
         settingsModal.style.display = 'flex';
@@ -54,8 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (settingsForm) {
         settingsForm.addEventListener('submit', async function (e) {
             e.preventDefault();
+            const githubRepo = githubRepoInput.value.trim();
             const gistId = gistIdInput.value.trim();
             const githubToken = githubTokenInput.value.trim();
+            localStorage.setItem('GITHUB_REPO', githubRepo);
             localStorage.setItem('GIST_ID', gistId);
             localStorage.setItem('GITHUB_TOKEN', githubToken);
 
@@ -78,6 +82,374 @@ document.addEventListener('DOMContentLoaded', () => {
     if (settingsModal) {
         settingsModal.addEventListener('click', function (e) {
             if (e.target === settingsModal) closeSettingsModal();
+        });
+    }
+
+    // Feeds Management Modal Logic
+    const feedsIcon = document.getElementById('feeds-icon');
+    const feedsModal = document.getElementById('feeds-modal');
+    const feedsStatus = document.getElementById('feeds-status');
+    const feedsList = document.getElementById('feeds-list');
+    const newFeedUrlInput = document.getElementById('new-feed-url');
+    const addFeedBtn = document.getElementById('add-feed-btn');
+    const feedsSaveBtn = document.getElementById('feeds-save');
+    const feedsCancelBtn = document.getElementById('feeds-cancel');
+    const feedsTabs = document.querySelectorAll('.feeds-tab');
+
+    let feedsData = { rss: [], youtube: [], sha: null };
+    let pendingChanges = { add: [], remove: [] };
+    let currentSection = 'rss';
+
+    const feedsManager = {
+        getConfig() {
+            return {
+                repo: localStorage.getItem('GITHUB_REPO'),
+                token: localStorage.getItem('GITHUB_TOKEN')
+            };
+        },
+
+        async fetchFeeds() {
+            const { repo, token } = this.getConfig();
+            if (!repo || !token) {
+                return { error: 'Please configure GitHub Repo and Token in Settings first.' };
+            }
+
+            try {
+                const res = await fetch(`https://api.github.com/repos/${repo}/contents/feeds.txt`, {
+                    headers: {
+                        Authorization: `token ${token}`,
+                        Accept: 'application/vnd.github+json'
+                    }
+                });
+
+                if (!res.ok) {
+                    if (res.status === 404) {
+                        return { error: 'feeds.txt not found in repository.' };
+                    }
+                    return { error: `GitHub API error: ${res.status}` };
+                }
+
+                const data = await res.json();
+                const content = atob(data.content);
+                return { content, sha: data.sha };
+            } catch (e) {
+                return { error: `Failed to fetch feeds: ${e.message}` };
+            }
+        },
+
+        parseFeeds(content) {
+            const lines = content.split('\n');
+            const rss = [];
+            const youtube = [];
+            let currentSection = null;
+            let pendingComment = null;
+
+            for (const rawLine of lines) {
+                const line = rawLine.trim();
+                if (!line) continue;
+
+                if (line.startsWith('#')) {
+                    const lowered = line.toLowerCase();
+                    if (lowered === '#rss') {
+                        currentSection = 'rss';
+                        pendingComment = null;
+                    } else if (lowered === '#youtube') {
+                        currentSection = 'youtube';
+                        pendingComment = null;
+                    } else if (currentSection === 'youtube') {
+                        pendingComment = line.replace(/^#\s*/, '');
+                    }
+                    continue;
+                }
+
+                if (currentSection === 'rss') {
+                    rss.push({ url: line, name: this.extractFeedName(line) });
+                } else if (currentSection === 'youtube') {
+                    youtube.push({ url: line, name: pendingComment || this.extractChannelId(line) });
+                    pendingComment = null;
+                }
+            }
+
+            return { rss, youtube };
+        },
+
+        extractFeedName(url) {
+            try {
+                const urlObj = new URL(url);
+                return urlObj.hostname.replace('www.', '');
+            } catch {
+                return url;
+            }
+        },
+
+        extractChannelId(url) {
+            const match = url.match(/channel_id=([\w-]+)/);
+            return match ? match[1] : url;
+        },
+
+        buildFeedsContent(rss, youtube) {
+            let content = '#rss\n';
+            for (const feed of rss) {
+                content += `${feed.url}\n`;
+            }
+            content += '\n#youtube\n';
+            for (const feed of youtube) {
+                if (feed.name && feed.name !== this.extractChannelId(feed.url)) {
+                    content += `# ${feed.name}\n`;
+                }
+                content += `${feed.url}\n`;
+            }
+            return content;
+        },
+
+        async saveFeeds(content, sha) {
+            const { repo, token } = this.getConfig();
+            if (!repo || !token) {
+                return { error: 'GitHub configuration missing.' };
+            }
+
+            try {
+                const res = await fetch(`https://api.github.com/repos/${repo}/contents/feeds.txt`, {
+                    method: 'PUT',
+                    headers: {
+                        Authorization: `token ${token}`,
+                        Accept: 'application/vnd.github+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: 'Update feeds.txt via Blink',
+                        content: btoa(content),
+                        sha: sha
+                    })
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    return { error: errData.message || `GitHub API error: ${res.status}` };
+                }
+
+                const data = await res.json();
+                return { success: true, sha: data.content.sha };
+            } catch (e) {
+                return { error: `Failed to save feeds: ${e.message}` };
+            }
+        }
+    };
+
+    function showFeedsStatus(message, type = 'info') {
+        feedsStatus.textContent = message;
+        feedsStatus.className = 'feeds-status ' + type;
+    }
+
+    function clearFeedsStatus() {
+        feedsStatus.textContent = '';
+        feedsStatus.className = 'feeds-status';
+    }
+
+    function renderFeedsList() {
+        const feeds = currentSection === 'rss' ? feedsData.rss : feedsData.youtube;
+        const pendingAdds = pendingChanges.add.filter(f => f.section === currentSection);
+
+        if (feeds.length === 0 && pendingAdds.length === 0) {
+            feedsList.innerHTML = '<div class="feeds-empty">No feeds in this section</div>';
+            return;
+        }
+
+        let html = '';
+
+        // Show pending additions first
+        for (const feed of pendingAdds) {
+            html += `
+                <div class="feed-entry pending-add" data-url="${feed.url}" data-pending="add">
+                    <div class="feed-entry-info">
+                        <div class="feed-entry-name">+ New</div>
+                        <div class="feed-entry-url">${feed.url}</div>
+                    </div>
+                    <button class="feed-entry-remove" title="Cancel add">×</button>
+                </div>
+            `;
+        }
+
+        // Show existing feeds
+        for (const feed of feeds) {
+            const isPendingRemove = pendingChanges.remove.some(r => r.url === feed.url && r.section === currentSection);
+            html += `
+                <div class="feed-entry ${isPendingRemove ? 'pending-remove' : ''}" data-url="${feed.url}">
+                    <div class="feed-entry-info">
+                        <div class="feed-entry-name">${feed.name}</div>
+                        <div class="feed-entry-url">${feed.url}</div>
+                    </div>
+                    <button class="feed-entry-remove" title="${isPendingRemove ? 'Undo remove' : 'Remove feed'}">${isPendingRemove ? '↩' : '×'}</button>
+                </div>
+            `;
+        }
+
+        feedsList.innerHTML = html;
+    }
+
+    function updateSaveButton() {
+        const hasChanges = pendingChanges.add.length > 0 || pendingChanges.remove.length > 0;
+        feedsSaveBtn.disabled = !hasChanges;
+    }
+
+    async function openFeedsModal() {
+        feedsModal.style.display = 'flex';
+        feedsList.innerHTML = '<div class="feeds-loading">Loading feeds...</div>';
+        clearFeedsStatus();
+        pendingChanges = { add: [], remove: [] };
+        updateSaveButton();
+
+        const result = await feedsManager.fetchFeeds();
+        if (result.error) {
+            showFeedsStatus(result.error, 'error');
+            feedsList.innerHTML = '<div class="feeds-empty">Could not load feeds</div>';
+            return;
+        }
+
+        const parsed = feedsManager.parseFeeds(result.content);
+        feedsData = { ...parsed, sha: result.sha };
+        renderFeedsList();
+    }
+
+    function closeFeedsModal() {
+        feedsModal.style.display = 'none';
+    }
+
+    function addFeed() {
+        const url = newFeedUrlInput.value.trim();
+        if (!url) return;
+
+        // Determine section based on URL
+        let section = currentSection;
+        if (url.includes('youtube.com')) {
+            section = 'youtube';
+        }
+
+        // Check if already exists
+        const feeds = section === 'rss' ? feedsData.rss : feedsData.youtube;
+        if (feeds.some(f => f.url === url) || pendingChanges.add.some(f => f.url === url)) {
+            showFeedsStatus('This feed already exists.', 'error');
+            return;
+        }
+
+        pendingChanges.add.push({ url, section, name: feedsManager.extractFeedName(url) });
+        newFeedUrlInput.value = '';
+        clearFeedsStatus();
+
+        // Switch to appropriate tab
+        if (section !== currentSection) {
+            currentSection = section;
+            feedsTabs.forEach(t => t.classList.toggle('active', t.dataset.section === section));
+        }
+
+        renderFeedsList();
+        updateSaveButton();
+    }
+
+    async function saveChanges() {
+        if (pendingChanges.add.length === 0 && pendingChanges.remove.length === 0) return;
+
+        feedsSaveBtn.disabled = true;
+        showFeedsStatus('Saving changes...', 'info');
+
+        // Apply pending changes
+        let rss = [...feedsData.rss];
+        let youtube = [...feedsData.youtube];
+
+        // Add new feeds
+        for (const feed of pendingChanges.add) {
+            if (feed.section === 'rss') {
+                rss.push({ url: feed.url, name: feed.name });
+            } else {
+                youtube.push({ url: feed.url, name: feed.name });
+            }
+        }
+
+        // Remove feeds
+        for (const feed of pendingChanges.remove) {
+            if (feed.section === 'rss') {
+                rss = rss.filter(f => f.url !== feed.url);
+            } else {
+                youtube = youtube.filter(f => f.url !== feed.url);
+            }
+        }
+
+        const content = feedsManager.buildFeedsContent(rss, youtube);
+        const result = await feedsManager.saveFeeds(content, feedsData.sha);
+
+        if (result.error) {
+            showFeedsStatus(result.error, 'error');
+            feedsSaveBtn.disabled = false;
+            return;
+        }
+
+        // Update local state
+        feedsData = { rss, youtube, sha: result.sha };
+        pendingChanges = { add: [], remove: [] };
+        renderFeedsList();
+        updateSaveButton();
+        showFeedsStatus('Changes saved! Run the feed fetcher to update the site.', 'success');
+    }
+
+    // Event listeners
+    if (feedsIcon) {
+        feedsIcon.addEventListener('click', openFeedsModal);
+    }
+    if (feedsCancelBtn) {
+        feedsCancelBtn.addEventListener('click', closeFeedsModal);
+    }
+    if (feedsModal) {
+        feedsModal.addEventListener('click', e => {
+            if (e.target === feedsModal) closeFeedsModal();
+        });
+    }
+    if (addFeedBtn) {
+        addFeedBtn.addEventListener('click', addFeed);
+    }
+    if (newFeedUrlInput) {
+        newFeedUrlInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addFeed();
+            }
+        });
+    }
+    if (feedsSaveBtn) {
+        feedsSaveBtn.addEventListener('click', saveChanges);
+    }
+
+    feedsTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            currentSection = tab.dataset.section;
+            feedsTabs.forEach(t => t.classList.toggle('active', t === tab));
+            renderFeedsList();
+        });
+    });
+
+    if (feedsList) {
+        feedsList.addEventListener('click', e => {
+            const removeBtn = e.target.closest('.feed-entry-remove');
+            if (!removeBtn) return;
+
+            const entry = removeBtn.closest('.feed-entry');
+            const url = entry.dataset.url;
+            const isPendingAdd = entry.dataset.pending === 'add';
+
+            if (isPendingAdd) {
+                // Cancel pending add
+                pendingChanges.add = pendingChanges.add.filter(f => f.url !== url);
+            } else {
+                // Toggle pending remove
+                const existingIdx = pendingChanges.remove.findIndex(f => f.url === url && f.section === currentSection);
+                if (existingIdx >= 0) {
+                    pendingChanges.remove.splice(existingIdx, 1);
+                } else {
+                    pendingChanges.remove.push({ url, section: currentSection });
+                }
+            }
+
+            renderFeedsList();
+            updateSaveButton();
         });
     }
 
