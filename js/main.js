@@ -27,67 +27,13 @@ function loadYouTubeAPI(callback) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Settings modal logic
+    // Settings Modal (combined feeds + sync)
     const settingsIcon = document.getElementById('settings-icon');
     const settingsModal = document.getElementById('settings-modal');
     const settingsForm = document.getElementById('settings-form');
     const githubRepoInput = document.getElementById('github-repo');
     const gistIdInput = document.getElementById('gist-id');
     const githubTokenInput = document.getElementById('github-token');
-    const settingsCancel = document.getElementById('settings-cancel');
-
-    function openSettingsModal() {
-        githubRepoInput.value = localStorage.getItem('GITHUB_REPO') || '';
-        gistIdInput.value = localStorage.getItem('GIST_ID') || '';
-        githubTokenInput.value = localStorage.getItem('GITHUB_TOKEN') || '';
-        settingsModal.style.display = 'flex';
-    }
-
-    function closeSettingsModal() {
-        settingsModal.style.display = 'none';
-    }
-
-    if (settingsIcon) {
-        settingsIcon.addEventListener('click', openSettingsModal);
-    }
-    if (settingsCancel) {
-        settingsCancel.addEventListener('click', closeSettingsModal);
-    }
-    if (settingsForm) {
-        settingsForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const githubRepo = githubRepoInput.value.trim();
-            const gistId = gistIdInput.value.trim();
-            const githubToken = githubTokenInput.value.trim();
-            localStorage.setItem('GITHUB_REPO', githubRepo);
-            localStorage.setItem('GIST_ID', gistId);
-            localStorage.setItem('GITHUB_TOKEN', githubToken);
-
-            if (gistId && githubToken) {
-                localStorage.removeItem('blinkMeta');
-                const success = await gistSync.pull();
-                if (success) {
-                    const meta = gistSync.getLocal();
-                    renderFeed(showingStarred ? 'starred' : 'all');
-                    applyView(meta.items || []);
-                    alert('Loaded from Gist!');
-                } else {
-                    alert('Could not load from Gist. Please check your ID and Token.');
-                }
-            }
-
-            closeSettingsModal();
-        });
-    }
-    if (settingsModal) {
-        settingsModal.addEventListener('click', function (e) {
-            if (e.target === settingsModal) closeSettingsModal();
-        });
-    }
-
-    // Feeds Management Modal Logic
-    const feedsIcon = document.getElementById('feeds-icon');
-    const feedsModal = document.getElementById('feeds-modal');
     const feedsStatus = document.getElementById('feeds-status');
     const feedsList = document.getElementById('feeds-list');
     const newFeedUrlInput = document.getElementById('new-feed-url');
@@ -95,9 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedsSaveBtn = document.getElementById('feeds-save');
     const feedsCancelBtn = document.getElementById('feeds-cancel');
     const feedsTabs = document.querySelectorAll('.feeds-tab');
+    const feedsPanel = document.getElementById('feeds-panel');
+    const syncPanel = document.getElementById('sync-panel');
 
     let feedsData = { rss: [], youtube: [], sha: null };
     let pendingChanges = { add: [], remove: [] };
+    let pendingSyncChanges = false;
     let currentSection = 'rss';
 
     const feedsManager = {
@@ -288,15 +237,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateSaveButton() {
-        const hasChanges = pendingChanges.add.length > 0 || pendingChanges.remove.length > 0;
+        const hasFeedChanges = pendingChanges.add.length > 0 || pendingChanges.remove.length > 0;
+        const hasChanges = hasFeedChanges || pendingSyncChanges;
         feedsSaveBtn.disabled = !hasChanges;
     }
 
-    async function openFeedsModal() {
-        feedsModal.style.display = 'flex';
+    async function openSettingsModal() {
+        settingsModal.style.display = 'flex';
+        
+        // Load sync settings
+        if (githubRepoInput) githubRepoInput.value = localStorage.getItem('GITHUB_REPO') || '';
+        if (gistIdInput) gistIdInput.value = localStorage.getItem('GIST_ID') || '';
+        if (githubTokenInput) githubTokenInput.value = localStorage.getItem('GITHUB_TOKEN') || '';
+        
+        // Reset to RSS tab
+        currentSection = 'rss';
+        feedsTabs.forEach(t => t.classList.toggle('active', t.dataset.section === 'rss'));
+        if (feedsPanel) feedsPanel.style.display = '';
+        if (syncPanel) syncPanel.style.display = 'none';
+        
+        // Load feeds
         feedsList.innerHTML = '<div class="feeds-loading">Loading feeds...</div>';
         clearFeedsStatus();
         pendingChanges = { add: [], remove: [] };
+        pendingSyncChanges = false;
         updateSaveButton();
 
         const result = await feedsManager.fetchFeeds();
@@ -311,8 +275,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFeedsList();
     }
 
-    function closeFeedsModal() {
-        feedsModal.style.display = 'none';
+    function closeSettingsModal() {
+        settingsModal.style.display = 'none';
     }
 
     function addFeed() {
@@ -347,60 +311,92 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function saveChanges() {
-        if (pendingChanges.add.length === 0 && pendingChanges.remove.length === 0) return;
+        const hasFeedChanges = pendingChanges.add.length > 0 || pendingChanges.remove.length > 0;
+        
+        if (!hasFeedChanges && !pendingSyncChanges) return;
 
         feedsSaveBtn.disabled = true;
-        showFeedsStatus('Saving changes...', 'info');
 
-        // Apply pending changes
-        let rss = [...feedsData.rss];
-        let youtube = [...feedsData.youtube];
+        // Save sync settings if changed
+        if (pendingSyncChanges) {
+            const githubRepo = githubRepoInput ? githubRepoInput.value.trim() : '';
+            const gistId = gistIdInput ? gistIdInput.value.trim() : '';
+            const githubToken = githubTokenInput ? githubTokenInput.value.trim() : '';
+            localStorage.setItem('GITHUB_REPO', githubRepo);
+            localStorage.setItem('GIST_ID', gistId);
+            localStorage.setItem('GITHUB_TOKEN', githubToken);
 
-        // Add new feeds
-        for (const feed of pendingChanges.add) {
-            if (feed.section === 'rss') {
-                rss.push({ url: feed.url, name: feed.name });
-            } else {
-                youtube.push({ url: feed.url, name: feed.name });
+            if (gistId && githubToken) {
+                showFeedsStatus('Syncing from Gist...', 'info');
+                localStorage.removeItem('blinkMeta');
+                const success = await gistSync.pull();
+                if (success) {
+                    const meta = gistSync.getLocal();
+                    renderFeed(showingStarred ? 'starred' : 'all');
+                    applyView(meta.items || []);
+                }
             }
+            
+            pendingSyncChanges = false;
         }
 
-        // Remove feeds
-        for (const feed of pendingChanges.remove) {
-            if (feed.section === 'rss') {
-                rss = rss.filter(f => f.url !== feed.url);
-            } else {
-                youtube = youtube.filter(f => f.url !== feed.url);
+        // Save feed changes if any
+        if (hasFeedChanges) {
+            showFeedsStatus('Saving feed changes...', 'info');
+
+            // Apply pending changes
+            let rss = [...feedsData.rss];
+            let youtube = [...feedsData.youtube];
+
+            // Add new feeds
+            for (const feed of pendingChanges.add) {
+                if (feed.section === 'rss') {
+                    rss.push({ url: feed.url, name: feed.name });
+                } else {
+                    youtube.push({ url: feed.url, name: feed.name });
+                }
             }
+
+            // Remove feeds
+            for (const feed of pendingChanges.remove) {
+                if (feed.section === 'rss') {
+                    rss = rss.filter(f => f.url !== feed.url);
+                } else {
+                    youtube = youtube.filter(f => f.url !== feed.url);
+                }
+            }
+
+            const content = feedsManager.buildFeedsContent(rss, youtube);
+            const result = await feedsManager.saveFeeds(content, feedsData.sha);
+
+            if (result.error) {
+                showFeedsStatus(result.error, 'error');
+                feedsSaveBtn.disabled = false;
+                return;
+            }
+
+            // Update local state
+            feedsData = { rss, youtube, sha: result.sha };
+            pendingChanges = { add: [], remove: [] };
+            renderFeedsList();
+            showFeedsStatus('Changes saved! Run the feed fetcher to update the site.', 'success');
+        } else {
+            showFeedsStatus('Settings saved!', 'success');
         }
-
-        const content = feedsManager.buildFeedsContent(rss, youtube);
-        const result = await feedsManager.saveFeeds(content, feedsData.sha);
-
-        if (result.error) {
-            showFeedsStatus(result.error, 'error');
-            feedsSaveBtn.disabled = false;
-            return;
-        }
-
-        // Update local state
-        feedsData = { rss, youtube, sha: result.sha };
-        pendingChanges = { add: [], remove: [] };
-        renderFeedsList();
+        
         updateSaveButton();
-        showFeedsStatus('Changes saved! Run the feed fetcher to update the site.', 'success');
     }
 
     // Event listeners
-    if (feedsIcon) {
-        feedsIcon.addEventListener('click', openFeedsModal);
+    if (settingsIcon) {
+        settingsIcon.addEventListener('click', openSettingsModal);
     }
     if (feedsCancelBtn) {
-        feedsCancelBtn.addEventListener('click', closeFeedsModal);
+        feedsCancelBtn.addEventListener('click', closeSettingsModal);
     }
-    if (feedsModal) {
-        feedsModal.addEventListener('click', e => {
-            if (e.target === feedsModal) closeFeedsModal();
+    if (settingsModal) {
+        settingsModal.addEventListener('click', e => {
+            if (e.target === settingsModal) closeSettingsModal();
         });
     }
     if (addFeedBtn) {
@@ -418,11 +414,30 @@ document.addEventListener('DOMContentLoaded', () => {
         feedsSaveBtn.addEventListener('click', saveChanges);
     }
 
+    // Track sync form changes
+    [githubRepoInput, gistIdInput, githubTokenInput].forEach(input => {
+        if (input) {
+            input.addEventListener('input', () => {
+                pendingSyncChanges = true;
+                updateSaveButton();
+            });
+        }
+    });
+
     feedsTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             currentSection = tab.dataset.section;
             feedsTabs.forEach(t => t.classList.toggle('active', t === tab));
-            renderFeedsList();
+            
+            // Show/hide panels based on section
+            if (currentSection === 'sync') {
+                if (feedsPanel) feedsPanel.style.display = 'none';
+                if (syncPanel) syncPanel.style.display = '';
+            } else {
+                if (feedsPanel) feedsPanel.style.display = '';
+                if (syncPanel) syncPanel.style.display = 'none';
+                renderFeedsList();
+            }
         });
     });
 

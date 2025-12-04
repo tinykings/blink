@@ -424,6 +424,18 @@ img {
     font-family: ui-monospace, monospace;
 }
 
+/* Sync panel */
+.sync-description {
+    font-size: var(--font-size-small);
+    color: var(--secondary-text-color);
+    margin: 0 0 16px 0;
+}
+
+.settings-panel {
+    flex: 1;
+    overflow-y: auto;
+}
+
 /* Feeds Modal Styles */
 .feeds-modal-content {
     max-width: 500px;
