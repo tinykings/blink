@@ -15,83 +15,8 @@ https://4sysops.com/feed/
 https://krebsonsecurity.com/feed/
 https://theverge.com/rss/index.xml
 https://hnrss.org/newest?points=150
-https://www.reddit.com/r/pcgaming/top.rss?t=week
-https://www.reddit.com/r/games/top.rss?t=week
-https://www.reddit.com/r/steamdeck/top.rss?t=week
 
 #youtube
-# Gaming In The Wild
-https://www.youtube.com/feeds/videos.xml?channel_id=UC2CxEBWZNBMDV5evJvFWkpQ
-# Linus Tech Tips
-https://www.youtube.com/feeds/videos.xml?channel_id=UCXuqSBlHAE6Xw-yeJA0Tunw
-# Steam Deck Gaming
-https://www.youtube.com/feeds/videos.xml?channel_id=UCneOtYYTpAUlNMQ6_dZEzmw
-# TheBackgroundNPC 🧙‍♂️
-https://www.youtube.com/feeds/videos.xml?channel_id=UCuEAyHQajqJrWeVrJKgIS_Q
-# Cadaea
-https://www.youtube.com/feeds/videos.xml?channel_id=UCNw8oK_m3j5W9ATu3AhsnAg
-# Chucklefish
-https://www.youtube.com/feeds/videos.xml?channel_id=UClwlgXslmWtaDR4sYGWxX0w
-# Cyber Dopamine
-https://www.youtube.com/feeds/videos.xml?channel_id=UC9HpbclQHCQCaQRYECETk0A
-# Lost In Cult
-https://www.youtube.com/feeds/videos.xml?channel_id=UCsrNdK16FYekze3gIiOAvhw
-# Steam Deck HQ
-https://www.youtube.com/feeds/videos.xml?channel_id=UCI49gT5yWGP7fLn2ql-DlgA
-# Damien Wilde
-https://www.youtube.com/feeds/videos.xml?channel_id=UC9OGCVgbfKXsWAlpbo6TuNA
-# Gamespot
-https://www.youtube.com/feeds/videos.xml?channel_id=UCbu2SsF-Or3Rsn3NxqODImw
-# noclip_2
-https://www.youtube.com/feeds/videos.xml?channel_id=UCdievj3szPeYJzqqOjsLnfQ
-# Skill Up
-https://www.youtube.com/feeds/videos.xml?channel_id=UCZ7AeeVbyslLM_8-nVy2B8Q
-# gameranx
-https://www.youtube.com/feeds/videos.xml?channel_id=UCNvzD7Z-g64bPXxGzaQaa4g
-# Digital Foundry
-https://www.youtube.com/feeds/videos.xml?channel_id=UC9PBzalIcEQCsiIkq36PyUA
-# Retro Game Corps
-https://www.youtube.com/feeds/videos.xml?channel_id=UCoZQiN0o7f36H7PaW4fVhFw
-# EmWins
-https://www.youtube.com/feeds/videos.xml?channel_id=UCq4CfirfepI5tN5tQme_9rQ
-# Destin
-https://www.youtube.com/feeds/videos.xml?channel_id=UCgUOWrjLEhmHE9tqYtoeS_g
-# nocaps
-https://www.youtube.com/feeds/videos.xml?channel_id=UCCghUBYXUjmJWBO5GlWcxCw
-# DF Clips
-https://www.youtube.com/feeds/videos.xml?channel_id=UCLdBr5f6RcP6l_TAP4GkhDQ
-# ETA PRIME
-https://www.youtube.com/feeds/videos.xml?channel_id=UC_0CVCfC_3iuHqmyClu59Uw
-# IGN Games
-https://www.youtube.com/feeds/videos.xml?channel_id=UCdVrPfq-B9N5v01axUoDfLA
-# Daryl Talks Games
-https://www.youtube.com/feeds/videos.xml?channel_id=UCJfJWct8jN1RpCuVWk3zHTA
-# mossbag
-https://www.youtube.com/feeds/videos.xml?channel_id=UCTvH45HvnOzqXvfNJqdc3xg
-# Noisy Pixel
-https://www.youtube.com/feeds/videos.xml?channel_id=UCYtuVAsWV5wTITaLgEGqqZg
-# WULFF DEN
-https://www.youtube.com/feeds/videos.xml?channel_id=UCr613nJgA50o8DUUT00qHvw
-# TechDweeb
-https://www.youtube.com/feeds/videos.xml?channel_id=UCgRaK4A7yi4ZELCLUjdP_pg
-# /noclip
-https://www.youtube.com/feeds/videos.xml?channel_id=UC0fDG3byEcMtbOqPMymDNbw
-# BBKDRAGOON
-https://www.youtube.com/feeds/videos.xml?channel_id=UC22GlzN_jFaGLhiO-8ZM7Gw
-# Team Cherry
-https://www.youtube.com/feeds/videos.xml?channel_id=UCZS2K8ZsUmujTuj3cNMyBSA
-# Raz
-https://www.youtube.com/feeds/videos.xml?channel_id=UCivETRAS-l1zO3RaR9f8PjA
-# Game Maker's Toolkit
-https://www.youtube.com/feeds/videos.xml?channel_id=UCqJ-Xo29CKyLTjn6z2XwYAw
-# Gingy
-https://www.youtube.com/feeds/videos.xml?channel_id=UC9bORzxOWiewqMXxkmhAwAg
-# Polygon
-https://www.youtube.com/feeds/videos.xml?channel_id=UCuVxaQDraOja6xKidcmoufA
-# CantPause
-https://www.youtube.com/feeds/videos.xml?channel_id=UC-2OWg_yYnoU_IAYHwJKeDw
-# Raycevick
-https://www.youtube.com/feeds/videos.xml?channel_id=UC1JTQBa5QxZCpXrFSkMxmPw
 # PewDiePie
 https://www.youtube.com/feeds/videos.xml?channel_id=UC-lHJZR3Gqxm24_Vd_AJ5Yw
 # Digging The Greats
