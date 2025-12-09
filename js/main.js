@@ -757,6 +757,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return changed;
     }
 
+    const SAFE_ARCHIVE_PROTOCOLS = new Set(['http:', 'https:']);
+
+    function getSafeArchiveUrl(rawUrl) {
+        if (!rawUrl || typeof rawUrl !== 'string') return '';
+        const trimmed = rawUrl.trim();
+        if (!trimmed) return '';
+        try {
+            const parsed = new URL(trimmed, window.location.origin);
+            return SAFE_ARCHIVE_PROTOCOLS.has(parsed.protocol) ? trimmed : '';
+        } catch {
+            return '';
+        }
+    }
+
     function renderArchive(metaItems = []) {
         if (!archiveSection || !archiveList) return;
         const retentionMs = getRetentionDays() * 24 * 60 * 60 * 1000;
@@ -786,10 +800,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (archiveEmpty) archiveEmpty.style.display = 'none';
-        archiveList.innerHTML = archived.map(item => {
+        archiveList.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+        archived.forEach(item => {
+            const li = document.createElement('li');
+            const link = document.createElement('a');
             const title = item.title || 'Untitled item';
-            return `<li><a href="${item.url}" target="_blank" rel="noopener noreferrer">${title}</a></li>`;
-        }).join('');
+            link.textContent = title;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            const safeUrl = getSafeArchiveUrl(item.url);
+            if (safeUrl) {
+                link.href = safeUrl;
+            } else {
+                link.removeAttribute('href');
+                link.setAttribute('aria-disabled', 'true');
+            }
+            li.appendChild(link);
+            fragment.appendChild(li);
+        });
+        archiveList.appendChild(fragment);
     }
 
     function renderFeed(filter = 'all') {
