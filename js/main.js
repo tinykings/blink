@@ -334,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const meta = gistSync.getLocal();
                     renderFeed(showingStarred ? 'starred' : 'all');
                     applyView(meta.items || []);
+                    renderArchive(meta.items || []);
                 }
             }
             
@@ -472,7 +473,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const starToggle = document.getElementById('star-toggle');
     const refreshIcon = document.getElementById('refresh-icon');
     const viewToggleButton = document.getElementById('view-toggle-button');
+    const archiveSection = document.getElementById('archive-section');
+    const archiveList = document.getElementById('archive-list');
+    const archiveEmpty = document.getElementById('archive-empty');
     let feedData = [];
+    let feedDataById = new Map();
     let showingStarred = false;
     let showingNew = true;
 
@@ -480,6 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (feedDataElement) {
         try {
             feedData = JSON.parse(feedDataElement.textContent);
+            feedDataById = new Map(feedData.map(item => [item.id, item]));
         } catch (e) {
             console.error("Error parsing feed data:", e);
         }
@@ -493,6 +499,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const API_BASE = 'https://api.github.com/gists';
         let pushTimeout = null;
         const DEBOUNCE_MS = 1000;
+
+        function sanitizeItemForStorage(item) {
+            if (!item || !item.id) return null;
+            const minimal = {
+                id: item.id,
+                date: item.date || new Date().toISOString(),
+                starred: !!item.starred
+            };
+            if (item.title) minimal.title = item.title;
+            if (item.url || item.link) minimal.url = item.url || item.link;
+            if (item.published) minimal.published = item.published;
+            return minimal;
+        }
 
         function getConfig() {
             return {
@@ -543,25 +562,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!gistId || !token) return;
 
             const now = Date.now();
-            const lastUpdatedElement = document.querySelector('.last-updated');
-            let retentionDays = 6; // Default to 6 days
-            if (lastUpdatedElement) {
-                const text = lastUpdatedElement.textContent;
-                const match = text.match(/\|\s*(\d+)d/);
-                if (match && match[1]) {
-                    retentionDays = parseInt(match[1], 10) + 1;
-                }
-            }
+            const retentionDays = getRetentionDays() + 1;
             const retentionMs = retentionDays * 24 * 60 * 60 * 1000;
 
             const filteredItems = (obj.items || []).filter(item => {
                 if (item.starred) return true;
                 const itemDate = new Date(item.date).getTime();
                 return !isNaN(itemDate) && (now - itemDate) <= retentionMs;
-            });
+            }).map(sanitizeItemForStorage).filter(Boolean);
 
-            const { updated_at, ...payloadData } = obj;
-            payloadData.items = filteredItems;
+            const payloadData = {
+                ...obj,
+                items: filteredItems
+            };
+            delete payloadData.updated_at;
             delete payloadData.seenItems;
 
             const payload = { files: { 'starred.json': { content: JSON.stringify(payloadData, null, 2) } } };
@@ -587,14 +601,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // Add all items from the older object first.
             for (const item of olderObj.items) {
                 if (item && item.id) {
-                    itemsById.set(item.id, item);
+                    itemsById.set(item.id, { ...item });
                 }
             }
 
-            // Then overwrite with items from the newer object. This handles updates.
+            // Then merge with items from the newer object. This handles updates.
             for (const item of newerObj.items) {
                 if (item && item.id) {
-                    itemsById.set(item.id, item);
+                    const existing = itemsById.get(item.id) || {};
+                    itemsById.set(item.id, { ...existing, ...item });
                 }
             }
 
@@ -656,6 +671,125 @@ document.addEventListener('DOMContentLoaded', () => {
         const starHtml = item.leaving_soon ? '<span class="leaving-soon-icon" title="one day left, leaving tomorrow" aria-label="one day left, leaving tomorrow" role="img">⏰</span>' : `<span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>`;
 
         return `<div class="feed-item" data-item-id="${item.id}">${starHtml}${mediaHtml}<div class="feed-item-info"><h2><a href="${item.link}" target="_blank">${item.title}</a></h2></div></div>`;
+    }
+
+    let cachedRetentionDays = null;
+
+    function getRetentionDays() {
+        if (cachedRetentionDays !== null) {
+            return cachedRetentionDays;
+        }
+        const lastUpdatedElement = document.querySelector('.last-updated');
+        if (lastUpdatedElement) {
+            const match = lastUpdatedElement.textContent.match(/\|\s*(\d+)d/);
+            if (match && match[1]) {
+                const parsed = parseInt(match[1], 10);
+                if (!Number.isNaN(parsed)) {
+                    cachedRetentionDays = parsed;
+                    return cachedRetentionDays;
+                }
+            }
+        }
+        cachedRetentionDays = 5;
+        return cachedRetentionDays;
+    }
+
+    function escapeItemId(itemId) {
+        if (window.CSS && CSS.escape) {
+            return CSS.escape(itemId);
+        }
+        return itemId.replace(/"/g, '\\"');
+    }
+
+    function getDomMetadataForItem(itemId) {
+        if (!feedContainer) return null;
+        const selectorId = escapeItemId(itemId);
+        const element = feedContainer.querySelector(`.feed-item[data-item-id="${selectorId}"]`);
+        if (!element) return null;
+        const linkEl = element.querySelector('.feed-item-info a');
+        if (!linkEl) return null;
+        return {
+            title: linkEl.textContent.trim(),
+            url: linkEl.href
+        };
+    }
+
+    function resolveItemMetadata(itemId) {
+        const feedItem = feedDataById.get(itemId);
+        if (feedItem) {
+            return {
+                title: feedItem.title,
+                url: feedItem.link,
+                published: feedItem.published
+            };
+        }
+        return getDomMetadataForItem(itemId);
+    }
+
+    function ensureMetadataForItems(meta) {
+        if (!meta || !Array.isArray(meta.items)) return false;
+        let changed = false;
+        meta.items.forEach(item => {
+            if (!item || !item.starred) return;
+            if (item.title && (item.url || item.link) && item.published) return;
+            const metadata = resolveItemMetadata(item.id);
+            if (metadata) {
+                let itemChanged = false;
+                if (!item.title && metadata.title) {
+                    item.title = metadata.title;
+                    itemChanged = true;
+                }
+                if (!item.url && metadata.url) {
+                    item.url = metadata.url;
+                    itemChanged = true;
+                }
+                if (!item.link && metadata.url) {
+                    item.link = metadata.url;
+                    itemChanged = true;
+                }
+                if (!item.published && metadata.published) {
+                    item.published = metadata.published;
+                    itemChanged = true;
+                }
+                if (itemChanged) changed = true;
+            }
+        });
+        return changed;
+    }
+
+    function renderArchive(metaItems = []) {
+        if (!archiveSection || !archiveList) return;
+        const retentionMs = getRetentionDays() * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        const activeFeedIds = new Set(feedData.map(item => item.id));
+        const archived = (metaItems || [])
+            .filter(item => item && item.starred && !activeFeedIds.has(item.id))
+            .map(item => {
+                const publishedSource = item.published || item.date;
+                const publishedTime = publishedSource ? new Date(publishedSource).getTime() : NaN;
+                return {
+                    id: item.id,
+                    title: item.title,
+                    url: item.url || item.link,
+                    published: publishedSource,
+                    publishedTime
+                };
+            })
+            .filter(item => item.url && Number.isFinite(item.publishedTime) && (now - item.publishedTime) > retentionMs)
+            .sort((a, b) => b.publishedTime - a.publishedTime);
+
+        archiveSection.style.display = '';
+        if (archived.length === 0) {
+            archiveList.innerHTML = '';
+            if (archiveEmpty) archiveEmpty.style.display = '';
+            return;
+        }
+
+        if (archiveEmpty) archiveEmpty.style.display = 'none';
+        archiveList.innerHTML = archived.map(item => {
+            const title = item.title || 'Untitled item';
+            return `<li><a href="${item.url}" target="_blank" rel="noopener noreferrer">${title}</a></li>`;
+        }).join('');
     }
 
     function renderFeed(filter = 'all') {
@@ -724,20 +858,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 let items = meta.items || [];
                 const now = new Date().toISOString();
                 let item = items.find(i => i.id === itemId);
+                const metadata = resolveItemMetadata(itemId) || {};
 
                 if (item) {
                     item.starred = !item.starred;
+                    if (item.starred) {
+                        if (!item.title && metadata.title) item.title = metadata.title;
+                        if ((!item.url && metadata.url) || (!item.link && metadata.url)) {
+                            item.url = metadata.url;
+                            item.link = metadata.url;
+                        }
+                        if (!item.published && metadata.published) item.published = metadata.published;
+                    }
                     starIcon.classList.toggle('starred', item.starred);
                 } else {
-                    const feedItem = feedData.find(fItem => fItem.id === itemId);
-                    const date = (feedItem && feedItem.date) ? feedItem.date : now;
-                    item = { id: itemId, date, starred: true };
+                    const published = metadata.published || now;
+                    item = {
+                        id: itemId,
+                        date: now,
+                        starred: true,
+                        title: metadata.title || '',
+                        url: metadata.url || '',
+                        link: metadata.url || '',
+                        published
+                    };
                     items.push(item);
                     starIcon.classList.add('starred');
                 }
                 meta.items = items;
                 meta.updated_at = now;
                 gistSync.setLocal(meta);
+                renderArchive(meta.items || []);
                 gistSync.pushSoon();
                 return;
             }
@@ -796,6 +947,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         await gistSync.syncOnStartup();
         const meta = gistSync.getLocal();
+        meta.items = meta.items || [];
 
         if (feedData.length) {
             renderFeed();
@@ -816,11 +968,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        const metadataPatched = ensureMetadataForItems(meta);
         applyView(meta.items || []);
+        renderArchive(meta.items || []);
 
         const allDomIds = Array.from(document.querySelectorAll('#feed-container .feed-item')).map(el => el.dataset.itemId);
         const metaItemsById = new Map((meta.items || []).map(item => [item.id, item]));
-        let changed = false;
+        let changed = metadataPatched;
         const now = new Date().toISOString();
 
         allDomIds.forEach(id => {
@@ -840,6 +994,7 @@ document.addEventListener('DOMContentLoaded', () => {
             meta.updated_at = now;
             gistSync.setLocal(meta);
             gistSync.pushSoon();
+            renderArchive(meta.items || []);
         }
 
         if (loadingOverlay) loadingOverlay.style.display = 'none';
