@@ -734,11 +734,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item.title && (item.url || item.link) && item.published) return;
             const metadata = resolveItemMetadata(item.id);
             if (metadata) {
-                if (!item.title && metadata.title) item.title = metadata.title;
-                if (!item.url && metadata.url) item.url = metadata.url;
-                if (!item.link && metadata.url) item.link = metadata.url;
-                if (!item.published && metadata.published) item.published = metadata.published;
-                changed = true;
+                let itemChanged = false;
+                if (!item.title && metadata.title) {
+                    item.title = metadata.title;
+                    itemChanged = true;
+                }
+                if (!item.url && metadata.url) {
+                    item.url = metadata.url;
+                    itemChanged = true;
+                }
+                if (!item.link && metadata.url) {
+                    item.link = metadata.url;
+                    itemChanged = true;
+                }
+                if (!item.published && metadata.published) {
+                    item.published = metadata.published;
+                    itemChanged = true;
+                }
+                if (itemChanged) changed = true;
             }
         });
         return changed;
