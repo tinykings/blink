@@ -11,6 +11,7 @@ Blink is a minimalist, static feed reader that blends your favorite RSS sources 
 - 📰 Unified feed: Mix plain RSS and YouTube channels in one view.
 - 📺 YouTube auto‑RSS: Paste channel URLs — Blink resolves them to RSS and records channel names.
 - ⭐ Starring + filter: Sync stars across devices using Github Gist, or use local browser storage.
+- 🗃️ Archive: Keep starred items past the rolling retention window with a lightweight list at the bottom of the page.
 - ✏️ Manage feeds from the web: Add or remove RSS/YouTube feeds directly from the site using the GitHub API.
 - ⬆️ Handy controls: Back‑to‑top, refresh, and a footer timestamp with retention days.
 - ▶️ Lazy videos: YouTube embeds load only when you click, keeping the page light.
