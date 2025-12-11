@@ -229,6 +229,30 @@ body {
     gap: var(--spacing-small);
 }
 
+.archive-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-medium);
+    padding: var(--spacing-medium) var(--spacing-large);
+    border-radius: var(--border-radius-small);
+    border: 1px solid var(--border-color);
+    background: color-mix(in oklab, var(--surface-color), var(--accent-color) 6%);
+}
+
+.archive-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.archive-item-info a {
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .archive-list li a {
     color: var(--accent-color);
     text-decoration: none;
@@ -243,6 +267,30 @@ body {
     margin: 0 0 var(--spacing-medium);
     color: var(--secondary-text-color);
     font-size: var(--font-size-small);
+}
+
+.archive-delete-btn {
+    background: transparent;
+    color: var(--secondary-text-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-small);
+    padding: var(--spacing-small) var(--spacing-large);
+    font-size: var(--font-size-small);
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.archive-delete-btn:hover,
+.archive-delete-btn:focus {
+    color: var(--accent-color);
+    border-color: color-mix(in oklab, var(--border-color), var(--accent-color) 45%);
+    background: color-mix(in oklab, var(--surface-color), var(--accent-color) 12%);
+    outline: none;
+}
+
+.archive-delete-btn:focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--accent-color), white 15%);
+    outline-offset: 2px;
 }
 
 .feed-item {
