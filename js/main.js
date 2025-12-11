@@ -1005,9 +1005,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!deleteBtn) return;
             e.preventDefault();
             const itemId = deleteBtn.dataset.itemId || deleteBtn.closest('li')?.dataset.itemId;
-            if (itemId) {
-                deleteArchivedItem(itemId);
-            }
+            if (!itemId) return;
+
+            const archiveItem = deleteBtn.closest('.archive-item');
+            const itemTitle = archiveItem?.querySelector('.archive-item-info a')?.textContent?.trim();
+            const confirmed = window.confirm(itemTitle ? `Delete "${itemTitle}" from the archive? This cannot be undone.` : 'Delete this archived item? This cannot be undone.');
+            if (!confirmed) return;
+
+            deleteArchivedItem(itemId);
         });
     }
 
