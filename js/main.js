@@ -804,6 +804,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const fragment = document.createDocumentFragment();
         archived.forEach(item => {
             const li = document.createElement('li');
+            li.className = 'archive-item';
+            li.dataset.itemId = item.id;
+
+            const linkWrapper = document.createElement('div');
+            linkWrapper.className = 'archive-item-info';
+
             const link = document.createElement('a');
             const title = item.title || 'Untitled item';
             link.textContent = title;
@@ -816,10 +822,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.removeAttribute('href');
                 link.setAttribute('aria-disabled', 'true');
             }
-            li.appendChild(link);
+            linkWrapper.appendChild(link);
+            li.appendChild(linkWrapper);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'archive-delete-btn';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.dataset.itemId = item.id;
+            deleteBtn.title = 'Delete this archived item';
+            deleteBtn.setAttribute('aria-label', `Delete ${title} from archive`);
+            li.appendChild(deleteBtn);
+
             fragment.appendChild(li);
         });
         archiveList.appendChild(fragment);
+    }
+
+    function deleteArchivedItem(itemId) {
+        if (!itemId) return;
+        const meta = gistSync.getLocal();
+        if (!meta || !Array.isArray(meta.items)) return;
+        const index = meta.items.findIndex(item => item && item.id === itemId);
+        if (index === -1) return;
+        meta.items.splice(index, 1);
+        meta.updated_at = new Date().toISOString();
+        gistSync.setLocal(meta);
+        renderArchive(meta.items || []);
+        gistSync.pushSoon();
     }
 
     function renderFeed(filter = 'all') {
@@ -967,6 +997,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (refreshIcon) {
         refreshIcon.addEventListener('click', () => window.location.reload());
+    }
+
+    if (archiveList) {
+        archiveList.addEventListener('click', e => {
+            const deleteBtn = e.target.closest('.archive-delete-btn');
+            if (!deleteBtn) return;
+            e.preventDefault();
+            const itemId = deleteBtn.dataset.itemId || deleteBtn.closest('li')?.dataset.itemId;
+            if (itemId) {
+                deleteArchivedItem(itemId);
+            }
+        });
     }
 
     const startupLogic = async () => {
