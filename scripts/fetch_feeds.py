@@ -229,12 +229,6 @@ class FeedProcessor:
             published_time = self._get_entry_time(entry)
             if published_time < cutoff_time:
                 continue
-            
-            # Determine if item is about to be removed within the next day
-            # Flag items that will reach the retention cutoff in one day
-            is_leaving_soon = (
-                self.utc_now - published_time
-            ) >= timedelta(days=ITEMS_RETENTION_DAYS - 1)
 
             # Convert to local timezone
             published_time = published_time.astimezone(self.local_tz)
@@ -250,7 +244,6 @@ class FeedProcessor:
                 'thumbnail': thumbnail_url,
                 'feed_title': getattr(feed.feed, 'title', ''),
                 'video_id': video_id,
-                'leaving_soon': is_leaving_soon,
             })
         
         return items
@@ -338,14 +331,6 @@ class FeedProcessor:
 <h2><a href="{item["link"]}" target="_blank">{item["title"]}</a></h2>
 '''
         html += '</div>\n'
-
-        # Add leaving-soon indicator as a corner icon (no text)
-        if item.get('leaving_soon'):
-            html += (
-                '<span class="leaving-soon-icon" ' \
-                'title="one day left, leaving tomorrow" ' \
-                'aria-label="one day left, leaving tomorrow" role="img">⏰</span>\n'
-            )
 
         html += '</div>\n'
         return html
