@@ -367,34 +367,6 @@ body {
     color: gold;
 }
 
-/* Leaving-soon icon now replaces the star and uses the same slot */
-.feed-item .leaving-soon-icon {
-    position: absolute;
-    bottom: var(--spacing-medium);
-    right: var(--spacing-medium);
-    transform: none;
-    width: 36px;
-    height: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border-color);
-    background: var(--surface-color);
-    border-radius: 10px;
-    box-shadow: 0 1px 4px var(--box-shadow-color);
-    font-size: 1.2rem;
-    line-height: 1;
-    color: var(--accent-color);
-    user-select: none;
-    cursor: default;
-    z-index: 2;
-}
-
-.feed-item .leaving-soon-icon:hover {
-    background: color-mix(in oklab, var(--surface-color), var(--accent-color) 6%);
-    border-color: color-mix(in oklab, var(--border-color), var(--accent-color) 30%);
-}
-
 /* Global image fixes */
 img {
     max-width: 100%;
