@@ -593,27 +593,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!remoteObj || !remoteObj.items) return localObj || { items: [], updated_at: null };
             if (!localObj || !localObj.items) return remoteObj;
 
-            const itemsById = new Map();
-
             const olderObj = remoteTime > localTime ? localObj : remoteObj;
             const newerObj = remoteTime > localTime ? remoteObj : localObj;
 
-            // Add all items from the older object first.
-            for (const item of olderObj.items) {
-                if (item && item.id) {
-                    itemsById.set(item.id, { ...item });
-                }
+            // IMPORTANT: Deletions must propagate.
+            // The newer object is authoritative for *which IDs exist*; we only use the older object
+            // to back-fill extra fields for IDs that are still present.
+            const olderById = new Map();
+            for (const item of (olderObj.items || [])) {
+                if (item && item.id) olderById.set(item.id, item);
             }
 
-            // Then merge with items from the newer object. This handles updates.
-            for (const item of newerObj.items) {
-                if (item && item.id) {
-                    const existing = itemsById.get(item.id) || {};
-                    itemsById.set(item.id, { ...existing, ...item });
-                }
+            const mergedItems = [];
+            for (const item of (newerObj.items || [])) {
+                if (!item || !item.id) continue;
+                const older = olderById.get(item.id);
+                // Prefer newer fields; fall back to older for missing metadata.
+                mergedItems.push(older ? { ...older, ...item } : { ...item });
             }
-
-            const mergedItems = Array.from(itemsById.values());
 
             return { items: mergedItems, updated_at: newerObj.updated_at };
         }
