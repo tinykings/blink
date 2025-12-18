@@ -18,10 +18,9 @@ https://krebsonsecurity.com/feed/
 https://theverge.com/rss/index.xml
 https://hnrss.org/newest?points=150
 
-
 #youtube
-https://www.youtube.com/@itstedbrooks
-
+# itsTedBrooks
+https://www.youtube.com/feeds/videos.xml?channel_id=UCoAlewNQrVj1jSoye5QFMcQ
 # Gaming In The Wild
 https://www.youtube.com/feeds/videos.xml?channel_id=UC2CxEBWZNBMDV5evJvFWkpQ
 # Linus Tech Tips
