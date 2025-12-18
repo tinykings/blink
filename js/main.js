@@ -497,6 +497,12 @@ document.addEventListener('DOMContentLoaded', () => {
         let pushTimeout = null;
         const DEBOUNCE_MS = 1000;
 
+        function getTimeOrZero(v) {
+            if (!v) return 0;
+            const t = new Date(v).getTime();
+            return Number.isFinite(t) ? t : 0;
+        }
+
         function sanitizeItemForStorage(item) {
             if (!item || !item.id) return null;
             const minimal = {
@@ -505,6 +511,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 starred: !!item.starred,
                 seen: !!item.seen
             };
+            // Track reversible starred state with an explicit "last changed" timestamp.
+            // This allows unstars to win over older stars during merges.
+            if (item.starred_changed_at) minimal.starred_changed_at = item.starred_changed_at;
+            if (!minimal.starred_changed_at && item.starredChangedAt) minimal.starred_changed_at = item.starredChangedAt;
             if (item.title) minimal.title = item.title;
             if (item.url || item.link) minimal.url = item.url || item.link;
             if (item.published) minimal.published = item.published;
@@ -522,7 +532,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let raw = localStorage.getItem('blinkMeta');
             if (!raw) {
                 const starred = JSON.parse(localStorage.getItem('starredItems') || '[]');
-                return { items: starred.map(id => ({ id, date: new Date().toISOString(), starred: true, seen: true })), updated_at: null };
+                const now = new Date().toISOString();
+                return {
+                    items: starred.map(id => ({ id, date: now, starred: true, seen: true, starred_changed_at: now })),
+                    updated_at: null
+                };
             }
             try {
                 const data = JSON.parse(raw);
@@ -533,12 +547,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (item && item.seen === undefined) {
                         item.seen = true; // Existing tracked items default to seen
                     }
+                    // Migration: ensure all items have the 'starred_changed_at' field.
+                    // For existing data we use `updated_at` if present, otherwise fall back to `date`.
+                    if (item && !item.starred_changed_at && item.starredChangedAt) {
+                        item.starred_changed_at = item.starredChangedAt;
+                    }
+                    if (item && !item.starred_changed_at) {
+                        item.starred_changed_at = data.updated_at || item.date || new Date().toISOString();
+                    }
                 });
                 localStorage.setItem('starredItems', JSON.stringify((data.items || []).filter(item => item.starred).map(item => item.id)));
                 return data;
             } catch {
                 const starred = JSON.parse(localStorage.getItem('starredItems') || '[]');
-                return { items: starred.map(id => ({ id, date: new Date().toISOString(), starred: true, seen: true })), updated_at: null };
+                const now = new Date().toISOString();
+                return {
+                    items: starred.map(id => ({ id, date: now, starred: true, seen: true, starred_changed_at: now })),
+                    updated_at: null
+                };
             }
         }
 
@@ -573,14 +599,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const filteredItems = (obj.items || []).filter(item => {
                 // Always keep starred items
                 if (item.starred) return true;
-                // Keep seen items within retention window (for cross-device sync)
-                if (item.seen) {
-                    const itemDate = new Date(item.date).getTime();
-                    return !isNaN(itemDate) && (now - itemDate) <= retentionMs;
-                }
-                // Keep unseen items within retention window
-                const itemDate = new Date(item.date).getTime();
-                return !isNaN(itemDate) && (now - itemDate) <= retentionMs;
+                // Keep recent unstar actions long enough to propagate across devices,
+                // even if the original item is older than the retention window.
+                const starChangeTime = getTimeOrZero(item.starred_changed_at || item.starredChangedAt);
+                if (starChangeTime && (now - starChangeTime) <= retentionMs) return true;
+
+                // Keep non-starred items within retention window (for cross-device "seen" sync).
+                const itemDate = getTimeOrZero(item.date);
+                return itemDate && (now - itemDate) <= retentionMs;
             }).map(sanitizeItemForStorage).filter(Boolean);
 
             const payloadData = {
@@ -618,9 +644,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 const existing = mergedById.get(item.id);
                 if (existing) {
                     // Merge: if EITHER source has seen=true, keep it seen
-                    // if EITHER source has starred=true, keep it starred
                     existing.seen = existing.seen || item.seen;
-                    existing.starred = existing.starred || item.starred;
+
+                    // Merge starred as a reversible state by taking the most-recent toggle.
+                    const existingStarChangedAt = existing.starred_changed_at || existing.starredChangedAt;
+                    const itemStarChangedAt = item.starred_changed_at || item.starredChangedAt;
+                    const existingStarTime = getTimeOrZero(existingStarChangedAt);
+                    const itemStarTime = getTimeOrZero(itemStarChangedAt);
+
+                    if (existingStarTime === 0 && itemStarTime === 0) {
+                        // Back-compat: if neither has per-item change timestamps, use meta-level updated_at.
+                        // If still tied/unknown, prefer local to support "unstarring" stale remote data.
+                        const localTime = getTimeOrZero(localObj.updated_at);
+                        const remoteTime = getTimeOrZero(remoteObj.updated_at);
+                        const localWins = localTime >= remoteTime;
+                        if (localWins) {
+                            existing.starred = !!item.starred;
+                        } else {
+                            existing.starred = !!existing.starred;
+                        }
+                        existing.starred_changed_at = localWins
+                            ? (localObj.updated_at || item.date || new Date().toISOString())
+                            : (remoteObj.updated_at || existing.date || new Date().toISOString());
+                    } else if (itemStarTime >= existingStarTime) {
+                        existing.starred = !!item.starred;
+                        existing.starred_changed_at = itemStarChangedAt || item.date || new Date().toISOString();
+                    } else {
+                        existing.starred = !!existing.starred;
+                        existing.starred_changed_at = existingStarChangedAt || existing.date || new Date().toISOString();
+                    }
                     // Keep metadata from whichever has it
                     if (!existing.title && item.title) existing.title = item.title;
                     if (!existing.url && item.url) existing.url = item.url;
@@ -946,6 +998,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (item) {
                     item.starred = !item.starred;
+                    item.starred_changed_at = now;
                     // Always mark as seen when interacting with star
                     item.seen = true;
                     if (item.starred) {
@@ -963,6 +1016,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         id: itemId,
                         date: now,
                         starred: true,
+                        starred_changed_at: now,
                         seen: true, // Mark as seen when starring
                         title: metadata.title || '',
                         url: metadata.url || '',
