@@ -3,6 +3,9 @@ https://www.reddit.com/r/apple/top.rss?t=week
 https://www.reddit.com/r/sysadmin/top.rss?t=week
 https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
+https://www.reddit.com/r/pcgaming/top.rss?t=week
+https://www.reddit.com/r/games/top.rss?t=week
+https://www.reddit.com/r/steamdeck/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.bleepingcomputer.com/feed/
@@ -14,10 +17,11 @@ https://4sysops.com/feed/
 https://krebsonsecurity.com/feed/
 https://theverge.com/rss/index.xml
 https://hnrss.org/newest?points=150
-https://www.reddit.com/r/pcgaming/top.rss?t=week
-https://www.reddit.com/r/games/top.rss?t=week
+
 
 #youtube
+https://www.youtube.com/@itstedbrooks
+
 # Gaming In The Wild
 https://www.youtube.com/feeds/videos.xml?channel_id=UC2CxEBWZNBMDV5evJvFWkpQ
 # Linus Tech Tips
