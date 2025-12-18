@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Settings Modal (combined feeds + sync)
     const settingsIcon = document.getElementById('settings-icon');
     const settingsModal = document.getElementById('settings-modal');
-    const settingsForm = document.getElementById('settings-form');
     const githubRepoInput = document.getElementById('github-repo');
     const gistIdInput = document.getElementById('gist-id');
     const githubTokenInput = document.getElementById('github-token');
@@ -332,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const success = await gistSync.pull();
                 if (success) {
                     const meta = gistSync.getLocal();
-                    renderFeed(showingStarred ? 'starred' : 'all');
+                    renderFeed();
                     applyView(meta.items || []);
                     renderArchive(meta.items || []);
                 }
@@ -470,7 +469,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const feedContainer = document.getElementById('feed-container');
-    const starToggle = document.getElementById('star-toggle');
     const refreshIcon = document.getElementById('refresh-icon');
     const viewToggleButton = document.getElementById('view-toggle-button');
     const archiveSection = document.getElementById('archive-section');
@@ -478,7 +476,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const archiveEmpty = document.getElementById('archive-empty');
     let feedData = [];
     let feedDataById = new Map();
-    let showingStarred = false;
     let showingNew = true;
 
     const feedDataElement = document.getElementById('feed-data');
@@ -505,7 +502,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const minimal = {
                 id: item.id,
                 date: item.date || new Date().toISOString(),
-                starred: !!item.starred
+                starred: !!item.starred,
+                seen: !!item.seen
             };
             if (item.title) minimal.title = item.title;
             if (item.url || item.link) minimal.url = item.url || item.link;
@@ -524,16 +522,23 @@ document.addEventListener('DOMContentLoaded', () => {
             let raw = localStorage.getItem('blinkMeta');
             if (!raw) {
                 const starred = JSON.parse(localStorage.getItem('starredItems') || '[]');
-                return { items: starred.map(id => ({ id, date: new Date().toISOString(), starred: true })), updated_at: null };
+                return { items: starred.map(id => ({ id, date: new Date().toISOString(), starred: true, seen: true })), updated_at: null };
             }
             try {
                 const data = JSON.parse(raw);
                 if (!data.items) data.items = [];
+                // Migration: ensure all items have the 'seen' field
+                // Old items without 'seen' are treated as seen (to avoid showing everything as new after upgrade)
+                data.items.forEach(item => {
+                    if (item && item.seen === undefined) {
+                        item.seen = true; // Existing tracked items default to seen
+                    }
+                });
                 localStorage.setItem('starredItems', JSON.stringify((data.items || []).filter(item => item.starred).map(item => item.id)));
                 return data;
             } catch {
                 const starred = JSON.parse(localStorage.getItem('starredItems') || '[]');
-                return { items: starred.map(id => ({ id, date: new Date().toISOString(), starred: true })), updated_at: null };
+                return { items: starred.map(id => ({ id, date: new Date().toISOString(), starred: true, seen: true })), updated_at: null };
             }
         }
 
@@ -566,7 +571,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const retentionMs = retentionDays * 24 * 60 * 60 * 1000;
 
             const filteredItems = (obj.items || []).filter(item => {
+                // Always keep starred items
                 if (item.starred) return true;
+                // Keep seen items within retention window (for cross-device sync)
+                if (item.seen) {
+                    const itemDate = new Date(item.date).getTime();
+                    return !isNaN(itemDate) && (now - itemDate) <= retentionMs;
+                }
+                // Keep unseen items within retention window
                 const itemDate = new Date(item.date).getTime();
                 return !isNaN(itemDate) && (now - itemDate) <= retentionMs;
             }).map(sanitizeItemForStorage).filter(Boolean);
@@ -587,32 +599,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function merge(localObj, remoteObj) {
-            const localTime = localObj && localObj.updated_at ? new Date(localObj.updated_at).getTime() : 0;
-            const remoteTime = remoteObj && remoteObj.updated_at ? new Date(remoteObj.updated_at).getTime() : 0;
-
             if (!remoteObj || !remoteObj.items) return localObj || { items: [], updated_at: null };
             if (!localObj || !localObj.items) return remoteObj;
 
-            const olderObj = remoteTime > localTime ? localObj : remoteObj;
-            const newerObj = remoteTime > localTime ? remoteObj : localObj;
+            // Build a map of all items from both sources, keyed by ID
+            const mergedById = new Map();
 
-            // IMPORTANT: Deletions must propagate.
-            // The newer object is authoritative for *which IDs exist*; we only use the older object
-            // to back-fill extra fields for IDs that are still present.
-            const olderById = new Map();
-            for (const item of (olderObj.items || [])) {
-                if (item && item.id) olderById.set(item.id, item);
+            // Process remote items first
+            for (const item of (remoteObj.items || [])) {
+                if (item && item.id) {
+                    mergedById.set(item.id, { ...item });
+                }
             }
 
-            const mergedItems = [];
-            for (const item of (newerObj.items || [])) {
+            // Merge local items - union of seen/starred states
+            for (const item of (localObj.items || [])) {
                 if (!item || !item.id) continue;
-                const older = olderById.get(item.id);
-                // Prefer newer fields; fall back to older for missing metadata.
-                mergedItems.push(older ? { ...older, ...item } : { ...item });
+                const existing = mergedById.get(item.id);
+                if (existing) {
+                    // Merge: if EITHER source has seen=true, keep it seen
+                    // if EITHER source has starred=true, keep it starred
+                    existing.seen = existing.seen || item.seen;
+                    existing.starred = existing.starred || item.starred;
+                    // Keep metadata from whichever has it
+                    if (!existing.title && item.title) existing.title = item.title;
+                    if (!existing.url && item.url) existing.url = item.url;
+                    if (!existing.link && item.link) existing.link = item.link;
+                    if (!existing.published && item.published) existing.published = item.published;
+                    // Use earlier date (first seen)
+                    if (item.date && existing.date) {
+                        const itemTime = new Date(item.date).getTime();
+                        const existingTime = new Date(existing.date).getTime();
+                        if (itemTime < existingTime) existing.date = item.date;
+                    } else if (item.date && !existing.date) {
+                        existing.date = item.date;
+                    }
+                } else {
+                    // Item only exists locally, add it
+                    mergedById.set(item.id, { ...item });
+                }
             }
 
-            return { items: mergedItems, updated_at: newerObj.updated_at };
+            // Use the most recent updated_at
+            const localTime = localObj.updated_at ? new Date(localObj.updated_at).getTime() : 0;
+            const remoteTime = remoteObj.updated_at ? new Date(remoteObj.updated_at).getTime() : 0;
+            const updated_at = remoteTime > localTime ? remoteObj.updated_at : localObj.updated_at;
+
+            return { items: Array.from(mergedById.values()), updated_at };
         }
 
         function schedulePush() {
@@ -849,22 +882,10 @@ document.addEventListener('DOMContentLoaded', () => {
         gistSync.pushSoon();
     }
 
-    function renderFeed(filter = 'all') {
+    function renderFeed() {
         if (!feedContainer) return;
         if (feedData.length) {
-            const starredItems = getStarredItems();
-            let itemsToRender = feedData;
-            if (filter === 'starred') {
-                itemsToRender = feedData.filter(item => starredItems.includes(item.id));
-            }
-            feedContainer.innerHTML = itemsToRender.map(generateItemHtml).join('');
-        } else {
-            const starredItems = getStarredItems();
-            const items = Array.from(feedContainer.querySelectorAll('.feed-item'));
-            items.forEach(el => {
-                const id = el.getAttribute('data-item-id');
-                el.style.display = (filter === 'starred' && !starredItems.includes(id)) ? 'none' : '';
-            });
+            feedContainer.innerHTML = feedData.map(generateItemHtml).join('');
         }
     }
 
@@ -875,9 +896,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (showingNew) {
             viewToggleButton.textContent = 'new';
 
+            // Sort: starred items go to bottom, unseen items stay at top
             allItems.sort((a, b) => {
-                const aIsStarred = metaItemsById.get(a.dataset.itemId)?.starred;
-                const bIsStarred = metaItemsById.get(b.dataset.itemId)?.starred;
+                const aItem = metaItemsById.get(a.dataset.itemId);
+                const bItem = metaItemsById.get(b.dataset.itemId);
+                const aIsStarred = aItem?.starred;
+                const bIsStarred = bItem?.starred;
                 if (aIsStarred === bIsStarred) return 0;
                 return aIsStarred ? 1 : -1;
             });
@@ -886,9 +910,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 allItems.forEach(item => feedContainer.appendChild(item));
             }
 
+            // Hide items that have been seen (but not starred)
             allItems.forEach(item => {
                 const metaItem = metaItemsById.get(item.dataset.itemId);
-                item.style.display = (metaItem && !metaItem.starred) ? 'none' : '';
+                // Hide if item has been seen AND is not starred
+                const shouldHide = metaItem && metaItem.seen && !metaItem.starred;
+                item.style.display = shouldHide ? 'none' : '';
             });
         } else {
             viewToggleButton.textContent = 'all';
@@ -919,6 +946,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (item) {
                     item.starred = !item.starred;
+                    // Always mark as seen when interacting with star
+                    item.seen = true;
                     if (item.starred) {
                         if (!item.title && metadata.title) item.title = metadata.title;
                         if ((!item.url && metadata.url) || (!item.link && metadata.url)) {
@@ -934,6 +963,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         id: itemId,
                         date: now,
                         starred: true,
+                        seen: true, // Mark as seen when starring
                         title: metadata.title || '',
                         url: metadata.url || '',
                         link: metadata.url || '',
@@ -980,15 +1010,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             }
-        });
-    }
-
-    if (starToggle) {
-        starToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            showingStarred = !showingStarred;
-            renderFeed(showingStarred ? 'starred' : 'all');
-            starToggle.classList.toggle('active', showingStarred);
         });
     }
 
@@ -1046,6 +1067,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyView(meta.items || []);
         renderArchive(meta.items || []);
 
+        // Track all items displayed on the page - if displayed, it's considered seen
         const allDomIds = Array.from(document.querySelectorAll('#feed-container .feed-item')).map(el => el.dataset.itemId);
         const metaItemsById = new Map((meta.items || []).map(item => [item.id, item]));
         let changed = metadataPatched;
@@ -1053,12 +1075,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         allDomIds.forEach(id => {
             if (!metaItemsById.has(id)) {
-                meta.items.push({ id, date: now, starred: false });
+                // New item - mark as seen since it's being displayed
+                meta.items.push({ id, date: now, starred: false, seen: true });
                 changed = true;
             } else {
+                // Existing item - mark as seen if not already
                 const item = metaItemsById.get(id);
-                if (!item.starred) {
-                    item.date = now;
+                if (!item.seen) {
+                    item.seen = true;
                     changed = true;
                 }
             }
