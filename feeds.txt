@@ -19,9 +19,10 @@ https://theverge.com/rss/index.xml
 https://hnrss.org/newest?points=150
 
 #youtube
-https://www.youtube.com/@krissyonYT
-https://www.youtube.com/@razbuten
-
+# Krissy Plays
+https://www.youtube.com/feeds/videos.xml?channel_id=UCClc972nxK3t9y9J14XjNaw
+# Razbuten
+https://www.youtube.com/feeds/videos.xml?channel_id=UCfHmyqCntYHQ81ZukNu66rg
 # itsTedBrooks
 https://www.youtube.com/feeds/videos.xml?channel_id=UCoAlewNQrVj1jSoye5QFMcQ
 # Gaming In The Wild
