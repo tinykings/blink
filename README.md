@@ -12,7 +12,6 @@ Blink is a minimalist, static feed reader that blends your favorite RSS sources 
 - 📺 YouTube auto‑RSS: Paste channel URLs — Blink resolves them to RSS and records channel names.
 - ⭐ Starring + filter: Sync stars across devices using Github Gist, or use local browser storage.
 - 🗃️ Archive: Keep starred items past the rolling retention window with a lightweight list at the bottom of the page.
-- ✏️ Manage feeds from the web: Add or remove RSS/YouTube feeds directly from the site using the GitHub API.
 - ⬆️ Handy controls: Back‑to‑top, refresh, and a footer timestamp with retention days.
 - ▶️ Lazy videos: YouTube embeds load only when you click, keeping the page light.
 - ⏰ Leaving soon: Labels items nearing the rolling retention window (default 5 days).
@@ -72,32 +71,6 @@ Steps:
 
 When loading the page for the first time on a device enter the ID and token to add the device to the sync group.
 
-## Manage Feeds from the Web
-
-You can add or remove feeds directly from the website without editing `feeds.txt` manually.
-
-### Setup
-
-1. Create a GitHub personal access token (classic) with both `repo` and `gist` scopes:
-   - `repo` — required to read/write `feeds.txt` in your repository
-   - `gist` — required to sync starred items
-
-2. Click **Sync** in the footer and enter:
-   - **GitHub Repo**: Your repository in `owner/repo` format (e.g., `tinykings/blink`)
-   - **Gist ID**: Your private gist ID for star sync
-   - **GitHub Token**: Your personal access token
-
-### Using the Feeds Manager
-
-1. Click the **Feeds** button in the footer to open the feeds manager.
-2. Switch between **RSS** and **YouTube** tabs to view feeds by type.
-3. **Add a feed**: Enter any RSS or YouTube URL and click Add.
-4. **Remove a feed**: Click the × button next to a feed (shows strikethrough preview).
-5. **Undo removal**: Click the ↩ button to restore a feed marked for removal.
-6. Click **Save Changes** to commit updates directly to `feeds.txt` in your GitHub repo.
-
-After saving, GitHub Actions will automatically fetch the new feeds and regenerate the page (or run `python3 scripts/fetch_feeds.py` locally).
-
 ## File Map
 
 - `feeds.txt`: Your sources (`#rss`, `#youtube`).
@@ -111,5 +84,4 @@ After saving, GitHub Actions will automatically fetch the new feeds and regenera
 
 - **Can I paste a YouTube channel URL?** Yes. The script resolves it to an RSS feed and rewrites `feeds.txt` accordingly.
 - **Where do starred items live?** In your browser (`localStorage`). Or if you enter gist info in the settings starred items will sync across devices.
-- **Can I manage feeds from my phone?** Yes! Use the Feeds button in the footer. Changes are committed directly to your GitHub repo.
-- **What token scopes do I need?** Use `repo` scope to edit feeds and `gist` scope to sync stars. A single token with both scopes works for everything.
+- **What token scopes do I need?** Use `gist` scope to sync stars.
