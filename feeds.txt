@@ -15,7 +15,6 @@ https://feeds.feedburner.com/StudyHacks
 https://www.404media.co/rss
 https://4sysops.com/feed/
 https://krebsonsecurity.com/feed/
-https://theverge.com/rss/index.xml
 https://hnrss.org/newest?points=150
 
 #youtube
