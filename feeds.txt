@@ -18,6 +18,8 @@ https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 
 #youtube
+https://www.youtube.com/@WulffDen
+
 # Krissy Plays
 https://www.youtube.com/feeds/videos.xml?channel_id=UCClc972nxK3t9y9J14XjNaw
 # Razbuten
@@ -28,20 +30,14 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCoAlewNQrVj1jSoye5QFMcQ
 https://www.youtube.com/feeds/videos.xml?channel_id=UC2CxEBWZNBMDV5evJvFWkpQ
 # Linus Tech Tips
 https://www.youtube.com/feeds/videos.xml?channel_id=UCXuqSBlHAE6Xw-yeJA0Tunw
-# Steam Deck Gaming
-https://www.youtube.com/feeds/videos.xml?channel_id=UCneOtYYTpAUlNMQ6_dZEzmw
 # TheBackgroundNPC 🧙‍♂️
 https://www.youtube.com/feeds/videos.xml?channel_id=UCuEAyHQajqJrWeVrJKgIS_Q
 # Cadaea
 https://www.youtube.com/feeds/videos.xml?channel_id=UCNw8oK_m3j5W9ATu3AhsnAg
 # Chucklefish
 https://www.youtube.com/feeds/videos.xml?channel_id=UClwlgXslmWtaDR4sYGWxX0w
-# Cyber Dopamine
-https://www.youtube.com/feeds/videos.xml?channel_id=UC9HpbclQHCQCaQRYECETk0A
 # Lost In Cult
 https://www.youtube.com/feeds/videos.xml?channel_id=UCsrNdK16FYekze3gIiOAvhw
-# Steam Deck HQ
-https://www.youtube.com/feeds/videos.xml?channel_id=UCI49gT5yWGP7fLn2ql-DlgA
 # Damien Wilde
 https://www.youtube.com/feeds/videos.xml?channel_id=UC9OGCVgbfKXsWAlpbo6TuNA
 # Gamespot
