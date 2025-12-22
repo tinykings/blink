@@ -18,8 +18,8 @@ https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 
 #youtube
-https://www.youtube.com/@WulffDen
-
+# WULFF DEN
+https://www.youtube.com/feeds/videos.xml?channel_id=UCr613nJgA50o8DUUT00qHvw
 # Krissy Plays
 https://www.youtube.com/feeds/videos.xml?channel_id=UCClc972nxK3t9y9J14XjNaw
 # Razbuten
