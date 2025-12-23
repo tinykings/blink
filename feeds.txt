@@ -19,9 +19,10 @@ https://hnrss.org/newest?points=150
 https://gg.deals/us/news/feed/
 
 #youtube
-https://www.youtube.com/@RoganPlaysGames
-https://www.youtube.com/@charalanahzard
-
+# Rogan 🎮 gaming nonsense
+https://www.youtube.com/feeds/videos.xml?channel_id=UCXaNjez7JyJ_JDFEKrC8JmQ
+# Charalanahzard
+https://www.youtube.com/feeds/videos.xml?channel_id=UCKpBmnEfSy20al-Fk_2YzVA
 # WULFF DEN
 https://www.youtube.com/feeds/videos.xml?channel_id=UCr613nJgA50o8DUUT00qHvw
 # Krissy Plays
