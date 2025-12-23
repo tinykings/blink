@@ -16,8 +16,12 @@ https://www.404media.co/rss
 https://4sysops.com/feed/
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
+https://gg.deals/us/news/feed/
 
 #youtube
+https://www.youtube.com/@RoganPlaysGames
+https://www.youtube.com/@charalanahzard
+
 # WULFF DEN
 https://www.youtube.com/feeds/videos.xml?channel_id=UCr613nJgA50o8DUUT00qHvw
 # Krissy Plays
