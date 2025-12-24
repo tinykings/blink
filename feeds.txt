@@ -19,6 +19,7 @@ https://hnrss.org/newest?points=150
 https://gg.deals/us/news/feed/
 
 #youtube
+https://m.youtube.com/@davidhartley94
 # Rogan 🎮 gaming nonsense
 https://www.youtube.com/feeds/videos.xml?channel_id=UCXaNjez7JyJ_JDFEKrC8JmQ
 # Charalanahzard
