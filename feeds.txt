@@ -20,8 +20,8 @@ https://hnrss.org/newest?points=150
 https://gg.deals/us/news/feed/
 
 #youtube
-https://www.youtube.com/@LinuxGamerLife
-
+# Linux Gamer Life
+https://www.youtube.com/feeds/videos.xml?channel_id=UCeRKQYn0niKhkxwuCRwppiA
 # David Hartley
 https://www.youtube.com/feeds/videos.xml?channel_id=UCydX8ueOwv5_bvd7Uj0HBHw
 # Rogan 🎮 gaming nonsense
