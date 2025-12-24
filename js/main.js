@@ -341,7 +341,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         existing.date = item.date;
                     }
                 } else {
-                    // Item only exists locally, add it
+                    // Item only exists locally
+                    const remoteUpdateTime = getTimeOrZero(remoteObj.updated_at);
+                    const localChangeTime = getTimeOrZero(item.starred_changed_at || item.starredChangedAt || item.date);
+
+                    // If item is starred locally but missing from remote, check if it was deleted remotely.
+                    // If the remote update is newer than our local change, assume deletion.
+                    if (item.starred && remoteUpdateTime > localChangeTime) {
+                        continue;
+                    }
                     mergedById.set(item.id, { ...item });
                 }
             }
