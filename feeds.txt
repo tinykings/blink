@@ -19,8 +19,8 @@ https://hnrss.org/newest?points=150
 https://gg.deals/us/news/feed/
 
 #youtube
-https://www.youtube.com/@theneedledrop
-
+# theneedledrop
+https://www.youtube.com/feeds/videos.xml?channel_id=UCt7fwAhXDy3oNFTAzF2o8Pw
 # David Hartley
 https://www.youtube.com/feeds/videos.xml?channel_id=UCydX8ueOwv5_bvd7Uj0HBHw
 # Rogan 🎮 gaming nonsense
