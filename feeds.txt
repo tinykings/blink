@@ -5,6 +5,7 @@ https://www.reddit.com/r/sysadmin/top.rss?t=week
 https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
 https://www.reddit.com/r/pcgaming/top.rss?t=week
+https://www.reddit.com/r/linux_gaming/top.rss?t=week
 https://www.reddit.com/r/games/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
@@ -19,6 +20,8 @@ https://hnrss.org/newest?points=150
 https://gg.deals/us/news/feed/
 
 #youtube
+# Linux Gamer Life
+https://www.youtube.com/feeds/videos.xml?channel_id=UCeRKQYn0niKhkxwuCRwppiA
 # theneedledrop
 https://www.youtube.com/feeds/videos.xml?channel_id=UCt7fwAhXDy3oNFTAzF2o8Pw
 # David Hartley
