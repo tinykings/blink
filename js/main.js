@@ -604,7 +604,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function applyView(metaItems) {
-        const allItems = Array.from(document.querySelectorAll('#feed-container .feed-item'));
+        if (!feedContainer) return;
+        const allItems = Array.from(feedContainer.querySelectorAll('.feed-item'));
+        if (allItems.length === 0) return;
+        
         const metaItemsById = new Map((metaItems || []).map(i => [i.id, i]));
 
         if (showingNew) {
@@ -620,22 +623,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 return aIsStarred ? 1 : -1;
             });
 
-            if (feedContainer) {
-                allItems.forEach(item => feedContainer.appendChild(item));
-            }
-
-            // Hide items that have been seen (but not starred)
+            const fragment = document.createDocumentFragment();
             allItems.forEach(item => {
                 const metaItem = metaItemsById.get(item.dataset.itemId);
                 // Hide if item has been seen AND is not starred
                 const shouldHide = metaItem && metaItem.seen && !metaItem.starred;
                 item.style.display = shouldHide ? 'none' : '';
+                fragment.appendChild(item);
             });
+            feedContainer.appendChild(fragment);
         } else {
             viewToggleButton.textContent = 'all';
+            const fragment = document.createDocumentFragment();
             allItems.forEach(item => {
                 item.style.display = '';
+                fragment.appendChild(item);
             });
+            feedContainer.appendChild(fragment);
         }
     }
 
@@ -751,42 +755,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const startupLogic = async () => {
-        const feedContainer = document.getElementById('feed-container');
         const loadingOverlay = document.getElementById('loading-overlay');
-
         if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
         await gistSync.syncOnStartup();
         const meta = gistSync.getLocal();
         meta.items = meta.items || [];
+        const starredSet = new Set(meta.items.filter(i => i.starred).map(i => i.id));
 
-        if (feedData.length) {
+        // Check if items are already pre-rendered in the DOM
+        const existingItems = feedContainer ? feedContainer.querySelectorAll('.feed-item') : [];
+        
+        if (existingItems.length === 0 && feedData.length) {
+            // Only render if container is empty but we have data
             renderFeed();
-        } else {
-            const starred = new Set(getStarredItems());
-            feedContainer.querySelectorAll('.feed-item').forEach(itemEl => {
-                const id = itemEl.getAttribute('data-item-id');
-                const star = itemEl.querySelector('.star-icon');
-                if (!star) {
-                    const newStar = document.createElement('span');
-                    newStar.className = 'star-icon' + (starred.has(id) ? ' starred' : '');
-                    newStar.dataset.itemId = id;
-                    newStar.textContent = '★';
-                    itemEl.prepend(newStar);
-                } else {
-                    star.classList.toggle('starred', starred.has(id));
-                }
-            });
         }
 
-        const metadataPatched = ensureMetadataForItems(meta);
+        // Hydrate star icons based on synced state
+        document.querySelectorAll('#feed-container .star-icon').forEach(star => {
+            const id = star.getAttribute('data-item-id');
+            if (starredSet.has(id)) {
+                star.classList.add('starred');
+            }
+        });
+
+        ensureMetadataForItems(meta);
         applyView(meta.items || []);
         renderArchive(meta.items || []);
 
         // Track all items displayed on the page - if displayed, it's considered seen
         const allDomIds = Array.from(document.querySelectorAll('#feed-container .feed-item')).map(el => el.dataset.itemId);
-        const metaItemsById = new Map((meta.items || []).map(item => [item.id, item]));
-        let changed = metadataPatched;
+        const metaItemsById = new Map(meta.items.map(item => [item.id, item]));
+        let changed = false;
         const now = new Date().toISOString();
 
         allDomIds.forEach(id => {
@@ -816,10 +816,4 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     startupLogic();
-
-    document.querySelectorAll('img.feed-thumbnail, img.video-thumbnail').forEach(img => {
-        img.loading = 'lazy';
-        img.decoding = 'async';
-        img.referrerPolicy = 'no-referrer-when-downgrade';
-    });
 });

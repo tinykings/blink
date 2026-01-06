@@ -6,6 +6,7 @@ import requests
 import warnings
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple, Any
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pytz
 from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
@@ -22,6 +23,7 @@ TIMEZONE = 'America/Los_Angeles'
 ITEMS_RETENTION_DAYS = 5
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
 REQUEST_TIMEOUT = 30
+MAX_WORKERS = 10
 
 
 class FeedProcessor:
@@ -31,15 +33,17 @@ class FeedProcessor:
         self.timezone = timezone
         self.local_tz = pytz.timezone(timezone)
         self.utc_now = datetime.now(pytz.utc)
+        self.session = requests.Session()
+        self.session.headers.update({'User-Agent': USER_AGENT})
         
     def get_youtube_channel_info(self, url: str) -> Tuple[Optional[str], Optional[str]]:
         """Extract YouTube channel ID and name from URL."""
         logger.debug(f"Extracting YouTube channel info from: {url}")
         
         try:
-            response = requests.get(url, headers={'User-Agent': USER_AGENT}, timeout=REQUEST_TIMEOUT)
+            response = self.session.get(url, timeout=REQUEST_TIMEOUT)
             response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'html.parser')
+            soup = BeautifulSoup(response.text, 'lxml')
             
             # Try to find channel ID
             channel_id = None
@@ -117,35 +121,46 @@ class FeedProcessor:
 
         # Convert YouTube URLs to RSS feeds and collect channel names
         converted_entries: List[Tuple[str, str, Optional[str]]] = []
-
+        
+        to_convert = []
         for youtube_url, comment in youtube_entries:
-            channel_name: Optional[str] = None
-
             if 'youtube.com/feeds/videos.xml' in youtube_url:
                 # Already an RSS feed; try to determine channel name
                 match = re.search(r'channel_id=([\w-]+)', youtube_url)
                 channel_id = match.group(1) if match else None
+                channel_name = None
                 if comment:
                     channel_name = comment.lstrip('#').strip()
-                elif channel_id:
-                    _, channel_name = self.get_youtube_channel_info(
-                        f"https://www.youtube.com/channel/{channel_id}"
-                    )
-                converted_entries.append((youtube_url, youtube_url, channel_name))
-                continue
-
-            channel_id, channel_name = self.get_youtube_channel_info(youtube_url)
-            if channel_id:
-                rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
-                converted_entries.append((rss_url, youtube_url, channel_name))
-                logger.info(
-                    f"Converted YouTube channel '{channel_name}' to RSS feed"
-                )
+                
+                if channel_name:
+                    converted_entries.append((youtube_url, youtube_url, channel_name))
+                else:
+                    to_convert.append((youtube_url, youtube_url, channel_id))
             else:
-                converted_entries.append((youtube_url, youtube_url, channel_name))
-                logger.warning(
-                    f"Could not convert YouTube channel: {youtube_url}"
-                )
+                to_convert.append((None, youtube_url, None))
+
+        if to_convert:
+            logger.info(f"Converting {len(to_convert)} YouTube URLs to RSS")
+            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+                future_to_url = {
+                    executor.submit(self.get_youtube_channel_info, 
+                                   f"https://www.youtube.com/channel/{cid}" if cid else url): (rss_url, url)
+                    for rss_url, url, cid in to_convert
+                }
+                for future in as_completed(future_to_url):
+                    rss_url, original_url = future_to_url[future]
+                    channel_id, channel_name = future.result()
+                    
+                    if not rss_url and channel_id:
+                        rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+                    
+                    if rss_url:
+                        converted_entries.append((rss_url, original_url, channel_name))
+                        if channel_name:
+                            logger.info(f"Converted YouTube channel '{channel_name}' to RSS feed")
+                    else:
+                        converted_entries.append((original_url, original_url, channel_name))
+                        logger.warning(f"Could not convert YouTube channel: {original_url}")
         
         # Update feeds.txt file
         self._update_feeds_file(file_path, rss_urls, converted_entries)
@@ -186,30 +201,39 @@ class FeedProcessor:
         except IOError as e:
             logger.error(f"Could not update feeds file: {e}")
     
+    def fetch_single_feed(self, url: str) -> List[Dict[str, Any]]:
+        """Fetch and parse a single RSS feed."""
+        try:
+            response = self.session.get(url, timeout=REQUEST_TIMEOUT)
+            response.raise_for_status()
+            
+            feed = feedparser.parse(response.content)
+            if feed.bozo and isinstance(feed.bozo_exception, Exception):
+                logger.warning(f"Parse error for {url}: {feed.bozo_exception}")
+                if not feed.entries:
+                    return []
+            
+            return self._process_feed_entries(feed, url)
+            
+        except requests.RequestException as e:
+            logger.error(f"Error fetching feed {url}: {e}")
+        except Exception as e:
+            logger.error(f"Error processing feed {url}: {e}")
+        return []
+
     def fetch_feeds(self, urls: List[str]) -> List[Dict[str, Any]]:
-        """Fetch and parse RSS feeds from URLs."""
+        """Fetch and parse RSS feeds from URLs in parallel."""
         logger.info(f"Fetching {len(urls)} feeds")
         all_items = []
         
-        for i, url in enumerate(urls):
-            logger.info(f"Processing feed {i+1}/{len(urls)}: {url}")
-            try:
-                response = requests.get(url, headers={'User-Agent': USER_AGENT}, timeout=REQUEST_TIMEOUT)
-                response.raise_for_status()
-                
-                feed = feedparser.parse(response.content)
-                if feed.bozo and isinstance(feed.bozo_exception, Exception):
-                    logger.warning(f"Parse error for {url}: {feed.bozo_exception}")
-                    if not feed.entries:
-                        continue
-                
-                items = self._process_feed_entries(feed, url)
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            future_to_url = {executor.submit(self.fetch_single_feed, url): url for url in urls}
+            for i, future in enumerate(as_completed(future_to_url)):
+                url = future_to_url[future]
+                items = future.result()
                 all_items.extend(items)
-                
-            except requests.RequestException as e:
-                logger.error(f"Error fetching feed {url}: {e}")
-            except Exception as e:
-                logger.error(f"Error processing feed {url}: {e}")
+                if (i + 1) % 10 == 0 or (i + 1) == len(urls):
+                    logger.info(f"Processed {i+1}/{len(urls)} feeds")
         
         logger.info(f"Fetched {len(all_items)} total items")
         return all_items
@@ -277,7 +301,7 @@ class FeedProcessor:
                         if isinstance(content, list):
                             content = content[0].value if content else ''
                         
-                        soup = BeautifulSoup(str(content), 'html.parser')
+                        soup = BeautifulSoup(str(content), 'lxml')
                         img_tag = soup.find('img')
                         if img_tag and img_tag.get('src'):
                             thumbnail_url = img_tag['src']
@@ -314,17 +338,20 @@ class FeedProcessor:
     def _generate_item_html(self, item: Dict[str, Any], item_id: str) -> str:
         """Generate HTML for a single feed item."""
         html = f'<div class="feed-item" data-item-id="{item["id"]}">\n'
+        
+        # Add star icon placeholder
+        html += f'<span class="star-icon" data-item-id="{item["id"]}">★</span>\n'
 
         # Add thumbnail/video placeholder
         if item['video_id']:
             thumbnail_url = f"https://img.youtube.com/vi/{item['video_id']}/sddefault.jpg"
             html += f'''<div class="video-placeholder" data-video-id="{item['video_id']}">
-<img src="{thumbnail_url}" alt="Video Thumbnail" class="video-thumbnail">
+<img src="{thumbnail_url}" alt="Video Thumbnail" class="video-thumbnail" loading="lazy" decoding="async">
 <div class="play-button"></div>
 </div>
 '''
         elif item['thumbnail']:
-            html += f'<a href="{item["link"]}" target="_blank"><img src="{item["thumbnail"]}" alt="{item["title"]}" class="feed-thumbnail"></a>\n'
+            html += f'<a href="{item["link"]}" target="_blank"><img src="{item["thumbnail"]}" alt="{item["title"]}" class="feed-thumbnail" loading="lazy" decoding="async"></a>\n'
 
         # Add item info (compact: omit published date and feed title)
         html += f'''<div class="feed-item-info">
