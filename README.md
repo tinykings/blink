@@ -8,6 +8,7 @@
 <h4 align="center">https://tinykings.github.io/blink/</h4>
 
 <h4 align="center">
+Clone the repo, edit feeds.txt, enable Github Pages.
 Local browser storage is used to track starred items, or a Gist can be created for sync between devices. 
 </h4>
 
