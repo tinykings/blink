@@ -13,6 +13,9 @@ https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 
 #youtube
+https://m.youtube.com/@Middle8
+https://m.youtube.com/@enricotartarotti
+
 # theneedledrop
 https://www.youtube.com/feeds/videos.xml?channel_id=UCt7fwAhXDy3oNFTAzF2o8Pw
 # David Hartley
