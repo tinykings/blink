@@ -13,8 +13,6 @@ https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 
 #youtube
-https://m.youtube.com/@enricotartarotti
-https://m.youtube.com/@syntaxfm
 # theneedledrop
 https://www.youtube.com/feeds/videos.xml?channel_id=UCt7fwAhXDy3oNFTAzF2o8Pw
 # David Hartley
@@ -403,3 +401,7 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCjSoLXp68lx5nl0oxOKPn1w
 https://www.youtube.com/feeds/videos.xml?channel_id=UCoC47do520os_4DBMEFGg4A
 # MinivanLife
 https://www.youtube.com/feeds/videos.xml?channel_id=UCEP-696sFVJMSNf0XgfdqGQ
+# Enrico Tartarotti
+https://www.youtube.com/feeds/videos.xml?channel_id=UCuQT7Vc3OjjZuGkqehNxb6w
+# Syntax
+https://www.youtube.com/feeds/videos.xml?channel_id=UCyU5wkjgQYGRB0hIHMwm2Sg
