@@ -403,9 +403,5 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCoC47do520os_4DBMEFGg4A
 https://www.youtube.com/feeds/videos.xml?channel_id=UCEP-696sFVJMSNf0XgfdqGQ
 # Enrico Tartarotti
 https://www.youtube.com/feeds/videos.xml?channel_id=UCuQT7Vc3OjjZuGkqehNxb6w
-# Syntax
-https://www.youtube.com/feeds/videos.xml?channel_id=UCyU5wkjgQYGRB0hIHMwm2Sg
-# Enrico Tartarotti
-https://www.youtube.com/feeds/videos.xml?channel_id=UCuQT7Vc3OjjZuGkqehNxb6w
 # Middle 8
 https://www.youtube.com/feeds/videos.xml?channel_id=UCfeppgcy70ERp4gQrsYijsg
