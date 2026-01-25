@@ -3,6 +3,7 @@ https://www.reddit.com/r/sysadmin/top.rss?t=week
 https://www.reddit.com/r/apple/top.rss?t=week
 https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
+https://www.reddit.com/r/iosgaming/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.macstories.net/feed/
@@ -15,6 +16,8 @@ https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 
 #youtube
+https://www.youtube.com/@MintCity/videos
+
 # theneedledrop
 https://www.youtube.com/feeds/videos.xml?channel_id=UCt7fwAhXDy3oNFTAzF2o8Pw
 # David Hartley
