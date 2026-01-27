@@ -16,10 +16,6 @@ https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 
 #youtube
-https://www.youtube.com/@theartofstorytelling1
-https://www.youtube.com/@LowLevelTV
-https://www.youtube.com/@sodercinema
-
 # theneedledrop
 https://www.youtube.com/feeds/videos.xml?channel_id=UCt7fwAhXDy3oNFTAzF2o8Pw
 # David Hartley
@@ -424,3 +420,9 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UC_x36zCEGilGpB1m-V4gmjg
 https://www.youtube.com/feeds/videos.xml?channel_id=UCqFzWxSCi39LnW1JKFR3efg
 # CRITERION
 https://www.youtube.com/feeds/videos.xml?channel_id=UCAP57cF-FSjJKzzXg7ntPlQ
+# The Art Of Storytelling
+https://www.youtube.com/feeds/videos.xml?channel_id=UCSW5iY5oGJtx_E_IPFxDraQ
+# Soder Cinema
+https://www.youtube.com/feeds/videos.xml?channel_id=UCfZpJhvI47_0KC_HKQ6DRBA
+# Low Level
+https://www.youtube.com/feeds/videos.xml?channel_id=UC6biysICWOJ-C3P4Tyeggzg
