@@ -18,6 +18,7 @@ https://hnrss.org/newest?points=150
 #youtube
 https://www.youtube.com/@theartofstorytelling1
 https://www.youtube.com/@LowLevelTV
+https://www.youtube.com/@sodercinema
 
 # theneedledrop
 https://www.youtube.com/feeds/videos.xml?channel_id=UCt7fwAhXDy3oNFTAzF2o8Pw
