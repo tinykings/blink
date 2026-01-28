@@ -16,9 +16,6 @@ https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 
 #youtube
-https://www.youtube.com/@ThorogoodFilms
-https://www.youtube.com/@BenFromCanada
-
 # theneedledrop
 https://www.youtube.com/feeds/videos.xml?channel_id=UCt7fwAhXDy3oNFTAzF2o8Pw
 # David Hartley
@@ -429,3 +426,7 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCSW5iY5oGJtx_E_IPFxDraQ
 https://www.youtube.com/feeds/videos.xml?channel_id=UCfZpJhvI47_0KC_HKQ6DRBA
 # Low Level
 https://www.youtube.com/feeds/videos.xml?channel_id=UC6biysICWOJ-C3P4Tyeggzg
+# Thomas Thorogood
+https://www.youtube.com/feeds/videos.xml?channel_id=UCleEvOcQVTb5y2CeIixj0Gg
+# Ben From Canada
+https://www.youtube.com/feeds/videos.xml?channel_id=UCPRhtk3qWJ7yTodBhy3h7Bg
