@@ -1,0 +1,4065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blink</title>
+    <meta name="theme-color" content="#2e3440">
+    <link rel="stylesheet" href="css/style.css">    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- PWA for iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RSS Reader">
+    
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" href="images/icon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="images/icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/icon.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="images/icon.png">
+    
+    <!-- Standard Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="images/icon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/icon.png">
+    
+    <!-- Viewport for mobile scaling - Fixed for iOS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <link rel="icon" type="image/png" href="images/icon.png">
+
+ </head>
+ <body>
+    <div id="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+     <div id="feed-container" style="display: none;"></div>
+     <section id="archive-section" class="archive-section" style="display:none;">
+        <h3>Archive</h3>
+        <p id="archive-empty" class="archive-empty">Star items to keep them handy even after they leave the main feed.</p>
+        <ul id="archive-list" class="archive-list"></ul>
+     </section>
+     <div class="footer-bar">
+         <a class="repo-link" href="https://github.com/tinykings/blink" target="_blank" rel="noopener noreferrer">blink</a>
+         <p class="last-updated">01-30 09:39 | 5d</p>
+         <div class="header-icons" role="toolbar" aria-label="Actions">
+            <button id="settings-icon" class="icon-btn" title="Settings" aria-label="Settings">Settings</button>
+             <button id="refresh-icon" class="icon-btn" title="Refresh" aria-label="Refresh">Refresh</button>
+            <button id="view-toggle-button" class="icon-btn">all</button>
+         </div>
+     </div>
+     <script defer src="js/main.js"></script>
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="settings-modal" style="display:none;">
+        <div class="settings-modal-content feeds-modal-content">
+            <h2>Settings</h2>
+            <div id="feeds-status" class="feeds-status"></div>
+
+            <div id="sync-panel" class="settings-panel">
+                <p class="sync-description">Connect to GitHub to sync starred items across devices.</p>
+                <form id="settings-form">
+                    <label for="gist-id">Gist ID:</label>
+                    <input type="text" id="gist-id" name="gist-id" autocomplete="off" placeholder="For syncing starred items">
+                    <label for="github-token">GitHub Token:</label>
+                    <input type="password" id="github-token" name="github-token" autocomplete="off">
+                    <p class="settings-hint">Token needs <code>gist</code> scope to sync stars.</p>
+                </form>
+            </div>
+            
+            <div class="settings-modal-actions">
+                <button type="button" id="feeds-save" class="icon-btn" disabled>Save</button>
+                <button type="button" id="feeds-cancel" class="icon-btn">Close</button>
+            </div>
+        </div>
+    </div>
+ <script id="feed-data" type="application/json">[
+  {
+    "id": "yt:video:21WPHjkw58g",
+    "title": "Microsoft Wants You Back...",
+    "link": "https://www.youtube.com/watch?v=21WPHjkw58g",
+    "published": "2026-01-30 18:45:30",
+    "thumbnail": "",
+    "feed_title": "TechLinked",
+    "video_id": "21WPHjkw58g"
+  },
+  {
+    "id": "yt:video:L5dOq0nwN_U",
+    "title": "Thousands attend vigils at VAs across the country after Alex Pretti's death",
+    "link": "https://www.youtube.com/shorts/L5dOq0nwN_U",
+    "published": "2026-01-30 18:30:27",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "L5dOq0nwN_U"
+  },
+  {
+    "id": "yt:video:gPhJLf1ma8g",
+    "title": "Minnesota Gov. Tim Walz defends the right to peaceful protests",
+    "link": "https://www.youtube.com/shorts/gPhJLf1ma8g",
+    "published": "2026-01-30 18:00:47",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "gPhJLf1ma8g"
+  },
+  {
+    "id": "yt:video:9iDz5gmeXh4",
+    "title": "\u3014vlog\u3015\u304a\u6c17\u306b\u5165\u308a\u306b\u56f2\u307e\u308c\u3066\u66ae\u3089\u30591\u9031\u9593\ud83e\uddfa\uff5c\u5e73\u65e5\u306e\u81ea\u708a\u8a18\u9332\u30fb\u30cf\u30f3\u30c9\u30b1\u30a2\u30fb\u8cfc\u5165\u54c1\u7d39\u4ecb",
+    "link": "https://www.youtube.com/watch?v=9iDz5gmeXh4",
+    "published": "2026-01-30 17:06:38",
+    "thumbnail": "",
+    "feed_title": "toka -\u66ae\u3089\u3057\u306e\u8a18\u9332-",
+    "video_id": "9iDz5gmeXh4"
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46832074",
+    "title": "Show HN: I trained a 9M speech model to fix my Mandarin tones",
+    "link": "https://simedw.com/2026/01/31/ear-pronunication-via-ctc/",
+    "published": "2026-01-30 16:51:27",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46831702",
+    "title": "The $100B megadeal between OpenAI and Nvidia is on ice",
+    "link": "https://www.wsj.com/tech/ai/the-100-billion-megadeal-between-openai-and-nvidia-is-on-ice-aa3025e3",
+    "published": "2026-01-30 16:02:30",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:5VXwXWRC9Ec",
+    "title": "New Zealand \ud83e\udd5d trip planning made easier \ud83d\ude0e",
+    "link": "https://www.youtube.com/shorts/5VXwXWRC9Ec",
+    "published": "2026-01-30 15:32:01",
+    "thumbnail": "",
+    "feed_title": "Taylor Bell",
+    "video_id": "5VXwXWRC9Ec"
+  },
+  {
+    "id": "yt:video:t9XppDMI0uc",
+    "title": "You\u2019ve Been Avoiding Decluttering. I\u2019m here to help.",
+    "link": "https://www.youtube.com/watch?v=t9XppDMI0uc",
+    "published": "2026-01-30 15:18:32",
+    "thumbnail": "",
+    "feed_title": "Caroline Winkler",
+    "video_id": "t9XppDMI0uc"
+  },
+  {
+    "id": "yt:video:SuOnMCOMsgQ",
+    "title": "Tim Walz says he won\u2019t \u201ccompromise with authoritarianism\u201d",
+    "link": "https://www.youtube.com/shorts/SuOnMCOMsgQ",
+    "published": "2026-01-30 15:00:48",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "SuOnMCOMsgQ"
+  },
+  {
+    "id": "yt:video:9mU1Eoe9L4o",
+    "title": "The Power of Shape in Interior Design \ud83c\udfdb\ufe0f",
+    "link": "https://www.youtube.com/shorts/9mU1Eoe9L4o",
+    "published": "2026-01-30 15:00:22",
+    "thumbnail": "",
+    "feed_title": "Reynard Lowell",
+    "video_id": "9mU1Eoe9L4o"
+  },
+  {
+    "id": "yt:video:hhOCMACyLhk",
+    "title": "I meal prepped 46 boring lunches to be healthier",
+    "link": "https://www.youtube.com/watch?v=hhOCMACyLhk",
+    "published": "2026-01-30 14:31:19",
+    "thumbnail": "",
+    "feed_title": "Matt D'Avella",
+    "video_id": "hhOCMACyLhk"
+  },
+  {
+    "id": "t3_1qrk9r1",
+    "title": "El0n Msk had more extensive ties to Epstein than previously known, emails show",
+    "link": "https://www.reddit.com/r/technology/comments/1qrk9r1/el0n_msk_had_more_extensive_ties_to_epstein_than/",
+    "published": "2026-01-30 14:30:22",
+    "thumbnail": "https://external-preview.redd.it/PtklV8gDdHFkFeTRr9ushJmpGrcQGf6t7-gztg4F7yM.jpeg?width=640&crop=smart&auto=webp&s=610b21e87160cd349fff258ebe927ca1ca50f28c",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:amTa8Fz96vQ",
+    "title": "Tim Walz says Trump administration is \u201ctrying to twist reality\u201d in Minnesota | NPR",
+    "link": "https://www.youtube.com/watch?v=amTa8Fz96vQ",
+    "published": "2026-01-30 14:12:29",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "amTa8Fz96vQ"
+  },
+  {
+    "id": "t3_1qriz2y",
+    "title": "Fuck GoDaddy",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qriz2y/fuck_godaddy/",
+    "published": "2026-01-30 13:41:23",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:XZBiaUoou8U",
+    "title": "Overtime Episode 057: AirTag Plateau",
+    "link": "https://www.youtube.com/watch?v=XZBiaUoou8U",
+    "published": "2026-01-30 13:39:00",
+    "thumbnail": "",
+    "feed_title": "9to5Mac",
+    "video_id": "XZBiaUoou8U"
+  },
+  {
+    "id": "yt:video:t6VmqMjT4G0",
+    "title": "What if we were grateful for getting older? #shorts",
+    "link": "https://www.youtube.com/shorts/t6VmqMjT4G0",
+    "published": "2026-01-30 13:37:48",
+    "thumbnail": "",
+    "feed_title": "Vox",
+    "video_id": "t6VmqMjT4G0"
+  },
+  {
+    "id": "yt:video:9NXJ8BoCZjU",
+    "title": "Over 100 Millions Pwned Accounts added in 2026 Already \u2639\ufe0f",
+    "link": "https://www.youtube.com/shorts/9NXJ8BoCZjU",
+    "published": "2026-01-30 13:30:01",
+    "thumbnail": "",
+    "feed_title": "David Bombal",
+    "video_id": "9NXJ8BoCZjU"
+  },
+  {
+    "id": "697d21b29b0c5000016966ae",
+    "title": "Musk to Epstein: \u2018What Day/Night Will Be the Wildest Party on Your Island?\u2019",
+    "link": "https://www.404media.co/musk-to-epstein-what-day-night-will-be-the-wildest-party-on-your-island/",
+    "published": "2026-01-30 13:26:56",
+    "thumbnail": "https://www.404media.co/content/images/2026/01/CleanShot-2026-01-30-at-13.24.31@2x.png",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:_cY1rFrNQpE",
+    "title": "I'm totally sold. - Reachy Mini",
+    "link": "https://www.youtube.com/watch?v=_cY1rFrNQpE",
+    "published": "2026-01-30 13:15:18",
+    "thumbnail": "",
+    "feed_title": "ShortCircuit",
+    "video_id": "_cY1rFrNQpE"
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46829582",
+    "title": "Peerweb: Decentralized website hosting via WebTorrent",
+    "link": "https://peerweb.lol/",
+    "published": "2026-01-30 12:40:00",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46829548",
+    "title": "Silver plunges 30% in worst day since 1980, gold tumbles",
+    "link": "https://www.cnbc.com/2026/01/30/silver-gold-fall-price-usd-dollar-fed-warsh-chair-trump-metals.html",
+    "published": "2026-01-30 12:37:48",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:zpzEuHjCAW4",
+    "title": "3 Safe Tech Careers That Are Actually Dying",
+    "link": "https://www.youtube.com/watch?v=zpzEuHjCAW4",
+    "published": "2026-01-30 12:13:09",
+    "thumbnail": "",
+    "feed_title": "Tiff In Tech",
+    "video_id": "zpzEuHjCAW4"
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46829147",
+    "title": "Antirender: remove the glossy shine on architectural renderings",
+    "link": "https://antirender.com/",
+    "published": "2026-01-30 12:05:24",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:wp03MBUEYI0",
+    "title": "Jeff Reed knows a lot about how wolves communicate",
+    "link": "https://www.youtube.com/shorts/wp03MBUEYI0",
+    "published": "2026-01-30 12:00:51",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "wp03MBUEYI0"
+  },
+  {
+    "id": "yt:video:QiNpkDEdf-U",
+    "title": "I'm Entering A Manga Contest.",
+    "link": "https://www.youtube.com/watch?v=QiNpkDEdf-U",
+    "published": "2026-01-30 12:00:20",
+    "thumbnail": "",
+    "feed_title": "Garnt",
+    "video_id": "QiNpkDEdf-U"
+  },
+  {
+    "id": "t3_1qrg2bg",
+    "title": "DOJ Just DELETED This Document from the Epstein Files. We Saved It.",
+    "link": "https://www.reddit.com/r/technology/comments/1qrg2bg/doj_just_deleted_this_document_from_the_epstein/",
+    "published": "2026-01-30 11:53:37",
+    "thumbnail": "https://external-preview.redd.it/VQUoFapBwDQZ4llrx_Rkp0DVcJgJX1HXI8urr7tvUqo.jpeg?width=640&crop=smart&auto=webp&s=7e5eda4ae86c01a6dada09e731f0a9144c31d329",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:mo7esGEZcCg",
+    "title": "Tim Cook Says Apple Is About to Launch Something \u201cNever Seen Before\u201d",
+    "link": "https://www.youtube.com/watch?v=mo7esGEZcCg",
+    "published": "2026-01-30 11:49:37",
+    "thumbnail": "",
+    "feed_title": "9to5Mac",
+    "video_id": "mo7esGEZcCg"
+  },
+  {
+    "id": "yt:video:jrx14UtVkRI",
+    "title": "AirTag 2 Has Wild Range! #tech #airtag",
+    "link": "https://www.youtube.com/shorts/jrx14UtVkRI",
+    "published": "2026-01-30 11:42:24",
+    "thumbnail": "",
+    "feed_title": "Stephen Robles",
+    "video_id": "jrx14UtVkRI"
+  },
+  {
+    "id": "https://www.macstories.net/?post_type=club&p=195842",
+    "title": "MacStories Weekly: Issue 498",
+    "link": "https://www.macstories.net/club/macstories-weekly-issue-498/",
+    "published": "2026-01-30 11:37:36",
+    "thumbnail": "",
+    "feed_title": "MacStories",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:Qr4anBkL2_A",
+    "title": "This is NOT an iPhone",
+    "link": "https://www.youtube.com/shorts/Qr4anBkL2_A",
+    "published": "2026-01-30 11:34:19",
+    "thumbnail": "",
+    "feed_title": "Marques Brownlee",
+    "video_id": "Qr4anBkL2_A"
+  },
+  {
+    "id": "https://www.macstories.net/?p=195887",
+    "title": "Podcast Rewind: An AYANEO Avalanche, Minecraft Houses, and Brendon Crashes Unwind",
+    "link": "https://www.macstories.net/news/podcast-rewind-an-ayaneo-avalanche-minecraft-houses-and-brendon-crashes-unwind/",
+    "published": "2026-01-30 11:28:27",
+    "thumbnail": "https://cdn.macstories.net/image-3-1769567214957.png",
+    "feed_title": "MacStories",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:mQQgB6VK_m4",
+    "title": "I gave Claude Code a phone number #claudecode",
+    "link": "https://www.youtube.com/shorts/mQQgB6VK_m4",
+    "published": "2026-01-30 11:28:05",
+    "thumbnail": "",
+    "feed_title": "NetworkChuck",
+    "video_id": "mQQgB6VK_m4"
+  },
+  {
+    "id": "yt:video:9_S-uVdGh9o",
+    "title": "How to center a DIV in BASIC",
+    "link": "https://www.youtube.com/shorts/9_S-uVdGh9o",
+    "published": "2026-01-30 11:02:00",
+    "thumbnail": "",
+    "feed_title": "The PrimeTime",
+    "video_id": "9_S-uVdGh9o"
+  },
+  {
+    "id": "yt:video:9E3QoCmW5q8",
+    "title": "This Spectacular HUGE Tiny House Allows a Family of Four to Thrive",
+    "link": "https://www.youtube.com/watch?v=9E3QoCmW5q8",
+    "published": "2026-01-30 11:00:15",
+    "thumbnail": "",
+    "feed_title": "Living Big In A Tiny House",
+    "video_id": "9E3QoCmW5q8"
+  },
+  {
+    "id": "yt:video:gSo_vHwryzI",
+    "title": "I Used Every iPad in 2026: Here\u2019s the ONLY One Worth It!",
+    "link": "https://www.youtube.com/watch?v=gSo_vHwryzI",
+    "published": "2026-01-30 10:55:44",
+    "thumbnail": "",
+    "feed_title": "Brandon Butch",
+    "video_id": "gSo_vHwryzI"
+  },
+  {
+    "id": "t3_1qrec1q",
+    "title": "Microsoft to disable NTLM by default in future Windows releases",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qrec1q/microsoft_to_disable_ntlm_by_default_in_future/",
+    "published": "2026-01-30 10:51:56",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/security/crypto-wallets-received-a-record-158-billion-in-illicit-funds-last-year/",
+    "title": "Crypto wallets received a record $158 billion in illicit funds last year",
+    "link": "https://www.bleepingcomputer.com/news/security/crypto-wallets-received-a-record-158-billion-in-illicit-funds-last-year/",
+    "published": "2026-01-30 10:49:51",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:rYLWrh6vSMs",
+    "title": "Claude is Officially Better Than ChatGPT & More AI News You Can Use",
+    "link": "https://www.youtube.com/watch?v=rYLWrh6vSMs",
+    "published": "2026-01-30 10:31:05",
+    "thumbnail": "",
+    "feed_title": "The AI Advantage",
+    "video_id": "rYLWrh6vSMs"
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46827826",
+    "title": "Amazon's Spending on 'Melania' Is a Barely Concealed Bribe",
+    "link": "https://daringfireball.net/linked/2026/01/29/amazon-melania-spending",
+    "published": "2026-01-30 10:14:44",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:JTlOYhyC13c",
+    "title": "Former CNN anchor Don Lemon arrested by federal agents in Los Angeles",
+    "link": "https://www.youtube.com/shorts/JTlOYhyC13c",
+    "published": "2026-01-30 10:11:19",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "JTlOYhyC13c"
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46827731",
+    "title": "Malicious skills targeting Claude Code and Moltbot users",
+    "link": "https://opensourcemalware.com/blog/clawdbot-skills-ganked-your-crypto",
+    "published": "2026-01-30 10:07:02",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46827665",
+    "title": "Mamdani to kill the NYC AI chatbot caught telling businesses to break the law",
+    "link": "https://themarkup.org/artificial-intelligence/2026/01/30/mamdani-to-kill-the-nyc-ai-chatbot-we-caught-telling-businesses-to-break-the-law",
+    "published": "2026-01-30 10:02:23",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:qPHwRGTGIOU",
+    "title": "This lamp changes every time you look at it",
+    "link": "https://www.youtube.com/shorts/qPHwRGTGIOU",
+    "published": "2026-01-30 10:01:10",
+    "thumbnail": "",
+    "feed_title": "Simone Giertz",
+    "video_id": "qPHwRGTGIOU"
+  },
+  {
+    "id": "yt:video:GPSNT5vjSO8",
+    "title": "This lamp changes every time you look at it",
+    "link": "https://www.youtube.com/watch?v=GPSNT5vjSO8",
+    "published": "2026-01-30 10:00:17",
+    "thumbnail": "",
+    "feed_title": "Simone Giertz",
+    "video_id": "GPSNT5vjSO8"
+  },
+  {
+    "id": "yt:video:f180mGgtShw",
+    "title": "Into the world of EXTREME VPNs - Interview with IVPN COO Viktor Vecsei",
+    "link": "https://www.youtube.com/watch?v=f180mGgtShw",
+    "published": "2026-01-30 09:48:24",
+    "thumbnail": "",
+    "feed_title": "The Hated One",
+    "video_id": "f180mGgtShw"
+  },
+  {
+    "id": "yt:video:ikOp-fIw2fQ",
+    "title": "Apple Creator Studio Makes No Sense\u2026 Until You See This",
+    "link": "https://www.youtube.com/watch?v=ikOp-fIw2fQ",
+    "published": "2026-01-30 09:30:00",
+    "thumbnail": "",
+    "feed_title": "Better Creating",
+    "video_id": "ikOp-fIw2fQ"
+  },
+  {
+    "id": "t3_1qrbvym",
+    "title": "New employee can't receive laptop shipments - what would you do here?",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qrbvym/new_employee_cant_receive_laptop_shipments_what/",
+    "published": "2026-01-30 09:27:24",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46827003",
+    "title": "Microsoft 365 now tracks you in real time?",
+    "link": "https://ztechtalk.com/microsoft-teams",
+    "published": "2026-01-30 09:12:39",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/microsoft/microsoft-to-disable-ntlm-by-default-in-future-windows-releases/",
+    "title": "Microsoft to disable NTLM by default in future Windows releases",
+    "link": "https://www.bleepingcomputer.com/news/microsoft/microsoft-to-disable-ntlm-by-default-in-future-windows-releases/",
+    "published": "2026-01-30 09:08:57",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "697cb5759b0c500001642153",
+    "title": "Behind the Blog: Own Goals and Lying Devs",
+    "link": "https://www.404media.co/behind-the-blog-own-goals-and-lying-devs/",
+    "published": "2026-01-30 09:03:10",
+    "thumbnail": "https://www.404media.co/content/images/2026/01/nl1.30-1.png",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:rHSl69dLoMk",
+    "title": "Life in Paris: Reality vs Media Myths",
+    "link": "https://www.youtube.com/watch?v=rHSl69dLoMk",
+    "published": "2026-01-30 09:01:30",
+    "thumbnail": "",
+    "feed_title": "Lucile",
+    "video_id": "rHSl69dLoMk"
+  },
+  {
+    "id": "yt:video:3ESVby9E-jA",
+    "title": "My Porsche Collection in my 20's?",
+    "link": "https://www.youtube.com/shorts/3ESVby9E-jA",
+    "published": "2026-01-30 09:00:05",
+    "thumbnail": "",
+    "feed_title": "Andres Vidoza",
+    "video_id": "3ESVby9E-jA"
+  },
+  {
+    "id": "yt:video:aKGTko8y3nI",
+    "title": "36 pieces of clothing for 6 months | project 636: extreme minimalist capsule wardrobe",
+    "link": "https://www.youtube.com/watch?v=aKGTko8y3nI",
+    "published": "2026-01-30 09:00:01",
+    "thumbnail": "",
+    "feed_title": "Bea Minimalista",
+    "video_id": "aKGTko8y3nI"
+  },
+  {
+    "id": "697cde5a9b0c50000164297a",
+    "title": "Silicon Valley\u2019s Favorite New AI Agent Has Serious Security Flaws",
+    "link": "https://www.404media.co/silicon-valleys-favorite-new-ai-agent-has-serious-security-flaws/",
+    "published": "2026-01-30 08:59:02",
+    "thumbnail": "https://www.404media.co/content/images/2026/01/Screenshot-2026-01-30-113925-1.png",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:7qlIsPtUZE8",
+    "title": "I turned a STEEL building into my DREAM shop",
+    "link": "https://www.youtube.com/watch?v=7qlIsPtUZE8",
+    "published": "2026-01-30 08:45:28",
+    "thumbnail": "",
+    "feed_title": "President Chay",
+    "video_id": "7qlIsPtUZE8"
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46826597",
+    "title": "Kimi K2.5 Technical Report [pdf]",
+    "link": "https://github.com/MoonshotAI/Kimi-K2.5/blob/master/tech_report.pdf",
+    "published": "2026-01-30 08:43:50",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "697cdea29b0c500001642992",
+    "title": "Dozens of Bizarre Ancient Lifeforms Discovered in \u2018Extraordinary\u2019 Fossil Find",
+    "link": "https://www.404media.co/dozens-of-bizarre-ancient-lifeforms-discovered-in-extraordinary-fossil-find/",
+    "published": "2026-01-30 08:42:07",
+    "thumbnail": "https://www.404media.co/content/images/2026/01/image4.jpg",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/legal/operation-switch-off-dismantles-major-pirate-tv-streaming-services/",
+    "title": "Operation Switch Off dismantles major pirate TV streaming services",
+    "link": "https://www.bleepingcomputer.com/news/legal/operation-switch-off-dismantles-major-pirate-tv-streaming-services/",
+    "published": "2026-01-30 08:39:43",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qraezd",
+    "title": "Apple \u2018runs on Anthropic,\u2019 says Mark Gurman",
+    "link": "https://www.reddit.com/r/apple/comments/1qraezd/apple_runs_on_anthropic_says_mark_gurman/",
+    "published": "2026-01-30 08:36:09",
+    "thumbnail": "https://external-preview.redd.it/3UuRnCbZ7j7CCYFBnN_ZANZpkW12XAcf27uGU17Fn1w.jpeg?width=640&crop=smart&auto=webp&s=9f75c006c1b4a72c75e029300e36aa8fa2d35a14",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:7uNzTseequg",
+    "title": "Here is the User Guide for ELITE, the Tool Palantir Made for ICE",
+    "link": "https://www.youtube.com/shorts/7uNzTseequg",
+    "published": "2026-01-30 08:31:24",
+    "thumbnail": "",
+    "feed_title": "404 Media",
+    "video_id": "7uNzTseequg"
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46826277",
+    "title": "Ask HN: Do you also \"hoard\" notes/links but struggle to turn them into actions?",
+    "link": "https://news.ycombinator.com/item?id=46826277",
+    "published": "2026-01-30 08:22:05",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qr9z71",
+    "title": "Russian ship loitering near transatlantic data cables chased off by Royal Navy attack helicopter \u2014 sat within three quarters of a mile of five undersea data cables, including two linking Britain to New York",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qr9z71/russian_ship_loitering_near_transatlantic_data/",
+    "published": "2026-01-30 08:20:41",
+    "thumbnail": "https://external-preview.redd.it/--2gNtgsq82UPmKhGpu-FP2iu9qoleNtVHmL2snGdZw.jpeg?width=640&crop=smart&auto=webp&s=2143e4645308ec7912c75e1c88ea4bdbfa5246db",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:zH5S9LmHS4c",
+    "title": "The Lofree Hypace is only 47g",
+    "link": "https://www.youtube.com/shorts/zH5S9LmHS4c",
+    "published": "2026-01-30 08:08:01",
+    "thumbnail": "",
+    "feed_title": "ThisIsE",
+    "video_id": "zH5S9LmHS4c"
+  },
+  {
+    "id": "yt:video:J2OGTd8Zgow",
+    "title": "Shot on iPhone 17 Pro | Chinese New Year - Glad I Met You: Backstage with Ke Ming | Apple",
+    "link": "https://www.youtube.com/watch?v=J2OGTd8Zgow",
+    "published": "2026-01-30 08:00:26",
+    "thumbnail": "",
+    "feed_title": "Apple",
+    "video_id": "J2OGTd8Zgow"
+  },
+  {
+    "id": "yt:video:XLzx58UrwGs",
+    "title": "Shot on iPhone 17 Pro | Chinese New Year - Glad I Met You | Apple",
+    "link": "https://www.youtube.com/watch?v=XLzx58UrwGs",
+    "published": "2026-01-30 08:00:23",
+    "thumbnail": "",
+    "feed_title": "Apple",
+    "video_id": "XLzx58UrwGs"
+  },
+  {
+    "id": "yt:video:1qs9bQ0MlpQ",
+    "title": "Postgres can replace your entire stack...",
+    "link": "https://www.youtube.com/watch?v=1qs9bQ0MlpQ",
+    "published": "2026-01-30 08:00:04",
+    "thumbnail": "",
+    "feed_title": "Awesome",
+    "video_id": "1qs9bQ0MlpQ"
+  },
+  {
+    "id": "yt:video:ssYt09bCgUY",
+    "title": "The wild rise of OpenClaw...",
+    "link": "https://www.youtube.com/watch?v=ssYt09bCgUY",
+    "published": "2026-01-30 07:56:36",
+    "thumbnail": "",
+    "feed_title": "Fireship",
+    "video_id": "ssYt09bCgUY"
+  },
+  {
+    "id": "yt:video:CWiJxzmZcUc",
+    "title": "DON'T miss Zero Trust World 2026",
+    "link": "https://www.youtube.com/shorts/CWiJxzmZcUc",
+    "published": "2026-01-30 07:30:07",
+    "thumbnail": "",
+    "feed_title": "David Bombal",
+    "video_id": "CWiJxzmZcUc"
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46825415",
+    "title": "Buttered Crumpet, a custom typeface for Wallace and Gromit",
+    "link": "https://jamieclarketype.com/case-study/wallace-and-gromit-font/",
+    "published": "2026-01-30 07:19:28",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:ANlKVIBmnHo",
+    "title": "How Secure are Apple Products REALLY?",
+    "link": "https://www.youtube.com/watch?v=ANlKVIBmnHo",
+    "published": "2026-01-30 07:13:48",
+    "thumbnail": "",
+    "feed_title": "Proper Honest Tech",
+    "video_id": "ANlKVIBmnHo"
+  },
+  {
+    "id": "697cc2669b0c50000164235a",
+    "title": "Here is the User Guide for ELITE, the Tool Palantir Made for ICE",
+    "link": "https://www.404media.co/here-is-the-user-guide-for-elite-the-tool-palantir-made-for-ice/",
+    "published": "2026-01-30 06:49:01",
+    "thumbnail": "https://www.404media.co/content/images/2026/01/elite-guide.png",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/microsoft/microsoft-fixes-outlook-bug-blocking-access-to-encrypted-emails/",
+    "title": "Microsoft fixes Outlook bug blocking access to encrypted emails",
+    "link": "https://www.bleepingcomputer.com/news/microsoft/microsoft-fixes-outlook-bug-blocking-access-to-encrypted-emails/",
+    "published": "2026-01-30 06:48:49",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:sGeQUo-VDTw",
+    "title": "The AI Holodeck Just Got Real: Google's Project Genie",
+    "link": "https://www.youtube.com/watch?v=sGeQUo-VDTw",
+    "published": "2026-01-30 06:45:00",
+    "thumbnail": "",
+    "feed_title": "AI For Humans",
+    "video_id": "sGeQUo-VDTw"
+  },
+  {
+    "id": "yt:video:jPebDvUOwsU",
+    "title": "The Way We Search for Aliens Is Insane",
+    "link": "https://www.youtube.com/shorts/jPebDvUOwsU",
+    "published": "2026-01-30 06:42:34",
+    "thumbnail": "",
+    "feed_title": "Cleo Abram",
+    "video_id": "jPebDvUOwsU"
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46824867",
+    "title": "Richard Feynman Side Hustles",
+    "link": "https://twitter.com/carl_feynman/status/2016979540099420428",
+    "published": "2026-01-30 06:33:29",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qr71jh",
+    "title": "The \"Just connect the LLM\" phase was bad enough. Now they want Agents.",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qr71jh/the_just_connect_the_llm_phase_was_bad_enough_now/",
+    "published": "2026-01-30 06:32:35",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "697bd328851c1800010c511e",
+    "title": "Erotic Parody 'Melania: Devourer of Men' Sales Surge on Amazon Amid Documentary Flop",
+    "link": "https://www.404media.co/erotic-parody-melania-devourer-of-men-sales-surge-on-amazon-amid-documentary-flop/",
+    "published": "2026-01-30 06:30:25",
+    "thumbnail": "https://www.404media.co/content/images/2026/01/811ubxJvd-L._SL1500_-1-1.jpg",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:KEsiNPFMlv8",
+    "title": "how to have the ULTIMATE academic COMEBACK in your entire school career. (the PILLAR blueprint)",
+    "link": "https://www.youtube.com/watch?v=KEsiNPFMlv8",
+    "published": "2026-01-30 06:30:17",
+    "thumbnail": "",
+    "feed_title": "Kai Notebook",
+    "video_id": "KEsiNPFMlv8"
+  },
+  {
+    "id": "yt:video:81fq__6a1FQ",
+    "title": "Critical Linux Warning: 800,000 Devices Are EXPOSED",
+    "link": "https://www.youtube.com/watch?v=81fq__6a1FQ",
+    "published": "2026-01-30 06:30:12",
+    "thumbnail": "",
+    "feed_title": "David Bombal",
+    "video_id": "81fq__6a1FQ"
+  },
+  {
+    "id": "yt:video:1LXJEvIh6Yw",
+    "title": "a retro alarm clock",
+    "link": "https://www.youtube.com/shorts/1LXJEvIh6Yw",
+    "published": "2026-01-30 06:30:00",
+    "thumbnail": "",
+    "feed_title": "Reysu",
+    "video_id": "1LXJEvIh6Yw"
+  },
+  {
+    "id": "t3_1qr6r6i",
+    "title": "How ICE Already Knows Who Minneapolis Protesters Are: Agents use facial recognition, social media monitoring and other tech tools not only to identify undocumented immigrants but also to track protesters, current and former officials said.",
+    "link": "https://www.reddit.com/r/technology/comments/1qr6r6i/how_ice_already_knows_who_minneapolis_protesters/",
+    "published": "2026-01-30 06:21:22",
+    "thumbnail": "https://external-preview.redd.it/DYPiO8N9AlCtMBSZR76qOAhyDh_mnQpXWyl2mb48lRU.jpeg?width=640&crop=smart&auto=webp&s=991bb947ce8db2f5a5d6088e4aa1d76c8e933c3a",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:jFtVkEeHbGA",
+    "title": "my kinda ipad kid #shorts",
+    "link": "https://www.youtube.com/shorts/jFtVkEeHbGA",
+    "published": "2026-01-30 06:15:19",
+    "thumbnail": "",
+    "feed_title": "gazi",
+    "video_id": "jFtVkEeHbGA"
+  },
+  {
+    "id": "t3_1qr6dzp",
+    "title": "Spartacus: House of Ashur - 1x09 - \"Those Who Remain\" - Episode Discussion",
+    "link": "https://www.reddit.com/r/television/comments/1qr6dzp/spartacus_house_of_ashur_1x09_those_who_remain/",
+    "published": "2026-01-30 06:06:49",
+    "thumbnail": "",
+    "feed_title": "television: search results - flair_name:\"Premiere\"",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:SIRde_NYoCw",
+    "title": "Why I Don't Link Signal To My Computer",
+    "link": "https://www.youtube.com/watch?v=SIRde_NYoCw",
+    "published": "2026-01-30 06:01:51",
+    "thumbnail": "",
+    "feed_title": "Naomi Brockwell TV",
+    "video_id": "SIRde_NYoCw"
+  },
+  {
+    "id": "yt:video:ftoTtrwaIqg",
+    "title": "netbird explained (with tiny voice) #opensource #programming #bashbunni",
+    "link": "https://www.youtube.com/shorts/ftoTtrwaIqg",
+    "published": "2026-01-30 06:01:09",
+    "thumbnail": "",
+    "feed_title": "bashbunni",
+    "video_id": "ftoTtrwaIqg"
+  },
+  {
+    "id": "yt:video:Sr1jElK-PP8",
+    "title": "Too Old to HIRE. Too Young to RETIRE.",
+    "link": "https://www.youtube.com/watch?v=Sr1jElK-PP8",
+    "published": "2026-01-30 06:00:50",
+    "thumbnail": "",
+    "feed_title": "Austin Williams",
+    "video_id": "Sr1jElK-PP8"
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46824422",
+    "title": "HTTP Cats",
+    "link": "https://http.cat/",
+    "published": "2026-01-30 05:56:51",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "https://4sysops.com/?p=1605346",
+    "title": "Microsoft Entra ID fixes Conditional Access policy bypass, will enforce MFA sign-in for OIDC-only requests",
+    "link": "https://4sysops.com/archives/microsoft-entra-id-fixes-conditional-access-policy-bypass-will-enforce-mfa-sign-in-for-oidc-only-requests/",
+    "published": "2026-01-30 05:43:17",
+    "thumbnail": "",
+    "feed_title": "4sysops",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qr5rn2",
+    "title": "Apple Teases 'Innovations That Have Never Been Seen Before' This Year",
+    "link": "https://www.reddit.com/r/apple/comments/1qr5rn2/apple_teases_innovations_that_have_never_been/",
+    "published": "2026-01-30 05:41:37",
+    "thumbnail": "https://external-preview.redd.it/XDkh-AhTN698H0APFo75D2Hyw_S3uLuWG_MwBZ9q00c.jpeg?width=640&crop=smart&auto=webp&s=8161f0b4185f0ae1702b0df35f3eeeb9401d72a5",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:xrio-BsgkqU",
+    "title": "Claude Code has a big problem",
+    "link": "https://www.youtube.com/watch?v=xrio-BsgkqU",
+    "published": "2026-01-30 05:25:13",
+    "thumbnail": "",
+    "feed_title": "Theo - t3\u2024gg",
+    "video_id": "xrio-BsgkqU"
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46824098",
+    "title": "Wisconsin communities signed secrecy deals for billion-dollar data centers",
+    "link": "https://www.wpr.org/news/4-wisconsin-communities-signed-secrecy-deals-billion-dollar-data-centers",
+    "published": "2026-01-30 05:23:53",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:kyXC-p9cN2E",
+    "title": "How Finland defeated fascism",
+    "link": "https://www.youtube.com/watch?v=kyXC-p9cN2E",
+    "published": "2026-01-30 05:01:33",
+    "thumbnail": "",
+    "feed_title": "Vox",
+    "video_id": "kyXC-p9cN2E"
+  },
+  {
+    "id": "yt:video:_TJ_odHDlfk",
+    "title": "I Ignored this NYC Neighborhood... Until Now",
+    "link": "https://www.youtube.com/watch?v=_TJ_odHDlfk",
+    "published": "2026-01-30 05:01:12",
+    "thumbnail": "",
+    "feed_title": "Taylor Bell",
+    "video_id": "_TJ_odHDlfk"
+  },
+  {
+    "id": "yt:video:W9xSPNbLogI",
+    "title": "Tailor leadership to individuals | Josh Bersin",
+    "link": "https://www.youtube.com/shorts/W9xSPNbLogI",
+    "published": "2026-01-30 05:00:56",
+    "thumbnail": "",
+    "feed_title": "Big Think+",
+    "video_id": "W9xSPNbLogI"
+  },
+  {
+    "id": "yt:video:MTMCidnLv60",
+    "title": "Nela and Jeff\u2019s favourite spots in their magnificent eco home #housetour #eco #architecture",
+    "link": "https://www.youtube.com/shorts/MTMCidnLv60",
+    "published": "2026-01-30 05:00:41",
+    "thumbnail": "",
+    "feed_title": "The Modern House & Inigo",
+    "video_id": "MTMCidnLv60"
+  },
+  {
+    "id": "yt:video:ws9zR-UzwTE",
+    "title": "This is the only AI I want to use",
+    "link": "https://www.youtube.com/watch?v=ws9zR-UzwTE",
+    "published": "2026-01-30 04:41:20",
+    "thumbnail": "",
+    "feed_title": "The PrimeTime",
+    "video_id": "ws9zR-UzwTE"
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46823485",
+    "title": "Code is cheap. Show me the talk",
+    "link": "https://nadh.in/blog/code-is-cheap/",
+    "published": "2026-01-30 04:05:50",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/microsoft/windows-11-kb5074105-update-fixes-boot-sign-in-and-activation-issues/",
+    "title": "Windows 11 KB5074105 update fixes boot, sign-in, and activation issues",
+    "link": "https://www.bleepingcomputer.com/news/microsoft/windows-11-kb5074105-update-fixes-boot-sign-in-and-activation-issues/",
+    "published": "2026-01-30 04:02:09",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46822632",
+    "title": "Tesla\u2019s autonomous vehicles are crashing at a rate much higher tha human drivers",
+    "link": "https://electrek.co/2026/01/29/teslas-own-robotaxi-data-confirms-crash-rate-3x-worse-than-humans-even-with-monitor/",
+    "published": "2026-01-30 02:14:31",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46822630",
+    "title": "Surely the crash of the US economy has to be soon",
+    "link": "https://wilsoniumite.com/2026/01/27/surely-it-has-to-be-soon/",
+    "published": "2026-01-30 02:14:23",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qqzqu4",
+    "title": "Breach in to our 365 tenant",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qqzqu4/breach_in_to_our_365_tenant/",
+    "published": "2026-01-30 00:20:30",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46821774",
+    "title": "GOG: Linux \"the next major frontier\" for gaming as it works on a native client",
+    "link": "https://www.xda-developers.com/gog-calls-linux-the-next-major-frontier-for-gaming-as-it-works-on-a-native-client/",
+    "published": "2026-01-30 00:09:41",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qqyu52",
+    "title": "Apple Reaches 2.5 Billion Active Devices",
+    "link": "https://www.reddit.com/r/apple/comments/1qqyu52/apple_reaches_25_billion_active_devices/",
+    "published": "2026-01-29 23:25:41",
+    "thumbnail": "https://external-preview.redd.it/lHzeXp2mubzmJUd1KL_bAijRLBwrT89rLlLnVf3l13A.jpeg?width=640&crop=smart&auto=webp&s=1eb87a606c097c93b8a36b4a3f6e474d49bd7100",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "https://news.ycombinator.com/item?id=46821360",
+    "title": "How AI impacts skill formation",
+    "link": "https://arxiv.org/abs/2601.20245",
+    "published": "2026-01-29 23:06:47",
+    "thumbnail": "",
+    "feed_title": "Hacker News: Newest",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qqy7wy",
+    "title": "Libs of TikTok is doxxing teachers and nurses who support Alex Pretti or oppose ICE, trying to get them fired",
+    "link": "https://www.reddit.com/r/technology/comments/1qqy7wy/libs_of_tiktok_is_doxxing_teachers_and_nurses_who/",
+    "published": "2026-01-29 22:49:32",
+    "thumbnail": "https://external-preview.redd.it/BT6-yaqHxOQc8oTCztQa2S_ny7VMtT6fNejdzV13lGI.png?width=640&crop=smart&auto=webp&s=59748dc0f4fbd41af4efc7ecd8ab2aeef74705d7",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qqxlxp",
+    "title": "hardware prices going crazy",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qqxlxp/hardware_prices_going_crazy/",
+    "published": "2026-01-29 22:15:29",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qqx4kv",
+    "title": "What most expensive \"cheap decision\" have you ever seen in your sysadmin career?",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qqx4kv/what_most_expensive_cheap_decision_have_you_ever/",
+    "published": "2026-01-29 21:49:31",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:2RXEIIDG__0",
+    "title": "This Is What an iPhone Fold Would Actually Feel Like",
+    "link": "https://www.youtube.com/watch?v=2RXEIIDG__0",
+    "published": "2026-01-29 21:47:52",
+    "thumbnail": "",
+    "feed_title": "Samuel Nam",
+    "video_id": "2RXEIIDG__0"
+  },
+  {
+    "id": "yt:video:552BIIO9jd0",
+    "title": "Project Genie Tutorial (How to use Project Genie)",
+    "link": "https://www.youtube.com/watch?v=552BIIO9jd0",
+    "published": "2026-01-29 21:03:52",
+    "thumbnail": "",
+    "feed_title": "TheAIGRID",
+    "video_id": "552BIIO9jd0"
+  },
+  {
+    "id": "t3_1qqsqch",
+    "title": "Star Trek: Starfleet Academy - 1x04 - \u201cVox in Excelso\u201d - Episode Discussion",
+    "link": "https://www.reddit.com/r/television/comments/1qqsqch/star_trek_starfleet_academy_1x04_vox_in_excelso/",
+    "published": "2026-01-29 18:19:31",
+    "thumbnail": "",
+    "feed_title": "television: search results - flair_name:\"Premiere\"",
+    "video_id": null
+  },
+  {
+    "id": "https://www.macstories.net/?p=195815",
+    "title": "Immersive Dog Show Series \u2018Top Dogs\u2019 Premieres on Apple Vision Pro",
+    "link": "https://www.macstories.net/news/immersive-dog-show-series-top-dogs-premieres-on-apple-vision-pro/",
+    "published": "2026-01-29 18:01:46",
+    "thumbnail": "https://cdn.macstories.net/topdogs_press_4x1_banner-1769567589661.png",
+    "feed_title": "MacStories",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qqsb3p",
+    "title": "The Pitt - 2x04 - 10:00 A.M.\" - Episode Discussion",
+    "link": "https://www.reddit.com/r/television/comments/1qqsb3p/the_pitt_2x04_1000_am_episode_discussion/",
+    "published": "2026-01-29 18:01:04",
+    "thumbnail": "",
+    "feed_title": "television: search results - flair_name:\"Premiere\"",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:h-fCCcAwGj8",
+    "title": "\"Open up honey!\" Dominik Mysterio tastes tests tendie sauces \ud83d\udc14",
+    "link": "https://www.youtube.com/shorts/h-fCCcAwGj8",
+    "published": "2026-01-29 18:00:47",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "h-fCCcAwGj8"
+  },
+  {
+    "id": "yt:video:OurVJx4gZ2Q",
+    "title": "saturday!!",
+    "link": "https://www.youtube.com/shorts/OurVJx4gZ2Q",
+    "published": "2026-01-29 16:23:35",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "OurVJx4gZ2Q"
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/microsoft/microsoft-links-windows-11-boot-failures-to-failed-december-2025-update/",
+    "title": "Microsoft links Windows 11 boot failures to failed December 2025 update",
+    "link": "https://www.bleepingcomputer.com/news/microsoft/microsoft-links-windows-11-boot-failures-to-failed-december-2025-update/",
+    "published": "2026-01-29 16:21:49",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:TqJs6HLrwO0",
+    "title": "Alexander Skarsg\u00e5rd and Cardi B Don't Want To Do Dry January with Chloe Fineman - SNL",
+    "link": "https://www.youtube.com/watch?v=TqJs6HLrwO0",
+    "published": "2026-01-29 16:15:02",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "TqJs6HLrwO0"
+  },
+  {
+    "id": "t3_1qqoklx",
+    "title": "Apple Was Caught Off Guard by AirPods Pro 3 Popularity",
+    "link": "https://www.reddit.com/r/apple/comments/1qqoklx/apple_was_caught_off_guard_by_airpods_pro_3/",
+    "published": "2026-01-29 15:21:35",
+    "thumbnail": "https://external-preview.redd.it/nb75OStiAxfP7Kb2CE5EqNB3g7_m5exOX_ORMhqwB2s.jpeg?width=640&crop=smart&auto=webp&s=8823fa8adccd9caa0f8b63f6bb343f4299263d26",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:-r0FzidmS9U",
+    "title": "How to help others see the America we\u2019re living in #shorts",
+    "link": "https://www.youtube.com/shorts/-r0FzidmS9U",
+    "published": "2026-01-29 15:18:17",
+    "thumbnail": "",
+    "feed_title": "Vox",
+    "video_id": "-r0FzidmS9U"
+  },
+  {
+    "id": "yt:video:uU16hjqpcHc",
+    "title": "WHAT DO YOU MEAN?!? \ud83d\ude2d",
+    "link": "https://www.youtube.com/shorts/uU16hjqpcHc",
+    "published": "2026-01-29 15:01:15",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "uU16hjqpcHc"
+  },
+  {
+    "id": "yt:video:EqP9Wg-1IPw",
+    "title": "3 Finishing Pieces Every Designer Uses",
+    "link": "https://www.youtube.com/shorts/EqP9Wg-1IPw",
+    "published": "2026-01-29 15:00:14",
+    "thumbnail": "",
+    "feed_title": "Reynard Lowell",
+    "video_id": "EqP9Wg-1IPw"
+  },
+  {
+    "id": "t3_1qqnlps",
+    "title": "Apple Responds to Fast-Rising RAM and Storage Chip Prices",
+    "link": "https://www.reddit.com/r/apple/comments/1qqnlps/apple_responds_to_fastrising_ram_and_storage_chip/",
+    "published": "2026-01-29 14:42:55",
+    "thumbnail": "https://external-preview.redd.it/VACWgkox5OMH2dvpuLuY8A8uZY6O1j2VyFFdvDBu3XU.jpeg?width=640&crop=smart&auto=webp&s=d030eb27407971ec9d735ba08558b27e0eaa8ebe",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:DlWbJL65KDg",
+    "title": "Marshalls & TJ Maxx yellow tag clearance haul! \ud83d\udc9b\ud83d\udecd\ufe0f\u2728So many amazing finds from this sale! #shopping",
+    "link": "https://www.youtube.com/shorts/DlWbJL65KDg",
+    "published": "2026-01-29 14:18:16",
+    "thumbnail": "",
+    "feed_title": "Anna B.",
+    "video_id": "DlWbJL65KDg"
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/security/hugging-face-abused-to-spread-thousands-of-android-malware-variants/",
+    "title": "Hugging Face abused to spread thousands of Android malware variants",
+    "link": "https://www.bleepingcomputer.com/news/security/hugging-face-abused-to-spread-thousands-of-android-malware-variants/",
+    "published": "2026-01-29 14:08:19",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/security/ivanti-warns-of-two-epmm-flaws-exploited-in-zero-day-attacks/",
+    "title": "Ivanti warns of two EPMM flaws exploited in zero-day attacks",
+    "link": "https://www.bleepingcomputer.com/news/security/ivanti-warns-of-two-epmm-flaws-exploited-in-zero-day-attacks/",
+    "published": "2026-01-29 14:07:33",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "https://www.macstories.net/?p=195827",
+    "title": "Apple Reports Q1\u00a02026 Revenue of $143.8 Billion",
+    "link": "https://www.macstories.net/news/apple-reports-q1-2026-revenue-of-143-8-billion/",
+    "published": "2026-01-29 14:05:16",
+    "thumbnail": "https://cdn.macstories.net/apple-sainte-catherine-montreal-canada-opening-day-hero-1769723151084.jpg",
+    "feed_title": "MacStories",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qqmfgb",
+    "title": "Canada Signs Auto Deal With South Korea, Moving Further From the U.S.",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qqmfgb/canada_signs_auto_deal_with_south_korea_moving/",
+    "published": "2026-01-29 13:57:53",
+    "thumbnail": "https://external-preview.redd.it/GwPD5y8G9XJPut9Oupydbx-J7Mst5DqmghfEFN7fmPE.jpeg?width=640&crop=smart&auto=webp&s=04361d39288000d34719dfafef1722bc5036b184",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qqm490",
+    "title": "Apple Reports Record-Setting 1Q 2026 Results: $42.1B Profit on $143.8B Revenue",
+    "link": "https://www.reddit.com/r/apple/comments/1qqm490/apple_reports_recordsetting_1q_2026_results_421b/",
+    "published": "2026-01-29 13:45:50",
+    "thumbnail": "https://external-preview.redd.it/yKAqKJg6FF6ayrG9oe4oBP6UTwVLmvCQnUHBXHE0Auw.jpeg?width=640&crop=smart&auto=webp&s=f608bd8851ea0b66373677e466b0a588f0896732",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:elxFenz9DtA",
+    "title": "Michael Mayo ascends to new artistic heights",
+    "link": "https://www.youtube.com/shorts/elxFenz9DtA",
+    "published": "2026-01-29 13:30:08",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "elxFenz9DtA"
+  },
+  {
+    "id": "t3_1qqlkpm",
+    "title": "Microsoft lost $357 billion in market cap as stock plunged most since 2020",
+    "link": "https://www.reddit.com/r/technology/comments/1qqlkpm/microsoft_lost_357_billion_in_market_cap_as_stock/",
+    "published": "2026-01-29 13:25:13",
+    "thumbnail": "https://external-preview.redd.it/SyPkFg-irW1AtK9l9dRhby2JTyvFFb6mchkKWdQSQs0.jpeg?width=640&crop=smart&auto=webp&s=c914d4d3b06263638f4a400463349a0b20dd9a26",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:2OKJRu-2kSw",
+    "title": "J. Cole - Birthday Blizzard '26 EP REVIEW",
+    "link": "https://www.youtube.com/watch?v=2OKJRu-2kSw",
+    "published": "2026-01-29 13:17:45",
+    "thumbnail": "",
+    "feed_title": "theneedledrop",
+    "video_id": "2OKJRu-2kSw"
+  },
+  {
+    "id": "t3_1qqkev4",
+    "title": "New Zealand declines invite to join Board of Peace",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qqkev4/new_zealand_declines_invite_to_join_board_of_peace/",
+    "published": "2026-01-29 12:41:49",
+    "thumbnail": "https://external-preview.redd.it/ZH_tdVdeSFSiXh2ILS-NSZGsVQ9Ntxf9v1er629MvTk.jpeg?width=640&crop=smart&auto=webp&s=f008259f16b4254765225dbaf2a57e0b14cde6d9",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:lyXFrPv4BhE",
+    "title": "Samsung is About to Change the Game! \ud83e\udd2f",
+    "link": "https://www.youtube.com/shorts/lyXFrPv4BhE",
+    "published": "2026-01-29 12:04:07",
+    "thumbnail": "",
+    "feed_title": "Brandon Butch",
+    "video_id": "lyXFrPv4BhE"
+  },
+  {
+    "id": "yt:video:3ldkPzI8SZI",
+    "title": "Cool dad is back.The special one hour premiere of #Shrinking Season 3 is now streaming.",
+    "link": "https://www.youtube.com/shorts/3ldkPzI8SZI",
+    "published": "2026-01-29 11:59:47",
+    "thumbnail": "",
+    "feed_title": "Apple TV",
+    "video_id": "3ldkPzI8SZI"
+  },
+  {
+    "id": "t3_1qqis5r",
+    "title": "Weekly game deals post - HITMAN World of Assassination, Spilled!, PolyPine, Dead Cells, FTL: Faster Than Light, The Biggleboss Incident, Wales Interactive\u2019s FMV games, some digital board games, and more at discounted prices.",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qqis5r/weekly_game_deals_post_hitman_world_of/",
+    "published": "2026-01-29 11:41:55",
+    "thumbnail": "",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:MytmhTOVSJo",
+    "title": "NEW J. COLE EP \ud83e\udd76",
+    "link": "https://www.youtube.com/shorts/MytmhTOVSJo",
+    "published": "2026-01-29 11:41:29",
+    "thumbnail": "",
+    "feed_title": "theneedledrop",
+    "video_id": "MytmhTOVSJo"
+  },
+  {
+    "id": "yt:video:ujerlNUFGeg",
+    "title": "Smaller Than a Grain of Rice. Smarter Than You'd Think.",
+    "link": "https://www.youtube.com/watch?v=ujerlNUFGeg",
+    "published": "2026-01-29 11:33:05",
+    "thumbnail": "",
+    "feed_title": "Snazzy Labs",
+    "video_id": "ujerlNUFGeg"
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/security/google-disrupts-ipidea-residential-proxy-networks-fueled-by-malware/",
+    "title": "Google disrupts IPIDEA residential proxy networks fueled by malware",
+    "link": "https://www.bleepingcomputer.com/news/security/google-disrupts-ipidea-residential-proxy-networks-fueled-by-malware/",
+    "published": "2026-01-29 11:29:17",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:ybO7mZ1JxN8",
+    "title": "Gemini in Google Trends Just Makes Sense",
+    "link": "https://www.youtube.com/shorts/ybO7mZ1JxN8",
+    "published": "2026-01-29 11:13:51",
+    "thumbnail": "",
+    "feed_title": "The AI Advantage",
+    "video_id": "ybO7mZ1JxN8"
+  },
+  {
+    "id": "t3_1qqhzwy",
+    "title": "New Games Out now on App Store: (Jan 29/30)",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qqhzwy/new_games_out_now_on_app_store_jan_2930/",
+    "published": "2026-01-29 11:13:44",
+    "thumbnail": "https://b.thumbs.redditmedia.com/_2rNAHou2eSQWZaTQa_FbN7q3iP6soSuonlwrMHTILg.jpg",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:_3t5rPicsak",
+    "title": "YEARNING | Criterion Channel Teaser",
+    "link": "https://www.youtube.com/watch?v=_3t5rPicsak",
+    "published": "2026-01-29 11:09:44",
+    "thumbnail": "",
+    "feed_title": "CRITERION",
+    "video_id": "_3t5rPicsak"
+  },
+  {
+    "id": "yt:video:WPKHKkylciI",
+    "title": "The greatest songwriting idea of all time",
+    "link": "https://www.youtube.com/watch?v=WPKHKkylciI",
+    "published": "2026-01-29 11:06:40",
+    "thumbnail": "",
+    "feed_title": "David Hartley",
+    "video_id": "WPKHKkylciI"
+  },
+  {
+    "id": "yt:video:qi5ySkAn3gw",
+    "title": "this phone is made of wood",
+    "link": "https://www.youtube.com/shorts/qi5ySkAn3gw",
+    "published": "2026-01-29 11:04:51",
+    "thumbnail": "",
+    "feed_title": "Canoopsy",
+    "video_id": "qi5ySkAn3gw"
+  },
+  {
+    "id": "yt:video:plwgjLdj1g8",
+    "title": "Matrices dont have feelings",
+    "link": "https://www.youtube.com/shorts/plwgjLdj1g8",
+    "published": "2026-01-29 11:01:51",
+    "thumbnail": "",
+    "feed_title": "The PrimeTime",
+    "video_id": "plwgjLdj1g8"
+  },
+  {
+    "id": "697baa35851c1800010c47b2",
+    "title": "Senators Push for Answers on ICE's Surveillance Shopping Spree",
+    "link": "https://www.404media.co/senators-push-for-answers-on-ices-surveillance-shopping-spree/",
+    "published": "2026-01-29 11:00:30",
+    "thumbnail": "https://www.404media.co/content/images/2026/01/54977671331_26ea38acfa_c.jpg",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:ATcc-tL1IxA",
+    "title": "The prediction market industry is booming in President Trump's second term",
+    "link": "https://www.youtube.com/shorts/ATcc-tL1IxA",
+    "published": "2026-01-29 11:00:09",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "ATcc-tL1IxA"
+  },
+  {
+    "id": "yt:video:6HdJuAIZn7M",
+    "title": "FBI agents searched an elections office in Georgia yesterday",
+    "link": "https://www.youtube.com/shorts/6HdJuAIZn7M",
+    "published": "2026-01-29 10:57:25",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "6HdJuAIZn7M"
+  },
+  {
+    "id": "t3_1qqhgar",
+    "title": "Offline, low-stress iPad games for very long flights (10\u201315 hours)?",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qqhgar/offline_lowstress_ipad_games_for_very_long/",
+    "published": "2026-01-29 10:54:33",
+    "thumbnail": "",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/security/match-group-breach-exposes-data-from-hinge-tinder-okcupid-and-match/",
+    "title": "Match Group breach exposes data from Hinge, Tinder, OkCupid, and Match",
+    "link": "https://www.bleepingcomputer.com/news/security/match-group-breach-exposes-data-from-hinge-tinder-okcupid-and-match/",
+    "published": "2026-01-29 10:09:40",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:hoWDGTrSPb0",
+    "title": "Inside Interior Designer Liana's Beautiful Period Home in South London \ud83c\udfe1",
+    "link": "https://www.youtube.com/watch?v=hoWDGTrSPb0",
+    "published": "2026-01-29 10:08:38",
+    "thumbnail": "",
+    "feed_title": "INTO THEIR SPACE",
+    "video_id": "hoWDGTrSPb0"
+  },
+  {
+    "id": "yt:video:7kqvE63fnE4",
+    "title": "I expect perfection - ASUS ExpertBook Ultra",
+    "link": "https://www.youtube.com/watch?v=7kqvE63fnE4",
+    "published": "2026-01-29 10:06:22",
+    "thumbnail": "",
+    "feed_title": "ShortCircuit",
+    "video_id": "7kqvE63fnE4"
+  },
+  {
+    "id": "t3_1qqfy5f",
+    "title": "Apple buys Israeli start-up Q.AI for close to $2bn in race to build AI devices",
+    "link": "https://www.reddit.com/r/apple/comments/1qqfy5f/apple_buys_israeli_startup_qai_for_close_to_2bn/",
+    "published": "2026-01-29 10:01:51",
+    "thumbnail": "https://external-preview.redd.it/AwWqUtwEC1_NPl1DWbY0mVp6WAShkYjihPUBgRc7BAc.jpeg?width=640&crop=smart&auto=webp&s=9563fb49cfa10d71f42b6c898acc9a68a8cce070",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:FEDiAHzS0zw",
+    "title": "Claude Code on your phone in 10 minutes",
+    "link": "https://www.youtube.com/watch?v=FEDiAHzS0zw",
+    "published": "2026-01-29 09:59:57",
+    "thumbnail": "",
+    "feed_title": "NetworkChuck",
+    "video_id": "FEDiAHzS0zw"
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/security/marquis-blames-ransomware-breach-on-sonicwall-cloud-backup-hack/",
+    "title": "Marquis blames ransomware breach on SonicWall cloud backup hack",
+    "link": "https://www.bleepingcomputer.com/news/security/marquis-blames-ransomware-breach-on-sonicwall-cloud-backup-hack/",
+    "published": "2026-01-29 09:57:58",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:jBYgqIPeZ4M",
+    "title": "the perfect FPS mouse...?",
+    "link": "https://www.youtube.com/shorts/jBYgqIPeZ4M",
+    "published": "2026-01-29 09:54:10",
+    "thumbnail": "",
+    "feed_title": "ShortCircuit",
+    "video_id": "jBYgqIPeZ4M"
+  },
+  {
+    "id": "t3_1qqf9sx",
+    "title": "B.C. premier says Alberta separatists seeking assistance from U.S. is 'treason' | CBC News",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qqf9sx/bc_premier_says_alberta_separatists_seeking/",
+    "published": "2026-01-29 09:38:20",
+    "thumbnail": "https://external-preview.redd.it/VLHWDdcVN1aN-B733jkzNQhjVbsDCw4bCxFIp5IrElA.jpeg?width=320&crop=smart&auto=webp&s=5c407a97093d83a9dc3e210ea6f803757a1de957",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:_3DvxdP2tWY",
+    "title": "EASY VEGAN RAMEN in 10 MINUTES! EASY BROTH RECIPE",
+    "link": "https://www.youtube.com/watch?v=_3DvxdP2tWY",
+    "published": "2026-01-29 09:05:25",
+    "thumbnail": "",
+    "feed_title": "The Happy Pear",
+    "video_id": "_3DvxdP2tWY"
+  },
+  {
+    "id": "yt:video:MjX6pAKeIZk",
+    "title": "Machine Girl - Video Game Soundtracks | RA Greenhouse Sessions",
+    "link": "https://www.youtube.com/shorts/MjX6pAKeIZk",
+    "published": "2026-01-29 09:05:23",
+    "thumbnail": "",
+    "feed_title": "Resident Advisor",
+    "video_id": "MjX6pAKeIZk"
+  },
+  {
+    "id": "yt:video:CWhvu9mOnFQ",
+    "title": "Machine Girl - Video Game Soundtracks | RA Greenhouse Sessions",
+    "link": "https://www.youtube.com/watch?v=CWhvu9mOnFQ",
+    "published": "2026-01-29 09:01:35",
+    "thumbnail": "",
+    "feed_title": "Resident Advisor",
+    "video_id": "CWhvu9mOnFQ"
+  },
+  {
+    "id": "yt:video:urGVJcTJfwY",
+    "title": "The ULTIMATE Nintendo Wii Music Collection... on Cassette!",
+    "link": "https://www.youtube.com/shorts/urGVJcTJfwY",
+    "published": "2026-01-29 09:01:28",
+    "thumbnail": "",
+    "feed_title": "Pad Chennington",
+    "video_id": "urGVJcTJfwY"
+  },
+  {
+    "id": "yt:video:rr_uu1Ezuko",
+    "title": "They sold Tiktok",
+    "link": "https://www.youtube.com/shorts/rr_uu1Ezuko",
+    "published": "2026-01-29 09:01:21",
+    "thumbnail": "",
+    "feed_title": "TechLinked",
+    "video_id": "rr_uu1Ezuko"
+  },
+  {
+    "id": "yt:video:Nv5kDGhn46g",
+    "title": "Add your ID to your iPhone. Tip from Garryn at the Apple Store. #Shorts",
+    "link": "https://www.youtube.com/shorts/Nv5kDGhn46g",
+    "published": "2026-01-29 09:00:43",
+    "thumbnail": "",
+    "feed_title": "Apple",
+    "video_id": "Nv5kDGhn46g"
+  },
+  {
+    "id": "yt:video:otVwTlRbKLg",
+    "title": "Are AI Engineers Moving Too Fast? - Threat Wire",
+    "link": "https://www.youtube.com/watch?v=otVwTlRbKLg",
+    "published": "2026-01-29 08:34:48",
+    "thumbnail": "",
+    "feed_title": "Hak5",
+    "video_id": "otVwTlRbKLg"
+  },
+  {
+    "id": "yt:video:I6YTmTUntL8",
+    "title": "Will Arnett Wants to Fire His Publicist While Eating Spicy Wings | Hot Ones",
+    "link": "https://www.youtube.com/watch?v=I6YTmTUntL8",
+    "published": "2026-01-29 08:00:25",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "I6YTmTUntL8"
+  },
+  {
+    "id": "yt:video:DrDC0Hm9I8k",
+    "title": "\"You should apologize!\" Will Arnett is STRUGGLING! \ud83e\udd23",
+    "link": "https://www.youtube.com/shorts/DrDC0Hm9I8k",
+    "published": "2026-01-29 08:00:21",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "DrDC0Hm9I8k"
+  },
+  {
+    "id": "t3_1qqbpnj",
+    "title": "Trump administration secretly met with Canadian Alberta separatists",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qqbpnj/trump_administration_secretly_met_with_canadian/",
+    "published": "2026-01-29 07:32:10",
+    "thumbnail": "https://external-preview.redd.it/m_Zgl0QS0NCOXTvBcz1AAUcEFWiFVpyN1rdGRLTclOE.jpeg?width=640&crop=smart&auto=webp&s=d6205e11684a6b3fea6e5f32fcf2f4b17d7df434",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:HnPTQDnutEI",
+    "title": "Why Is There a Gacha Machine in the Pentagon\u2019s Food Court",
+    "link": "https://www.youtube.com/shorts/HnPTQDnutEI",
+    "published": "2026-01-29 07:31:35",
+    "thumbnail": "",
+    "feed_title": "404 Media",
+    "video_id": "HnPTQDnutEI"
+  },
+  {
+    "id": "yt:video:7etd-EVRY4A",
+    "title": "WhatsApp warning. What do you recommend?",
+    "link": "https://www.youtube.com/shorts/7etd-EVRY4A",
+    "published": "2026-01-29 07:30:09",
+    "thumbnail": "",
+    "feed_title": "David Bombal",
+    "video_id": "7etd-EVRY4A"
+  },
+  {
+    "id": "yt:video:8JLPn7M8mpA",
+    "title": "What Happens When Two Stars Collide?",
+    "link": "https://www.youtube.com/shorts/8JLPn7M8mpA",
+    "published": "2026-01-29 07:19:41",
+    "thumbnail": "",
+    "feed_title": "Cleo Abram",
+    "video_id": "8JLPn7M8mpA"
+  },
+  {
+    "id": "t3_1qqawtj",
+    "title": "Teacher quits after pupil, 8, 'made threesome deepfake vid of her and colleagues'",
+    "link": "https://www.reddit.com/r/technology/comments/1qqawtj/teacher_quits_after_pupil_8_made_threesome/",
+    "published": "2026-01-29 07:02:38",
+    "thumbnail": "https://external-preview.redd.it/TkDgQqIQy4y7TEKdBU2RIgkjMxdhsZaMdGJWszkyxFQ.jpeg?width=640&crop=smart&auto=webp&s=35992aaed8c02d31bfd8d640ec7f3089efa371c1",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/security/not-a-kids-game-from-roblox-mod-to-compromising-your-company/",
+    "title": "Not a Kids Game: From Roblox Mod to Compromising Your Company",
+    "link": "https://www.bleepingcomputer.com/news/security/not-a-kids-game-from-roblox-mod-to-compromising-your-company/",
+    "published": "2026-01-29 07:02:12",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/security/aisuru-botnet-sets-new-record-with-314-tbps-ddos-attack/",
+    "title": "Aisuru botnet sets new record with 31.4 Tbps DDoS attack",
+    "link": "https://www.bleepingcomputer.com/news/security/aisuru-botnet-sets-new-record-with-314-tbps-ddos-attack/",
+    "published": "2026-01-29 06:55:25",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "697b71eb851c1800010a1031",
+    "title": "Massive AI Chat App Leaked Millions of Users Private Conversations",
+    "link": "https://www.404media.co/massive-ai-chat-app-leaked-millions-of-users-private-conversations/",
+    "published": "2026-01-29 06:54:40",
+    "thumbnail": "https://images.unsplash.com/photo-1496814795703-e5b242546673?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTc3M3wwfDF8c2VhcmNofDEyfHx0eXBpbmclMjBpcGhvbmV8ZW58MHx8fHwxNzY5Njk4MDk3fDA&ixlib=rb-4.1.0&q=80&w=2000",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/microsoft/new-microsoft-teams-feature-will-let-you-report-suspicious-calls/",
+    "title": "New Microsoft Teams feature will let you report suspicious calls",
+    "link": "https://www.bleepingcomputer.com/news/microsoft/new-microsoft-teams-feature-will-let-you-report-suspicious-calls/",
+    "published": "2026-01-29 06:49:47",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:bqxheH06PfI",
+    "title": "STUNTS! | Criterion Channel Teaser",
+    "link": "https://www.youtube.com/watch?v=bqxheH06PfI",
+    "published": "2026-01-29 06:38:42",
+    "thumbnail": "",
+    "feed_title": "CRITERION",
+    "video_id": "bqxheH06PfI"
+  },
+  {
+    "id": "yt:video:AuiCWcC5rJQ",
+    "title": "if Apple made a pocket notebook\u2026",
+    "link": "https://www.youtube.com/shorts/AuiCWcC5rJQ",
+    "published": "2026-01-29 06:30:00",
+    "thumbnail": "",
+    "feed_title": "Reysu",
+    "video_id": "AuiCWcC5rJQ"
+  },
+  {
+    "id": "https://4sysops.com/?p=1605261",
+    "title": "Microsoft Teams licensing updates",
+    "link": "https://4sysops.com/archives/microsoft-teams-licensing-updates/",
+    "published": "2026-01-29 06:22:48",
+    "thumbnail": "",
+    "feed_title": "4sysops",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:LAdJnbFNQLE",
+    "title": "They Got Linus",
+    "link": "https://www.youtube.com/shorts/LAdJnbFNQLE",
+    "published": "2026-01-29 06:04:15",
+    "thumbnail": "",
+    "feed_title": "The PrimeTime",
+    "video_id": "LAdJnbFNQLE"
+  },
+  {
+    "id": "yt:video:C1E500opYHA",
+    "title": "Generating 3D Models with Diffusion - Computerphile",
+    "link": "https://www.youtube.com/watch?v=C1E500opYHA",
+    "published": "2026-01-29 06:00:23",
+    "thumbnail": "",
+    "feed_title": "Computerphile",
+    "video_id": "C1E500opYHA"
+  },
+  {
+    "id": "https://www.bleepingcomputer.com/news/security/france-fines-unemployment-agency-5-million-over-data-breach/",
+    "title": "France fines unemployment agency \u20ac5 million over data breach",
+    "link": "https://www.bleepingcomputer.com/news/security/france-fines-unemployment-agency-5-million-over-data-breach/",
+    "published": "2026-01-29 05:36:01",
+    "thumbnail": "",
+    "feed_title": "BleepingComputer",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qq8ppa",
+    "title": "Do you buy any extra equipment for your job that work won't supply, but it's worth it because it just makes it that much better?",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qq8ppa/do_you_buy_any_extra_equipment_for_your_job_that/",
+    "published": "2026-01-29 05:35:29",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qq8pn3",
+    "title": "Tesla: 2024 was bad, 2025 was worse as profit falls 46 percent",
+    "link": "https://www.reddit.com/r/technology/comments/1qq8pn3/tesla_2024_was_bad_2025_was_worse_as_profit_falls/",
+    "published": "2026-01-29 05:35:25",
+    "thumbnail": "https://external-preview.redd.it/qulqXk0eoLl_DkHpBJlkZVZyHg-5T8n35OoUMsSTgOM.jpeg?width=640&crop=smart&auto=webp&s=ed596848dacdab0ed4bc0ebfff8ea97f906fb8a3",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:JffdgD4JLx8",
+    "title": "Why You Can\u2019t Save Like Your Parents Did",
+    "link": "https://www.youtube.com/watch?v=JffdgD4JLx8",
+    "published": "2026-01-29 05:00:41",
+    "thumbnail": "",
+    "feed_title": "Tae Kim - Financial Tortoise",
+    "video_id": "JffdgD4JLx8"
+  },
+  {
+    "id": "yt:video:WKBrF52H0T4",
+    "title": "An english country villa for the 21st century  #architecture #forsale #housetour",
+    "link": "https://www.youtube.com/shorts/WKBrF52H0T4",
+    "published": "2026-01-29 04:26:43",
+    "thumbnail": "",
+    "feed_title": "The Modern House & Inigo",
+    "video_id": "WKBrF52H0T4"
+  },
+  {
+    "id": "yt:video:s5USum9JiRA",
+    "title": "Kimi K2.5 might be my new favorite model...",
+    "link": "https://www.youtube.com/watch?v=s5USum9JiRA",
+    "published": "2026-01-29 04:23:34",
+    "thumbnail": "",
+    "feed_title": "Theo - t3\u2024gg",
+    "video_id": "s5USum9JiRA"
+  },
+  {
+    "id": "t3_1qq6pri",
+    "title": "Removal of flags for fallen Danish soldiers at U.S. Embassy sparks backlash",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qq6pri/removal_of_flags_for_fallen_danish_soldiers_at_us/",
+    "published": "2026-01-29 04:01:47",
+    "thumbnail": "https://external-preview.redd.it/ZvP0kR7K-yw8j6PrZOVPu5K4eKbg46yQ6MwDhTmHmJ0.jpeg?width=640&crop=smart&auto=webp&s=7e28a8b6c83477d1d03ccb2dc40bc7023eaed2ac",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:pyIX6v8r1os",
+    "title": "\u3010\u9031\u672bVlog\u3011\u4e0a\u91ce\u30fb\u6839\u6d25\u30fb\u5343\u99c4\u6728\u30a8\u30ea\u30a2\u6563\u6b69\u3068\u3001\u6771\u4eac\u56fd\u7acb\u535a\u7269\u9928",
+    "link": "https://www.youtube.com/watch?v=pyIX6v8r1os",
+    "published": "2026-01-29 03:01:28",
+    "thumbnail": "",
+    "feed_title": "\u30d2\u30b2\u3068\u308f\u305f\u3057",
+    "video_id": "pyIX6v8r1os"
+  },
+  {
+    "id": "yt:video:P0Dca_tTr1k",
+    "title": "The BEST iPhone Cage System I Tried",
+    "link": "https://www.youtube.com/shorts/P0Dca_tTr1k",
+    "published": "2026-01-29 03:00:53",
+    "thumbnail": "",
+    "feed_title": "ark.curate",
+    "video_id": "P0Dca_tTr1k"
+  },
+  {
+    "id": "yt:video:hZDs8-INwdo",
+    "title": "KNEECAP IS BACK! \ud83c\uddee\ud83c\uddea",
+    "link": "https://www.youtube.com/shorts/hZDs8-INwdo",
+    "published": "2026-01-29 00:42:38",
+    "thumbnail": "",
+    "feed_title": "theneedledrop",
+    "video_id": "hZDs8-INwdo"
+  },
+  {
+    "id": "yt:video:qHt64v-w6JA",
+    "title": "What Gandalf teaches us about good leadership | Jonny Thomson",
+    "link": "https://www.youtube.com/shorts/qHt64v-w6JA",
+    "published": "2026-01-28 23:30:32",
+    "thumbnail": "",
+    "feed_title": "Big Think+",
+    "video_id": "qHt64v-w6JA"
+  },
+  {
+    "id": "t3_1qq1a6w",
+    "title": "I miss iOS gaming of old",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qq1a6w/i_miss_ios_gaming_of_old/",
+    "published": "2026-01-28 22:43:29",
+    "thumbnail": "https://preview.redd.it/inh04yfji8gg1.jpeg?width=640&crop=smart&auto=webp&s=a20503a14f209dff71d1bc8cb45197411f22f983",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:tw0ZPQLJFhQ",
+    "title": "Our Favourite Small Amsterdam Apartments",
+    "link": "https://www.youtube.com/watch?v=tw0ZPQLJFhQ",
+    "published": "2026-01-28 21:00:58",
+    "thumbnail": "",
+    "feed_title": "NEVER TOO SMALL",
+    "video_id": "tw0ZPQLJFhQ"
+  },
+  {
+    "id": "t3_1qpycnu",
+    "title": "China executes 11 members of Myanmar scam mafia",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qpycnu/china_executes_11_members_of_myanmar_scam_mafia/",
+    "published": "2026-01-28 20:14:50",
+    "thumbnail": "https://external-preview.redd.it/HvjoDdCphDXv7mkv2C_TmE1joWWE6iLcCVe19wGfdo4.png?width=640&crop=smart&auto=webp&s=a77ac7a96410ea92526de4b110244355165b76cf",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:Gk9QeRZUdEc",
+    "title": "We've Seen It...",
+    "link": "https://www.youtube.com/watch?v=Gk9QeRZUdEc",
+    "published": "2026-01-28 19:42:23",
+    "thumbnail": "",
+    "feed_title": "TechLinked",
+    "video_id": "Gk9QeRZUdEc"
+  },
+  {
+    "id": "t3_1qpwhp8",
+    "title": "Hijack - 2x03 - \"Baggage\" - Episode Discussion",
+    "link": "https://www.reddit.com/r/television/comments/1qpwhp8/hijack_2x03_baggage_episode_discussion/",
+    "published": "2026-01-28 18:50:28",
+    "thumbnail": "",
+    "feed_title": "television: search results - flair_name:\"Premiere\"",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qpuwic",
+    "title": "New Games Out today on App Store: (Jan 29)",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qpuwic/new_games_out_today_on_app_store_jan_29/",
+    "published": "2026-01-28 17:41:49",
+    "thumbnail": "https://b.thumbs.redditmedia.com/bRVlbuBdBkVIfNmfNuW-R1VDMWlfQTJ334F8vdwkc-c.jpg",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:-wptIoOKRQY",
+    "title": "Lewis Hamilton says 10 kilos cost HOW MUCH time? \u23f1\ufe0f \ud83c\udfce\ufe0f",
+    "link": "https://www.youtube.com/shorts/-wptIoOKRQY",
+    "published": "2026-01-28 17:00:00",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "-wptIoOKRQY"
+  },
+  {
+    "id": "t3_1qpswva",
+    "title": "It's amazing how some leaders still can't stand remote work...",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qpswva/its_amazing_how_some_leaders_still_cant_stand/",
+    "published": "2026-01-28 16:17:21",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:x_4S_ilitas",
+    "title": "Why are $2,000 RIMOWA Suitcases so Popular? \ud83e\ude99",
+    "link": "https://www.youtube.com/shorts/x_4S_ilitas",
+    "published": "2026-01-28 15:30:21",
+    "thumbnail": "",
+    "feed_title": "Andrew Ethan Zeng",
+    "video_id": "x_4S_ilitas"
+  },
+  {
+    "id": "yt:video:fyp9buqRqKE",
+    "title": "Nicole Kidman and Jonathan Glazer on BIRTH (2004)",
+    "link": "https://www.youtube.com/shorts/fyp9buqRqKE",
+    "published": "2026-01-28 15:18:49",
+    "thumbnail": "",
+    "feed_title": "CRITERION",
+    "video_id": "fyp9buqRqKE"
+  },
+  {
+    "id": "yt:video:anufBmmhQmQ",
+    "title": "The Making of BIRTH (2004) with Jonathan Glazer",
+    "link": "https://www.youtube.com/watch?v=anufBmmhQmQ",
+    "published": "2026-01-28 15:18:18",
+    "thumbnail": "",
+    "feed_title": "CRITERION",
+    "video_id": "anufBmmhQmQ"
+  },
+  {
+    "id": "yt:video:n988jRfwLEs",
+    "title": "AI Slop PRs",
+    "link": "https://www.youtube.com/shorts/n988jRfwLEs",
+    "published": "2026-01-28 15:01:27",
+    "thumbnail": "",
+    "feed_title": "The PrimeTime",
+    "video_id": "n988jRfwLEs"
+  },
+  {
+    "id": "yt:video:TUSPUGwSETY",
+    "title": "STOP Buying Furniture Until You Do This!",
+    "link": "https://www.youtube.com/shorts/TUSPUGwSETY",
+    "published": "2026-01-28 15:00:40",
+    "thumbnail": "",
+    "feed_title": "Reynard Lowell",
+    "video_id": "TUSPUGwSETY"
+  },
+  {
+    "id": "yt:video:1ZKMtYC9kZA",
+    "title": "Deadlines Are A Must for ADHD Brains #adhd #adhdselfimprovement",
+    "link": "https://www.youtube.com/shorts/1ZKMtYC9kZA",
+    "published": "2026-01-28 15:00:01",
+    "thumbnail": "",
+    "feed_title": "Ruri Ohama",
+    "video_id": "1ZKMtYC9kZA"
+  },
+  {
+    "id": "yt:video:g5OQ80pFH8U",
+    "title": "A poker face worth 200 lives. A new episode of #Hijack is now streaming.",
+    "link": "https://www.youtube.com/shorts/g5OQ80pFH8U",
+    "published": "2026-01-28 14:59:58",
+    "thumbnail": "",
+    "feed_title": "Apple TV",
+    "video_id": "g5OQ80pFH8U"
+  },
+  {
+    "id": "yt:video:PcSzaZnSxKA",
+    "title": "AirTag 2 - Unboxing, Setup & Comparison to AirTag!",
+    "link": "https://www.youtube.com/watch?v=PcSzaZnSxKA",
+    "published": "2026-01-28 14:52:40",
+    "thumbnail": "",
+    "feed_title": "Brandon Butch",
+    "video_id": "PcSzaZnSxKA"
+  },
+  {
+    "id": "yt:video:z5zemXo-qj4",
+    "title": "Behind the Sketch: Toy Commercial with Teyana Taylor - SNL",
+    "link": "https://www.youtube.com/watch?v=z5zemXo-qj4",
+    "published": "2026-01-28 14:50:00",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "z5zemXo-qj4"
+  },
+  {
+    "id": "t3_1qpqq0q",
+    "title": "TikTok uninstalls surge 150% after app\u2019s US takeover",
+    "link": "https://www.reddit.com/r/technology/comments/1qpqq0q/tiktok_uninstalls_surge_150_after_apps_us_takeover/",
+    "published": "2026-01-28 14:48:59",
+    "thumbnail": "https://external-preview.redd.it/-kVq5Rn1O77O4XFFOg0UJz83zuo-3lMavFG0eRpu-VU.png?width=640&crop=smart&auto=webp&s=ea897525a5480ae23f44f2c2693be1a73579324b",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qpq9jl",
+    "title": "Lux co-founder and Halide UX designer joins Apple",
+    "link": "https://www.reddit.com/r/apple/comments/1qpq9jl/lux_cofounder_and_halide_ux_designer_joins_apple/",
+    "published": "2026-01-28 14:31:21",
+    "thumbnail": "",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:MKpH-1fEHTg",
+    "title": "Coming to the Criterion Channel in February",
+    "link": "https://www.youtube.com/watch?v=MKpH-1fEHTg",
+    "published": "2026-01-28 14:22:34",
+    "thumbnail": "",
+    "feed_title": "CRITERION",
+    "video_id": "MKpH-1fEHTg"
+  },
+  {
+    "id": "yt:video:sKY7g8XYI-w",
+    "title": "Police Told to Be \u2018as Vague as Permissible\u2019 About Why They Use Flock",
+    "link": "https://www.youtube.com/shorts/sKY7g8XYI-w",
+    "published": "2026-01-28 14:07:53",
+    "thumbnail": "",
+    "feed_title": "404 Media",
+    "video_id": "sKY7g8XYI-w"
+  },
+  {
+    "id": "https://www.macstories.net/?p=80210",
+    "title": "Creator Studio Review: Redefining Pro for the Modern Era",
+    "link": "https://www.macstories.net/reviews/creator-studio-review-redefining-pro-for-the-modern-era/",
+    "published": "2026-01-28 13:49:33",
+    "thumbnail": "https://cdn.macstories.net/tuesday-27-jan-2026-20-35-30-1769564140619.png",
+    "feed_title": "MacStories",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:oIs2ZCcj2Vg",
+    "title": "Keys are Obsolete - Aqara Smart Lock U400",
+    "link": "https://www.youtube.com/watch?v=oIs2ZCcj2Vg",
+    "published": "2026-01-28 13:22:22",
+    "thumbnail": "",
+    "feed_title": "ShortCircuit",
+    "video_id": "oIs2ZCcj2Vg"
+  },
+  {
+    "id": "https://www.macstories.net/?p=195807",
+    "title": "The New Club MacStories: Re-Subscribing to Your RSS Feeds and What\u2019s Coming Next",
+    "link": "https://www.macstories.net/stories/the-new-club-macstories-re-subscribing-to-your-rss-feeds-and-whats-coming-next/",
+    "published": "2026-01-28 13:07:45",
+    "thumbnail": "https://cdn.macstories.net/cleanshot-2026-01-28-at-15-33-10-2x-1769632516677.png",
+    "feed_title": "MacStories",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:PVBfLjJbzg4",
+    "title": "Sunday Mourners - A-Rhythm Absolute ALBUM REVIEW",
+    "link": "https://www.youtube.com/watch?v=PVBfLjJbzg4",
+    "published": "2026-01-28 12:45:02",
+    "thumbnail": "",
+    "feed_title": "theneedledrop",
+    "video_id": "PVBfLjJbzg4"
+  },
+  {
+    "id": "yt:video:hyYRWeot35c",
+    "title": "This MTV show popularized hip-hop in America #trackstar",
+    "link": "https://www.youtube.com/shorts/hyYRWeot35c",
+    "published": "2026-01-28 12:13:20",
+    "thumbnail": "",
+    "feed_title": "Track Star*",
+    "video_id": "hyYRWeot35c"
+  },
+  {
+    "id": "yt:video:ZPBLgZkkbZE",
+    "title": "Will Arnett's big break was a Manwich commercial in 1987?? \ud83c\udf54",
+    "link": "https://www.youtube.com/shorts/ZPBLgZkkbZE",
+    "published": "2026-01-28 12:00:34",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "ZPBLgZkkbZE"
+  },
+  {
+    "id": "t3_1qplzjc",
+    "title": "Apple Will Soon Take Up to a 30% Cut From All Patreon Creators on iOS",
+    "link": "https://www.reddit.com/r/apple/comments/1qplzjc/apple_will_soon_take_up_to_a_30_cut_from_all/",
+    "published": "2026-01-28 11:52:09",
+    "thumbnail": "https://external-preview.redd.it/s5BjXzXwOaIyW4Wd_KuAl0NRvjO4ZpSFmFOirJ1Y718.jpeg?width=640&crop=smart&auto=webp&s=18d70cb43fb46a36c0dbcf789e6c14613f61fc2f",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:km3xo_cH7DE",
+    "title": "alexander skarsg\u00e5rd is fitting right in",
+    "link": "https://www.youtube.com/shorts/km3xo_cH7DE",
+    "published": "2026-01-28 11:26:12",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "km3xo_cH7DE"
+  },
+  {
+    "id": "https://www.macstories.net/?p=195802",
+    "title": "Welcome to the New, Unified MacStories and Club MacStories",
+    "link": "https://www.macstories.net/stories/welcome-to-the-new-unified-macstories-and-club-macstories/",
+    "published": "2026-01-28 11:21:44",
+    "thumbnail": "https://cdn.macstories.net/hero-1769526145785.png",
+    "feed_title": "MacStories",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:Ik3eexdP3HE",
+    "title": "Alexander Skarsg\u00e5rd Fits Right in at SNL",
+    "link": "https://www.youtube.com/watch?v=Ik3eexdP3HE",
+    "published": "2026-01-28 11:20:09",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "Ik3eexdP3HE"
+  },
+  {
+    "id": "t3_1qpkkux",
+    "title": "US embassy removes flags with names of fallen Danish soldiers",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qpkkux/us_embassy_removes_flags_with_names_of_fallen/",
+    "published": "2026-01-28 11:02:03",
+    "thumbnail": "",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:GREcIDtLJS4",
+    "title": "Nit Picking",
+    "link": "https://www.youtube.com/shorts/GREcIDtLJS4",
+    "published": "2026-01-28 11:01:43",
+    "thumbnail": "",
+    "feed_title": "The PrimeTime",
+    "video_id": "GREcIDtLJS4"
+  },
+  {
+    "id": "yt:video:sI59VTPkGwI",
+    "title": "South Carolina's measles outbreak hits 789 confirmed cases",
+    "link": "https://www.youtube.com/shorts/sI59VTPkGwI",
+    "published": "2026-01-28 11:00:52",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "sI59VTPkGwI"
+  },
+  {
+    "id": "yt:video:KoWVixFPc0w",
+    "title": "\"Who do you like more??\" Dom Mysterio and The Judgement Day do BATTLE! \ud83c\udfd3\ud83d\ude0e",
+    "link": "https://www.youtube.com/shorts/KoWVixFPc0w",
+    "published": "2026-01-28 11:00:17",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "KoWVixFPc0w"
+  },
+  {
+    "id": "yt:video:S5noEu1I070",
+    "title": "Dominik Mysterio and The Judgment Day Play Hot Ones Wing Pong",
+    "link": "https://www.youtube.com/watch?v=S5noEu1I070",
+    "published": "2026-01-28 11:00:07",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "S5noEu1I070"
+  },
+  {
+    "id": "yt:video:zH5-H1wHdFU",
+    "title": "First look at Jonathan Anderson's Dior Couture debut  #diorcouture #dior #fashion",
+    "link": "https://www.youtube.com/shorts/zH5-H1wHdFU",
+    "published": "2026-01-28 10:41:04",
+    "thumbnail": "",
+    "feed_title": "Wallpaper*",
+    "video_id": "zH5-H1wHdFU"
+  },
+  {
+    "id": "yt:video:bV2gOVC7cl8",
+    "title": "Hidden Google 67 TRICK Revealed",
+    "link": "https://www.youtube.com/shorts/bV2gOVC7cl8",
+    "published": "2026-01-28 10:31:06",
+    "thumbnail": "",
+    "feed_title": "David Bombal",
+    "video_id": "bV2gOVC7cl8"
+  },
+  {
+    "id": "yt:video:fJM27mAEnCI",
+    "title": "iOS26 Quick Tips in Messages. #Shorts",
+    "link": "https://www.youtube.com/shorts/fJM27mAEnCI",
+    "published": "2026-01-28 10:12:19",
+    "thumbnail": "",
+    "feed_title": "Apple",
+    "video_id": "fJM27mAEnCI"
+  },
+  {
+    "id": "t3_1qpiw6s",
+    "title": "Easy Delivery Co. coming to iOS in March (link in comments)",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qpiw6s/easy_delivery_co_coming_to_ios_in_march_link_in/",
+    "published": "2026-01-28 10:03:57",
+    "thumbnail": "https://preview.redd.it/r4hknz31r4gg1.jpeg?width=640&crop=smart&auto=webp&s=9d92de7bb313380be2e47e3ecc3004f0d7a68146",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:IpK-xeibPA0",
+    "title": "The Best Everyday IWC Pilot Watch? - IWC Pilot\u2019s Watch Mojave Desert Review",
+    "link": "https://www.youtube.com/watch?v=IpK-xeibPA0",
+    "published": "2026-01-28 10:03:26",
+    "thumbnail": "",
+    "feed_title": "HICONSUMPTION",
+    "video_id": "IpK-xeibPA0"
+  },
+  {
+    "id": "yt:video:nUjz-7xkkS8",
+    "title": "Apple Creator Studio Explained and Hands On With Final Cut Pro",
+    "link": "https://www.youtube.com/watch?v=nUjz-7xkkS8",
+    "published": "2026-01-28 10:01:55",
+    "thumbnail": "",
+    "feed_title": "MacRumors",
+    "video_id": "nUjz-7xkkS8"
+  },
+  {
+    "id": "yt:video:KopF73fFv68",
+    "title": "Rep. Omar rushed on stage at a town hall, sprayed with liquid",
+    "link": "https://www.youtube.com/shorts/KopF73fFv68",
+    "published": "2026-01-28 10:00:23",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "KopF73fFv68"
+  },
+  {
+    "id": "yt:video:d2KF0aBx9mg",
+    "title": "In the mouth of madness. #DropsOfGod Season 2 \u2014 Now Streaming",
+    "link": "https://www.youtube.com/shorts/d2KF0aBx9mg",
+    "published": "2026-01-28 09:59:51",
+    "thumbnail": "",
+    "feed_title": "Apple TV",
+    "video_id": "d2KF0aBx9mg"
+  },
+  {
+    "id": "yt:video:cG2uC2u3coc",
+    "title": "Shrinking \u2014 Michael J. Fox on the Truth About Parkinson's | Behind the Scenes | Apple TV",
+    "link": "https://www.youtube.com/watch?v=cG2uC2u3coc",
+    "published": "2026-01-28 09:59:28",
+    "thumbnail": "",
+    "feed_title": "Apple TV",
+    "video_id": "cG2uC2u3coc"
+  },
+  {
+    "id": "yt:video:duatYiQpxgY",
+    "title": "How Alex Pretti's friend chooses to remember him",
+    "link": "https://www.youtube.com/shorts/duatYiQpxgY",
+    "published": "2026-01-28 09:45:02",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "duatYiQpxgY"
+  },
+  {
+    "id": "yt:video:o8xAsAwTFJI",
+    "title": "Electrons Are Too Heavy for AI  #artificialintelligence #science #techexplained",
+    "link": "https://www.youtube.com/shorts/o8xAsAwTFJI",
+    "published": "2026-01-28 09:34:06",
+    "thumbnail": "",
+    "feed_title": "Tiff In Tech",
+    "video_id": "o8xAsAwTFJI"
+  },
+  {
+    "id": "t3_1qphpzf",
+    "title": "Teardown Reveals AirTag 2 Is Full of Hidden Changes",
+    "link": "https://www.reddit.com/r/apple/comments/1qphpzf/teardown_reveals_airtag_2_is_full_of_hidden/",
+    "published": "2026-01-28 09:24:58",
+    "thumbnail": "https://external-preview.redd.it/ysqafXnVn-8Dvt-VEwPzPCG51Hi94SHox-TAvs-WAWY.jpeg?width=640&crop=smart&auto=webp&s=abaf96fa764cc862e420e956fb1b287511a279e9",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:t4LppwY4IxI",
+    "title": "Using a Browser to Code ... ?",
+    "link": "https://www.youtube.com/shorts/t4LppwY4IxI",
+    "published": "2026-01-28 09:01:37",
+    "thumbnail": "",
+    "feed_title": "Andres Vidoza",
+    "video_id": "t4LppwY4IxI"
+  },
+  {
+    "id": "yt:video:AgDwfruj4tg",
+    "title": "Unique Japanese Beauty Standards",
+    "link": "https://www.youtube.com/shorts/AgDwfruj4tg",
+    "published": "2026-01-28 09:00:25",
+    "thumbnail": "",
+    "feed_title": "Patricia O'Connor",
+    "video_id": "AgDwfruj4tg"
+  },
+  {
+    "id": "yt:video:51-wk_F0SfE",
+    "title": "the world-wide-web, right from your terminal",
+    "link": "https://www.youtube.com/watch?v=51-wk_F0SfE",
+    "published": "2026-01-28 09:00:06",
+    "thumbnail": "",
+    "feed_title": "Bread on Penguins",
+    "video_id": "51-wk_F0SfE"
+  },
+  {
+    "id": "yt:video:VaTltxOw1s4",
+    "title": "High fiber high protein lunch! \ud83c\udf2f #shorts",
+    "link": "https://www.youtube.com/shorts/VaTltxOw1s4",
+    "published": "2026-01-28 08:48:57",
+    "thumbnail": "",
+    "feed_title": "Caitlin Shoemaker",
+    "video_id": "VaTltxOw1s4"
+  },
+  {
+    "id": "t3_1qpfcar",
+    "title": "ICE and Palantir: US agents using health data to hunt \u201cillegal immigrants\u201d \u2014 US immigration agents are using an app developed by Palantir that draws on the health records of millions of Americans to find and detain people they deem illegal immigrants.",
+    "link": "https://www.reddit.com/r/technology/comments/1qpfcar/ice_and_palantir_us_agents_using_health_data_to/",
+    "published": "2026-01-28 08:01:56",
+    "thumbnail": "",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:mdYDG34YP4w",
+    "title": "bro wtf...",
+    "link": "https://www.youtube.com/watch?v=mdYDG34YP4w",
+    "published": "2026-01-28 08:01:13",
+    "thumbnail": "",
+    "feed_title": "Low Level",
+    "video_id": "mdYDG34YP4w"
+  },
+  {
+    "id": "t3_1qpf4f9",
+    "title": "Apple Workers Are Livid That Tim Cook Saw \u201cMelania\u201d Movie Hours After CBP Killed Pretti",
+    "link": "https://www.reddit.com/r/apple/comments/1qpf4f9/apple_workers_are_livid_that_tim_cook_saw_melania/",
+    "published": "2026-01-28 07:54:36",
+    "thumbnail": "https://external-preview.redd.it/Xzx3_sJyvnauKSEIDN-a6-LprRBHZZQHOBazN_81Cvo.jpeg?width=640&crop=smart&auto=webp&s=1a24964c8039423a5dda655498ce05d4cb07583c",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "697a3067851c18000109cf9c",
+    "title": "Hackers Say They've Hacked Match Group, Maker of Hinge, OkCupid",
+    "link": "https://www.404media.co/match-group-hacked-tinder-okcupid-hinge/",
+    "published": "2026-01-28 07:54:09",
+    "thumbnail": "https://images.unsplash.com/photo-1643639779224-03e4cfabc3cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTc3M3wwfDF8c2VhcmNofDI4fHxkYXRpbmclMjBhcHB8ZW58MHx8fHwxNzY5NjE1NDM3fDA&ixlib=rb-4.1.0&q=80&w=2000",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "697a2ea3851c18000109cdcc",
+    "title": "The Doomsday Clock Ticks Closer to Midnight. Does Anyone Care?",
+    "link": "https://www.404media.co/the-doomsday-clock-ticks-closer-to-midnight-does-anyone-care/",
+    "published": "2026-01-28 07:50:52",
+    "thumbnail": "https://www.404media.co/content/images/2026/01/Screenshot-2026-01-28-104914.png",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:V3MJSaWEmIk",
+    "title": "modular shelf living room update #homedecor #interiordesign #furniture",
+    "link": "https://www.youtube.com/shorts/V3MJSaWEmIk",
+    "published": "2026-01-28 07:30:30",
+    "thumbnail": "",
+    "feed_title": "Eric Wang",
+    "video_id": "V3MJSaWEmIk"
+  },
+  {
+    "id": "yt:video:v8lVsXSP9G4",
+    "title": "Our favourite meal prep recipe \ud83d\udc9a",
+    "link": "https://www.youtube.com/shorts/v8lVsXSP9G4",
+    "published": "2026-01-28 07:29:27",
+    "thumbnail": "",
+    "feed_title": "The Happy Pear",
+    "video_id": "v8lVsXSP9G4"
+  },
+  {
+    "id": "697a209d851c18000109c01c",
+    "title": "Fascist Kink Roleplay Subreddit Draws the Line: No More ICE Porn",
+    "link": "https://www.404media.co/fascist-kink-roleplay-subreddit-draws-the-line-no-more-ice-porn/",
+    "published": "2026-01-28 07:10:34",
+    "thumbnail": "https://www.404media.co/content/images/2026/01/virginia-johnson-yycCyEWFhtI-unsplash.jpg",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:VhpIdfBMmTk",
+    "title": "10 things you need to STOP doing on your iPhone!",
+    "link": "https://www.youtube.com/watch?v=VhpIdfBMmTk",
+    "published": "2026-01-28 07:10:01",
+    "thumbnail": "",
+    "feed_title": "Proper Honest Tech",
+    "video_id": "VhpIdfBMmTk"
+  },
+  {
+    "id": "t3_1qpdwrn",
+    "title": "Echoes of Creation",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qpdwrn/echoes_of_creation/",
+    "published": "2026-01-28 07:09:41",
+    "thumbnail": "https://external-preview.redd.it/uSd-nLxQ1g5PKVN8qbOZFAZm9_h2iK_Rq01-DAJYpPE.jpeg?width=640&crop=smart&auto=webp&s=b5e715adedacecb143dfbcf15ae19951954b0490",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:2kbCdYtyJyU",
+    "title": "ChatGPT's Memory Just Got WAY Better!",
+    "link": "https://www.youtube.com/shorts/2kbCdYtyJyU",
+    "published": "2026-01-28 07:04:51",
+    "thumbnail": "",
+    "feed_title": "The AI Advantage",
+    "video_id": "2kbCdYtyJyU"
+  },
+  {
+    "id": "t3_1qpdryx",
+    "title": "Weird Recommendation of the Day; Lost For Swords",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qpdryx/weird_recommendation_of_the_day_lost_for_swords/",
+    "published": "2026-01-28 07:04:42",
+    "thumbnail": "https://external-preview.redd.it/ppmUPE9QZWY1tHlwEdrQvoqyo9-u-FWOkSTGTutDSmw.jpeg?width=640&crop=smart&auto=webp&s=01cbf87ee943642beb6cd210e520b74a1e6bd9bb",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:-saaNM_rMUA",
+    "title": "I Watched EVERY SINGLE NEW ANIME of the WINTER 2026 Season...",
+    "link": "https://www.youtube.com/watch?v=-saaNM_rMUA",
+    "published": "2026-01-28 07:00:00",
+    "thumbnail": "",
+    "feed_title": "Glass Reflection",
+    "video_id": "-saaNM_rMUA"
+  },
+  {
+    "id": "t3_1qpdc17",
+    "title": "Apple Creator Studio launches today, and it's an incredible value",
+    "link": "https://www.reddit.com/r/apple/comments/1qpdc17/apple_creator_studio_launches_today_and_its_an/",
+    "published": "2026-01-28 06:47:50",
+    "thumbnail": "https://external-preview.redd.it/gmK7xMmSm8I3a4jkvWAeDZvlNX6mk91UPde9AvEqmv0.jpeg?width=640&crop=smart&auto=webp&s=f673395a8354b86b91137025c59ed190098abdb7",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:F0ZSw6oui80",
+    "title": "Come Meet Me in Amsterdam!",
+    "link": "https://www.youtube.com/shorts/F0ZSw6oui80",
+    "published": "2026-01-28 06:30:14",
+    "thumbnail": "",
+    "feed_title": "David Bombal",
+    "video_id": "F0ZSw6oui80"
+  },
+  {
+    "id": "yt:video:-p8IGp1WXtY",
+    "title": "how to reduce AirTag battery waste with this accessory",
+    "link": "https://www.youtube.com/shorts/-p8IGp1WXtY",
+    "published": "2026-01-28 06:30:00",
+    "thumbnail": "",
+    "feed_title": "Reysu",
+    "video_id": "-p8IGp1WXtY"
+  },
+  {
+    "id": "697a18de851c18000109b684",
+    "title": "Amid Backlash, Massive Porn Platform ManyVids Doubles Down on Bizarre, AI-Generated Posts",
+    "link": "https://www.404media.co/manyvids-ai-generated-posts-bella-french-porn-site/",
+    "published": "2026-01-28 06:28:19",
+    "thumbnail": "https://www.404media.co/content/images/2026/01/manyvidsfireman.png",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:Tb1MoBEw_88",
+    "title": "\"that sounds like a you problem\" #stoicism #bashbunni #twitch",
+    "link": "https://www.youtube.com/shorts/Tb1MoBEw_88",
+    "published": "2026-01-28 06:02:13",
+    "thumbnail": "",
+    "feed_title": "bashbunni",
+    "video_id": "Tb1MoBEw_88"
+  },
+  {
+    "id": "yt:video:vzzvP5zZSgM",
+    "title": "A History of MTV in 10 Songs | The Track Star Podcast",
+    "link": "https://www.youtube.com/watch?v=vzzvP5zZSgM",
+    "published": "2026-01-28 06:01:34",
+    "thumbnail": "",
+    "feed_title": "Track Star*",
+    "video_id": "vzzvP5zZSgM"
+  },
+  {
+    "id": "yt:video:-Ov81x97u3g",
+    "title": "I Tested Apple\u2019s New Creator Studio for 2 Weeks",
+    "link": "https://www.youtube.com/watch?v=-Ov81x97u3g",
+    "published": "2026-01-28 06:01:28",
+    "thumbnail": "",
+    "feed_title": "Stephen Robles",
+    "video_id": "-Ov81x97u3g"
+  },
+  {
+    "id": "yt:video:gUPK2p7YWgc",
+    "title": "Apple Creator Studio is here\u2026 Here\u2019s what I think! #apple #creatorstudio",
+    "link": "https://www.youtube.com/shorts/gUPK2p7YWgc",
+    "published": "2026-01-28 06:01:09",
+    "thumbnail": "",
+    "feed_title": "KDigitalStudio",
+    "video_id": "gUPK2p7YWgc"
+  },
+  {
+    "id": "yt:video:djscamjahQM",
+    "title": "I've been waiting for this... and it's even better than I imagined",
+    "link": "https://www.youtube.com/watch?v=djscamjahQM",
+    "published": "2026-01-28 06:01:07",
+    "thumbnail": "",
+    "feed_title": "KDigitalStudio",
+    "video_id": "djscamjahQM"
+  },
+  {
+    "id": "yt:video:bADlMY_tKeM",
+    "title": "The Secrets of the Apple Creator Studio",
+    "link": "https://www.youtube.com/watch?v=bADlMY_tKeM",
+    "published": "2026-01-28 06:00:59",
+    "thumbnail": "",
+    "feed_title": "Christopher Lawley",
+    "video_id": "bADlMY_tKeM"
+  },
+  {
+    "id": "yt:video:ZI6f-ImxyBc",
+    "title": "What happened to cozy homes?",
+    "link": "https://www.youtube.com/watch?v=ZI6f-ImxyBc",
+    "published": "2026-01-28 06:00:56",
+    "thumbnail": "",
+    "feed_title": "Daniel Titchener",
+    "video_id": "ZI6f-ImxyBc"
+  },
+  {
+    "id": "697a0cc0851c18000107abe7",
+    "title": "Podcast: Creators Worry Porn Platform Is Falling Into \u2018AI Psychosis\u2019",
+    "link": "https://www.404media.co/podcast-creators-worry-porn-platform-is-falling-into-ai-psychosis/",
+    "published": "2026-01-28 06:00:49",
+    "thumbnail": "https://www.404media.co/content/images/2026/01/ai-psychosis-workers.png",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "697a0931851c18000107ab43",
+    "title": "App for Quitting Porn Leaked Users' Masturbation Habits",
+    "link": "https://www.404media.co/app-for-quitting-porn-leaked-users-masturbation-habits/",
+    "published": "2026-01-28 06:00:38",
+    "thumbnail": "https://images.unsplash.com/photo-1543794215-cbc7905029fa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTc3M3wwfDF8c2VhcmNofDEyfHxwaG9uZSUyMHNjcmVlbiUyMGRhcmt8ZW58MHx8fHwxNzY5NjA1NDU5fDA&ixlib=rb-4.1.0&q=80&w=2000",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qpbn37",
+    "title": "Amazon confirms 16,000 job cuts after accidental email",
+    "link": "https://www.reddit.com/r/technology/comments/1qpbn37/amazon_confirms_16000_job_cuts_after_accidental/",
+    "published": "2026-01-28 05:40:53",
+    "thumbnail": "https://external-preview.redd.it/nyemsLy5GkFf3SezCoh4MvSDMqSCxdtBDDyeIHgr-WM.jpeg?width=640&crop=smart&auto=webp&s=437966a7ca9b06b2335ec89639da163bdaac3fbb",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "https://4sysops.com/?p=1605267",
+    "title": "Specops Secure Access: Multi-factor authentication (MFA) for Remote Desktop Protocol (RDP), and VPN connections in Active Directory",
+    "link": "https://4sysops.com/archives/specops-secure-access-multi-factor-authentication-mfa-for-remote-desktop-protocol-rdp-and-vpn-connections-in-active-directory/",
+    "published": "2026-01-28 05:35:19",
+    "thumbnail": "",
+    "feed_title": "4sysops",
+    "video_id": null
+  },
+  {
+    "id": "https://4sysops.com/?p=1605185",
+    "title": "Microsoft Entra ID auto-enables passkey profiles in March 2026",
+    "link": "https://4sysops.com/archives/microsoft-entra-id-auto-enables-passkey-profiles-in-march-2026/",
+    "published": "2026-01-28 05:24:44",
+    "thumbnail": "",
+    "feed_title": "4sysops",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:iV1EcfZSdCM",
+    "title": "What\u2019s the best programming language for AI?",
+    "link": "https://www.youtube.com/watch?v=iV1EcfZSdCM",
+    "published": "2026-01-28 05:16:58",
+    "thumbnail": "",
+    "feed_title": "Theo - t3\u2024gg",
+    "video_id": "iV1EcfZSdCM"
+  },
+  {
+    "id": "yt:video:eFDHR3ZwkvM",
+    "title": "How have prices changed in a year? NPR checked 114 items at Walmart",
+    "link": "https://www.youtube.com/shorts/eFDHR3ZwkvM",
+    "published": "2026-01-28 05:01:16",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "eFDHR3ZwkvM"
+  },
+  {
+    "id": "yt:video:LvW1HTSLPEk",
+    "title": "We\u2019ve lost the Tech",
+    "link": "https://www.youtube.com/watch?v=LvW1HTSLPEk",
+    "published": "2026-01-28 03:57:58",
+    "thumbnail": "",
+    "feed_title": "The PrimeTime",
+    "video_id": "LvW1HTSLPEk"
+  },
+  {
+    "id": "t3_1qp90a8",
+    "title": "CSIS: Russia has lost 1.2 million soldiers, twice as many as Ukraine",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qp90a8/csis_russia_has_lost_12_million_soldiers_twice_as/",
+    "published": "2026-01-28 03:37:30",
+    "thumbnail": "https://external-preview.redd.it/I2oOj22folzRF_w2YNgl_KqLADa0TJm6blVq2A8ZJb8.jpeg?width=640&crop=smart&auto=webp&s=d0dc3b4914f12c0ea2b6581497aff73ee6b76c20",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:EFv0rD9F9es",
+    "title": "Creators Worry Porn Platform Is Falling Into \u2018AI Psychosis\u2019",
+    "link": "https://www.youtube.com/watch?v=EFv0rD9F9es",
+    "published": "2026-01-28 03:00:35",
+    "thumbnail": "",
+    "feed_title": "404 Media",
+    "video_id": "EFv0rD9F9es"
+  },
+  {
+    "id": "t3_1qp6jxn",
+    "title": "Best Potrait Mode Games on iOS?",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qp6jxn/best_potrait_mode_games_on_ios/",
+    "published": "2026-01-28 01:14:45",
+    "thumbnail": "",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qp0qht",
+    "title": "Does your L1 restart user's computers then call it a day?",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qp0qht/does_your_l1_restart_users_computers_then_call_it/",
+    "published": "2026-01-27 19:58:13",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qozwrk",
+    "title": "Apple\u2019s Cook Calls for \u2018Deescalation\u2019 After Latest ICE Shooting",
+    "link": "https://www.reddit.com/r/apple/comments/1qozwrk/apples_cook_calls_for_deescalation_after_latest/",
+    "published": "2026-01-27 19:20:08",
+    "thumbnail": "https://external-preview.redd.it/bva7LVCMMeIWLx8uzvPfcFT3fOf1rtt1vSzRKfXMKqw.jpeg?width=640&crop=smart&auto=webp&s=0b90b4348847eeaa6f4fa4106b2e1a82b5b678fa",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:YXOpYlbWxy8",
+    "title": "TUTORIAL grow flowers on google sheets \ud83c\udf38",
+    "link": "https://www.youtube.com/shorts/YXOpYlbWxy8",
+    "published": "2026-01-27 18:51:49",
+    "thumbnail": "",
+    "feed_title": "meshtimes",
+    "video_id": "YXOpYlbWxy8"
+  },
+  {
+    "id": "t3_1qoywf9",
+    "title": "New Games Out now on App Store: (Jan 27/28)",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qoywf9/new_games_out_now_on_app_store_jan_2728/",
+    "published": "2026-01-27 18:36:35",
+    "thumbnail": "https://b.thumbs.redditmedia.com/kvombPKkAJ4ojJsyf8bQxO12hSckCYilccqTBvKJgcI.jpg",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qoyr3m",
+    "title": "Reigns: The Witcher [Pre-order]",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qoyr3m/reigns_the_witcher_preorder/",
+    "published": "2026-01-27 18:30:23",
+    "thumbnail": "https://preview.redd.it/h1oi2hzg40gg1.jpeg?width=640&crop=smart&auto=webp&s=af775f9d968cfa82787058c0be189b91e6e4ab5a",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qoynnc",
+    "title": "Wonder Man Series Premiere Discussion",
+    "link": "https://www.reddit.com/r/television/comments/1qoynnc/wonder_man_series_premiere_discussion/",
+    "published": "2026-01-27 18:26:20",
+    "thumbnail": "",
+    "feed_title": "television: search results - flair_name:\"Premiere\"",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qoyni5",
+    "title": "Camo developer sues Apple for copying its tech with Continuity Camera",
+    "link": "https://www.reddit.com/r/apple/comments/1qoyni5/camo_developer_sues_apple_for_copying_its_tech/",
+    "published": "2026-01-27 18:26:10",
+    "thumbnail": "https://external-preview.redd.it/dcaZ_Yntp98vWqNx3FthMZHo_C7nvtSSS6Ti4LiZd40.jpeg?width=640&crop=smart&auto=webp&s=ee681c68f80b94099effca211e1ce454725484e4",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qoydzn",
+    "title": "Shrinking - 3x01 - \"My Bad\" - Episode Discussion",
+    "link": "https://www.reddit.com/r/television/comments/1qoydzn/shrinking_3x01_my_bad_episode_discussion/",
+    "published": "2026-01-27 18:14:51",
+    "thumbnail": "",
+    "feed_title": "television: search results - flair_name:\"Premiere\"",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:-K8xVxqwJI8",
+    "title": "Megadeth - Self-Titled ALBUM REVIEW",
+    "link": "https://www.youtube.com/watch?v=-K8xVxqwJI8",
+    "published": "2026-01-27 18:01:34",
+    "thumbnail": "",
+    "feed_title": "theneedledrop",
+    "video_id": "-K8xVxqwJI8"
+  },
+  {
+    "id": "t3_1qoy2kr",
+    "title": "Fallout - 2x07 - \"The Handoff\" - Episode Discussion",
+    "link": "https://www.reddit.com/r/television/comments/1qoy2kr/fallout_2x07_the_handoff_episode_discussion/",
+    "published": "2026-01-27 18:01:28",
+    "thumbnail": "",
+    "feed_title": "television: search results - flair_name:\"Premiere\"",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:drfydj_PZt4",
+    "title": "Donald Glover talks about the end of Childish Gambino \ud83e\uddd0 #hotones",
+    "link": "https://www.youtube.com/shorts/drfydj_PZt4",
+    "published": "2026-01-27 18:00:44",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "drfydj_PZt4"
+  },
+  {
+    "id": "t3_1qoxs9h",
+    "title": "When did we as a profession loose our backbone.",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qoxs9h/when_did_we_as_a_profession_loose_our_backbone/",
+    "published": "2026-01-27 17:49:09",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qox7wo",
+    "title": "Dear user. A rant.",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qox7wo/dear_user_a_rant/",
+    "published": "2026-01-27 17:24:31",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "https://www.thelazyadministrator.com/?p=4478",
+    "title": "Stop Configuration Drift in Microsoft 365 Using the new Configuration Management API\u2019s \u2013 A Deep Dive",
+    "link": "https://www.thelazyadministrator.com/2026/01/27/stop-configuration-drift-in-microsoft-365-using-the-new-configuration-management-apis-a-deep-dive/",
+    "published": "2026-01-27 16:32:36",
+    "thumbnail": "",
+    "feed_title": "The Lazy Administrator",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:CBy2A7S2xjU",
+    "title": "Au Pays du Cocaine - Geese",
+    "link": "https://www.youtube.com/shorts/CBy2A7S2xjU",
+    "published": "2026-01-27 16:20:04",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "CBy2A7S2xjU"
+  },
+  {
+    "id": "yt:video:imsR_d61BKU",
+    "title": "Trinidad - Geese",
+    "link": "https://www.youtube.com/shorts/imsR_d61BKU",
+    "published": "2026-01-27 16:17:15",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "imsR_d61BKU"
+  },
+  {
+    "id": "yt:video:OH-p9ukS8bE",
+    "title": "Visiting the World\u2019s Newest Airport! \ud83d\udeeb",
+    "link": "https://www.youtube.com/shorts/OH-p9ukS8bE",
+    "published": "2026-01-27 15:42:30",
+    "thumbnail": "",
+    "feed_title": "Andrew Ethan Zeng",
+    "video_id": "OH-p9ukS8bE"
+  },
+  {
+    "id": "yt:video:h25oMMmLhps",
+    "title": "Mom\u2019s Camera Roll",
+    "link": "https://www.youtube.com/shorts/h25oMMmLhps",
+    "published": "2026-01-27 15:11:16",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "h25oMMmLhps"
+  },
+  {
+    "id": "yt:video:NhqFcBUX6NM",
+    "title": "Never Add a New Color Without Doing THIS",
+    "link": "https://www.youtube.com/shorts/NhqFcBUX6NM",
+    "published": "2026-01-27 15:00:25",
+    "thumbnail": "",
+    "feed_title": "Reynard Lowell",
+    "video_id": "NhqFcBUX6NM"
+  },
+  {
+    "id": "yt:video:HvkVgjs3pm4",
+    "title": "The Sprinting Method For ADHD Productivity #adhd #productivity",
+    "link": "https://www.youtube.com/shorts/HvkVgjs3pm4",
+    "published": "2026-01-27 15:00:19",
+    "thumbnail": "",
+    "feed_title": "Ruri Ohama",
+    "video_id": "HvkVgjs3pm4"
+  },
+  {
+    "id": "yt:video:AR7NJBaPY3M",
+    "title": "Apple\u2019s 2026 Product Lineup! (Part 3) \ud83d\udd25",
+    "link": "https://www.youtube.com/shorts/AR7NJBaPY3M",
+    "published": "2026-01-27 14:52:00",
+    "thumbnail": "",
+    "feed_title": "Brandon Butch",
+    "video_id": "AR7NJBaPY3M"
+  },
+  {
+    "id": "t3_1qos5ns",
+    "title": "France to ban officials from US video tools including Zoom, Teams",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qos5ns/france_to_ban_officials_from_us_video_tools/",
+    "published": "2026-01-27 14:02:20",
+    "thumbnail": "https://external-preview.redd.it/xH6-TbuOuST318lUFGPUUyI7yMhsf-OW7iBTNRyTdbo.jpeg?width=640&crop=smart&auto=webp&s=1d03a0b2642909833179ce15271c74b14b6976d6",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:yzuFC8Qlp3Q",
+    "title": "Gov. Josh Shapiro on how his commitment to sharing his Jewish faith connects him to his constituents",
+    "link": "https://www.youtube.com/shorts/yzuFC8Qlp3Q",
+    "published": "2026-01-27 14:01:08",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "yzuFC8Qlp3Q"
+  },
+  {
+    "id": "yt:video:RfoutUj6MVg",
+    "title": "Social Media is Melting Down Over This OpenAI Headline (Here\u2019s the Reality)",
+    "link": "https://www.youtube.com/watch?v=RfoutUj6MVg",
+    "published": "2026-01-27 14:00:33",
+    "thumbnail": "",
+    "feed_title": "TheAIGRID",
+    "video_id": "RfoutUj6MVg"
+  },
+  {
+    "id": "yt:video:1RbF6y5aq4E",
+    "title": "HOUSE PARTY (1990): \u201cThere's nothing wrong with feeling good\u201d",
+    "link": "https://www.youtube.com/shorts/1RbF6y5aq4E",
+    "published": "2026-01-27 13:40:37",
+    "thumbnail": "",
+    "feed_title": "CRITERION",
+    "video_id": "1RbF6y5aq4E"
+  },
+  {
+    "id": "t3_1qor555",
+    "title": "Apple to Keep iPhone 18 Starting Price Steady Despite Rising Memory Costs",
+    "link": "https://www.reddit.com/r/apple/comments/1qor555/apple_to_keep_iphone_18_starting_price_steady/",
+    "published": "2026-01-27 13:25:13",
+    "thumbnail": "https://external-preview.redd.it/18jR6JoLAIlAAfsZ-IHDeDS1DL-pm-5_0fNA1BmAQes.jpeg?width=640&crop=smart&auto=webp&s=d8f78fd32a291ccc2a7e28cbc20ef0fbda55fe97",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:GrKgOtnQSr0",
+    "title": "Why your favorite social platform may be influencing how you see events in Minneapolis #shorts",
+    "link": "https://www.youtube.com/shorts/GrKgOtnQSr0",
+    "published": "2026-01-27 13:06:57",
+    "thumbnail": "",
+    "feed_title": "Vox",
+    "video_id": "GrKgOtnQSr0"
+  },
+  {
+    "id": "t3_1qoqesc",
+    "title": "Polish President Karol Nawrocki has said that Auschwitz \u201cmight not have happened\u201d if the world had reacted sooner to Nazi crimes in occupied Poland, accusing Western Europe of indifference in the early years of World War II.",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qoqesc/polish_president_karol_nawrocki_has_said_that/",
+    "published": "2026-01-27 12:59:34",
+    "thumbnail": "https://external-preview.redd.it/L0A05VwaM832TR0U8IQm0IY5g3_Ie_9EKy9zqp3tLVw.jpeg?width=640&crop=smart&auto=webp&s=ecf58cf52018b82877a37a279b3f1147e2e98195",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qopsou",
+    "title": "Users get the message \"Location is turned off in system settings\" when working with Word files in Windows. Microsoft suggests \"let Word track your location\" as a workaround",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qopsou/users_get_the_message_location_is_turned_off_in/",
+    "published": "2026-01-27 12:37:14",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:7oYKzr5ODoA",
+    "title": "Harry Styles - Aperture TRACK REACT",
+    "link": "https://www.youtube.com/shorts/7oYKzr5ODoA",
+    "published": "2026-01-27 12:36:42",
+    "thumbnail": "",
+    "feed_title": "theneedledrop",
+    "video_id": "7oYKzr5ODoA"
+  },
+  {
+    "id": "yt:video:Ms3LQmLoDNE",
+    "title": "The Judgement Day takes on HOT ONES WING PONG! \ud83d\udd25\ud83c\udfd3",
+    "link": "https://www.youtube.com/shorts/Ms3LQmLoDNE",
+    "published": "2026-01-27 12:30:05",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "Ms3LQmLoDNE"
+  },
+  {
+    "id": "t3_1qopf9b",
+    "title": "Meta Is Blocking Links To ICE List on Facebook, Instagram, and Threads / Users of Meta\u2019s social platforms can no longer share links to ICE List, a website listing what it claims are the names of thousands of DHS employees.",
+    "link": "https://www.reddit.com/r/technology/comments/1qopf9b/meta_is_blocking_links_to_ice_list_on_facebook/",
+    "published": "2026-01-27 12:23:53",
+    "thumbnail": "https://external-preview.redd.it/MQDK0GIPxLV1q1HANzjiCsiGSbxS00Cpxai603zyuvo.jpeg?width=640&crop=smart&auto=webp&s=dcb7c26d5e47ec43ac97fbc3b4558c0a8256420d",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:OmjadUJ9PtQ",
+    "title": "Record number of U.S. athletes head to the 2026 Olympics",
+    "link": "https://www.youtube.com/shorts/OmjadUJ9PtQ",
+    "published": "2026-01-27 12:00:32",
+    "thumbnail": "",
+    "feed_title": "NPR",
+    "video_id": "OmjadUJ9PtQ"
+  },
+  {
+    "id": "yt:video:y-EjMkmQG7E",
+    "title": "Paul clearly watched F1. #Shrinking",
+    "link": "https://www.youtube.com/shorts/y-EjMkmQG7E",
+    "published": "2026-01-27 11:59:57",
+    "thumbnail": "",
+    "feed_title": "Apple TV",
+    "video_id": "y-EjMkmQG7E"
+  },
+  {
+    "id": "t3_1qonywl",
+    "title": "U.S. government has lost more than 10,000 STEM Ph.D.s since Donald(The current American President) took office",
+    "link": "https://www.reddit.com/r/technology/comments/1qonywl/us_government_has_lost_more_than_10000_stem_phds/",
+    "published": "2026-01-27 11:32:38",
+    "thumbnail": "",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:gM5O0zCqriM",
+    "title": "I flew to Romania to find hackers who fight hackers",
+    "link": "https://www.youtube.com/shorts/gM5O0zCqriM",
+    "published": "2026-01-27 11:17:00",
+    "thumbnail": "",
+    "feed_title": "NetworkChuck",
+    "video_id": "gM5O0zCqriM"
+  },
+  {
+    "id": "yt:video:dW1CYWdXEeI",
+    "title": "From Chaos to Cosy Co-Working Office (Final Reveal!) | Part 2",
+    "link": "https://www.youtube.com/watch?v=dW1CYWdXEeI",
+    "published": "2026-01-27 11:10:43",
+    "thumbnail": "",
+    "feed_title": "Wha Chu Up To?",
+    "video_id": "dW1CYWdXEeI"
+  },
+  {
+    "id": "yt:video:SHClvHAMaaU",
+    "title": "One week to choose. An eternity to live with it. #Eternity \u2014 February 13 on Apple TV",
+    "link": "https://www.youtube.com/shorts/SHClvHAMaaU",
+    "published": "2026-01-27 11:05:49",
+    "thumbnail": "",
+    "feed_title": "Apple TV",
+    "video_id": "SHClvHAMaaU"
+  },
+  {
+    "id": "yt:video:NKltxecj2ug",
+    "title": "Anthropic loves 'Humanity'",
+    "link": "https://www.youtube.com/shorts/NKltxecj2ug",
+    "published": "2026-01-27 11:01:39",
+    "thumbnail": "",
+    "feed_title": "The PrimeTime",
+    "video_id": "NKltxecj2ug"
+  },
+  {
+    "id": "yt:video:rHEB4ydjmk8",
+    "title": "Claude Cowork Feels Like a True AI Assistant \ud83d\udc4c",
+    "link": "https://www.youtube.com/shorts/rHEB4ydjmk8",
+    "published": "2026-01-27 10:42:13",
+    "thumbnail": "",
+    "feed_title": "The AI Advantage",
+    "video_id": "rHEB4ydjmk8"
+  },
+  {
+    "id": "yt:video:_mKkzkDuw58",
+    "title": "Drew Barrymore reveals her connection to Kurt Cobain",
+    "link": "https://www.youtube.com/shorts/_mKkzkDuw58",
+    "published": "2026-01-27 10:20:01",
+    "thumbnail": "",
+    "feed_title": "Track Star*",
+    "video_id": "_mKkzkDuw58"
+  },
+  {
+    "id": "yt:video:QlzySoLjgMM",
+    "title": "CM Punk really dated all of AJ's favorite female wrestlers \ud83d\ude44\ud83e\udd23",
+    "link": "https://www.youtube.com/shorts/QlzySoLjgMM",
+    "published": "2026-01-27 10:00:34",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "QlzySoLjgMM"
+  },
+  {
+    "id": "yt:video:xnInEsaaj9c",
+    "title": "Introducing Prism, a free workspace for scientists to write and collaborate on research",
+    "link": "https://www.youtube.com/watch?v=xnInEsaaj9c",
+    "published": "2026-01-27 10:00:11",
+    "thumbnail": "",
+    "feed_title": "OpenAI",
+    "video_id": "xnInEsaaj9c"
+  },
+  {
+    "id": "yt:video:NVL-uK3TV7g",
+    "title": "AJ Mendez vs. CM Punk | Hot Ones Versus",
+    "link": "https://www.youtube.com/watch?v=NVL-uK3TV7g",
+    "published": "2026-01-27 10:00:07",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "NVL-uK3TV7g"
+  },
+  {
+    "id": "yt:video:rcrtHjqXrHI",
+    "title": "These zingy little golden shots will scare the flu away!",
+    "link": "https://www.youtube.com/shorts/rcrtHjqXrHI",
+    "published": "2026-01-27 09:55:51",
+    "thumbnail": "",
+    "feed_title": "The Happy Pear",
+    "video_id": "rcrtHjqXrHI"
+  },
+  {
+    "id": "t3_1qoknt9",
+    "title": "Most Dangerous phrase in our Industry?",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qoknt9/most_dangerous_phrase_in_our_industry/",
+    "published": "2026-01-27 09:39:20",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:LXmNeVLM4e4",
+    "title": "PSA: You look like this",
+    "link": "https://www.youtube.com/shorts/LXmNeVLM4e4",
+    "published": "2026-01-27 09:36:20",
+    "thumbnail": "",
+    "feed_title": "Marques Brownlee",
+    "video_id": "LXmNeVLM4e4"
+  },
+  {
+    "id": "yt:video:t5xgYHN7aXE",
+    "title": "Mom's Camera Roll - SNL",
+    "link": "https://www.youtube.com/watch?v=t5xgYHN7aXE",
+    "published": "2026-01-27 09:01:25",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "t5xgYHN7aXE"
+  },
+  {
+    "id": "yt:video:iHULL6iy9Vg",
+    "title": "Translate text with Apple Intelligence. Tip from Piper at the Apple Store. #Shorts",
+    "link": "https://www.youtube.com/shorts/iHULL6iy9Vg",
+    "published": "2026-01-27 09:01:11",
+    "thumbnail": "",
+    "feed_title": "Apple",
+    "video_id": "iHULL6iy9Vg"
+  },
+  {
+    "id": "yt:video:z520xkfx_lM",
+    "title": "Professor Answers Olympic History Questions | Tech Support | WIRED",
+    "link": "https://www.youtube.com/watch?v=z520xkfx_lM",
+    "published": "2026-01-27 09:00:04",
+    "thumbnail": "",
+    "feed_title": "WIRED",
+    "video_id": "z520xkfx_lM"
+  },
+  {
+    "id": "yt:video:kSno1-xOjwI",
+    "title": "clawdbot (moltbot? openmolt?) is a security nightmare",
+    "link": "https://www.youtube.com/watch?v=kSno1-xOjwI",
+    "published": "2026-01-27 08:57:49",
+    "thumbnail": "",
+    "feed_title": "Low Level",
+    "video_id": "kSno1-xOjwI"
+  },
+  {
+    "id": "yt:video:JhhkUesyPXw",
+    "title": "Cop Used Flock to Wrongfully Accuse a Woman. How She Fought Back",
+    "link": "https://www.youtube.com/shorts/JhhkUesyPXw",
+    "published": "2026-01-27 08:56:50",
+    "thumbnail": "",
+    "feed_title": "404 Media",
+    "video_id": "JhhkUesyPXw"
+  },
+  {
+    "id": "t3_1qojerx",
+    "title": "Apple's iPad Turns 16 Today",
+    "link": "https://www.reddit.com/r/apple/comments/1qojerx/apples_ipad_turns_16_today/",
+    "published": "2026-01-27 08:56:27",
+    "thumbnail": "https://external-preview.redd.it/8DCNrKk5hNaIvBQmtnY5jNIzPUp-nvxeTVExcuFwlCs.jpeg?width=640&crop=smart&auto=webp&s=412b643e79dbb17dae1bc414c69e7ddfadc6acb0",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "6978e80e851c18000107811b",
+    "title": "DHS Says Critical ICE Surveillance Footage From Abuse Case Was Actually Never Recorded, Doesn't Matter",
+    "link": "https://www.404media.co/dhs-says-critical-ice-surveillance-footage-from-abuse-case-was-actually-never-recorded-doesnt-matter/",
+    "published": "2026-01-27 08:40:35",
+    "thumbnail": "https://www.404media.co/content/images/2026/01/54698623148_3365dfeabb_k.jpg",
+    "feed_title": "404 Media",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qoiga0",
+    "title": "Carney says he told Trump 'I meant what I said in Davos,' contradicting U.S. Treasury Secretary Scott Bessent",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qoiga0/carney_says_he_told_trump_i_meant_what_i_said_in/",
+    "published": "2026-01-27 08:23:03",
+    "thumbnail": "https://external-preview.redd.it/FmRSXTiusEr3ecXAt6RYt-NYMiXABJjQkXAvLbyc5Yc.jpeg?width=320&crop=smart&auto=webp&s=4460400d2bba8facc8fd3e18492526934da896e5",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:2-GTA5BVGFo",
+    "title": "Apple\u2019s 2026 Products! (Part 2) \ud83d\udc40",
+    "link": "https://www.youtube.com/shorts/2-GTA5BVGFo",
+    "published": "2026-01-27 08:03:00",
+    "thumbnail": "",
+    "feed_title": "Brandon Butch",
+    "video_id": "2-GTA5BVGFo"
+  },
+  {
+    "id": "yt:video:2vawHfiy-gE",
+    "title": "Galaxy Watch Ultra 2 - TIPS, TRICKS & HIDDEN FEATURES!!!",
+    "link": "https://www.youtube.com/watch?v=2vawHfiy-gE",
+    "published": "2026-01-27 08:00:03",
+    "thumbnail": "",
+    "feed_title": "Hayls World",
+    "video_id": "2vawHfiy-gE"
+  },
+  {
+    "id": "t3_1qohl53",
+    "title": "Weird Recommendation of the Day; Tower Dominion GO",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qohl53/weird_recommendation_of_the_day_tower_dominion_go/",
+    "published": "2026-01-27 07:52:32",
+    "thumbnail": "https://external-preview.redd.it/x9s2ti7SKn7Fbi9UMG6lTa_ZuCDjpZkXw-F4qP3omSA.jpeg?width=640&crop=smart&auto=webp&s=02a4185bf3a6b569b01074b69af53c3d5c7e7186",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "https://4sysops.com/?p=1605172",
+    "title": "Trust Through Certification (TAC) for Microsoft Teams: Apps to consider allowing, compliance filter, Microsoft certified apps collections",
+    "link": "https://4sysops.com/archives/trust-through-certification-tac-for-microsoft-teams-apps-to-consider-allowing-compliance-filter-microsoft-certified-apps-collections/",
+    "published": "2026-01-27 07:41:02",
+    "thumbnail": "",
+    "feed_title": "4sysops",
+    "video_id": null
+  },
+  {
+    "id": "https://4sysops.com/?p=1604441",
+    "title": "Blocking user SyncJacking (account hijacking) in Microsoft Entra Connect",
+    "link": "https://4sysops.com/archives/blocking-user-syncjacking-account-hijacking-in-microsoft-entra-connect/",
+    "published": "2026-01-27 07:30:38",
+    "thumbnail": "",
+    "feed_title": "4sysops",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:W4T4cfBaLkM",
+    "title": "They\u2019re Hacking ROBOTS now with pieces of paper!",
+    "link": "https://www.youtube.com/shorts/W4T4cfBaLkM",
+    "published": "2026-01-27 07:30:18",
+    "thumbnail": "",
+    "feed_title": "David Bombal",
+    "video_id": "W4T4cfBaLkM"
+  },
+  {
+    "id": "yt:video:z8HpFeB5nRA",
+    "title": "i built a cool new app! cosmic-wishes.replit.app #codewithme #techgirl #cute",
+    "link": "https://www.youtube.com/shorts/z8HpFeB5nRA",
+    "published": "2026-01-27 07:01:42",
+    "thumbnail": "",
+    "feed_title": "Sarah Li",
+    "video_id": "z8HpFeB5nRA"
+  },
+  {
+    "id": "yt:video:CvKiS-Z04CE",
+    "title": "Now is the time to buy a Mac (before prices go up)",
+    "link": "https://www.youtube.com/watch?v=CvKiS-Z04CE",
+    "published": "2026-01-27 06:57:32",
+    "thumbnail": "",
+    "feed_title": "Oliur / UltraLinx",
+    "video_id": "CvKiS-Z04CE"
+  },
+  {
+    "id": "t3_1qog1x5",
+    "title": "Carney stands by speech despite U.S. claims",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qog1x5/carney_stands_by_speech_despite_us_claims/",
+    "published": "2026-01-27 06:56:16",
+    "thumbnail": "https://external-preview.redd.it/63QI-iaaBv1nISZG6aG6Q8HWPm2Mpr2aR7swu-AlmCo.jpeg?width=640&crop=smart&auto=webp&s=986d0ca90f8d0af690cf3bb0701ca83c5dd10f49",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:F0Skng7grO0",
+    "title": "How Democrats are changing their messaging on ICE #shorts",
+    "link": "https://www.youtube.com/shorts/F0Skng7grO0",
+    "published": "2026-01-27 06:48:08",
+    "thumbnail": "",
+    "feed_title": "Vox",
+    "video_id": "F0Skng7grO0"
+  },
+  {
+    "id": "yt:video:t-o9v6hdk6w",
+    "title": "Dual Boot Windows and Kali Linux in 10 Minutes (2026)",
+    "link": "https://www.youtube.com/watch?v=t-o9v6hdk6w",
+    "published": "2026-01-27 06:30:45",
+    "thumbnail": "",
+    "feed_title": "David Bombal",
+    "video_id": "t-o9v6hdk6w"
+  },
+  {
+    "id": "yt:video:r_sg6vlhpuc",
+    "title": "make your iphone into a retro iPod with this hidden app",
+    "link": "https://www.youtube.com/shorts/r_sg6vlhpuc",
+    "published": "2026-01-27 06:30:00",
+    "thumbnail": "",
+    "feed_title": "Reysu",
+    "video_id": "r_sg6vlhpuc"
+  },
+  {
+    "id": "yt:video:HHELcWp9SDo",
+    "title": "Chanel Spring 2027 Couture | Wallpaper*",
+    "link": "https://www.youtube.com/shorts/HHELcWp9SDo",
+    "published": "2026-01-27 06:24:59",
+    "thumbnail": "",
+    "feed_title": "Wallpaper*",
+    "video_id": "HHELcWp9SDo"
+  },
+  {
+    "id": "t3_1qof1yc",
+    "title": "Why do so many people, who use two-factor authentication daily, act like it's their first time ever using it?",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qof1yc/why_do_so_many_people_who_use_twofactor/",
+    "published": "2026-01-27 06:17:37",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:4XpERBjO0-U",
+    "title": "Microsoft CEO: AI Fails If This Doesn\u2019t Happen",
+    "link": "https://www.youtube.com/watch?v=4XpERBjO0-U",
+    "published": "2026-01-27 06:15:00",
+    "thumbnail": "",
+    "feed_title": "TheAIGRID",
+    "video_id": "4XpERBjO0-U"
+  },
+  {
+    "id": "yt:video:FfCqINSD8Tc",
+    "title": "Kimi K2.5- The Agent Swarm",
+    "link": "https://www.youtube.com/watch?v=FfCqINSD8Tc",
+    "published": "2026-01-27 06:05:00",
+    "thumbnail": "",
+    "feed_title": "Sam Witteveen",
+    "video_id": "FfCqINSD8Tc"
+  },
+  {
+    "id": "yt:video:H1-BLfejL5Q",
+    "title": "My Productivity Apps for 2026",
+    "link": "https://www.youtube.com/watch?v=H1-BLfejL5Q",
+    "published": "2026-01-27 06:00:34",
+    "thumbnail": "",
+    "feed_title": "Christopher Lawley",
+    "video_id": "H1-BLfejL5Q"
+  },
+  {
+    "id": "yt:video:5EnEJXgBbCk",
+    "title": "I Have Smart Shades on Every Window Now | Bringnox Shades with Matter Over Thread",
+    "link": "https://www.youtube.com/watch?v=5EnEJXgBbCk",
+    "published": "2026-01-27 06:00:14",
+    "thumbnail": "",
+    "feed_title": "Stephen Robles",
+    "video_id": "5EnEJXgBbCk"
+  },
+  {
+    "id": "yt:video:youk4y1FR04",
+    "title": "Which Animal is the Most Efficient Traveler?",
+    "link": "https://www.youtube.com/shorts/youk4y1FR04",
+    "published": "2026-01-27 06:00:00",
+    "thumbnail": "",
+    "feed_title": "Cleo Abram",
+    "video_id": "youk4y1FR04"
+  },
+  {
+    "id": "t3_1qoele3",
+    "title": "Microsoft will end support for Basic SMTP authentication soon",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qoele3/microsoft_will_end_support_for_basic_smtp/",
+    "published": "2026-01-27 05:59:46",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:xknsrDpIbrA",
+    "title": "The real definition of resilience | John Amaechi",
+    "link": "https://www.youtube.com/shorts/xknsrDpIbrA",
+    "published": "2026-01-27 05:45:08",
+    "thumbnail": "",
+    "feed_title": "Big Think+",
+    "video_id": "xknsrDpIbrA"
+  },
+  {
+    "id": "t3_1qodtea",
+    "title": "What is an actual IT automation that actually paid off for you?",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qodtea/what_is_an_actual_it_automation_that_actually/",
+    "published": "2026-01-27 05:27:32",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qodqt9",
+    "title": "Why does everything need to run through a purchasing partner?",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qodqt9/why_does_everything_need_to_run_through_a/",
+    "published": "2026-01-27 05:24:29",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:H8BWymoTTg4",
+    "title": "Remembering Sly Dunbar A Reggae Legend on the Drums",
+    "link": "https://www.youtube.com/shorts/H8BWymoTTg4",
+    "published": "2026-01-27 04:31:56",
+    "thumbnail": "",
+    "feed_title": "Resident Advisor",
+    "video_id": "H8BWymoTTg4"
+  },
+  {
+    "id": "yt:video:CL0vkl8Sxvs",
+    "title": "I was wrong",
+    "link": "https://www.youtube.com/watch?v=CL0vkl8Sxvs",
+    "published": "2026-01-27 04:11:11",
+    "thumbnail": "",
+    "feed_title": "Theo - t3\u2024gg",
+    "video_id": "CL0vkl8Sxvs"
+  },
+  {
+    "id": "yt:video:VikVrV4HFsw",
+    "title": "Aesop Stores as the Product",
+    "link": "https://www.youtube.com/shorts/VikVrV4HFsw",
+    "published": "2026-01-27 04:00:56",
+    "thumbnail": "",
+    "feed_title": "Taylor Bell",
+    "video_id": "VikVrV4HFsw"
+  },
+  {
+    "id": "t3_1qoarib",
+    "title": "TikTok users say they can\u2019t upload anti-ICE videos. The company blames tech issues",
+    "link": "https://www.reddit.com/r/technology/comments/1qoarib/tiktok_users_say_they_cant_upload_antiice_videos/",
+    "published": "2026-01-27 02:58:26",
+    "thumbnail": "",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:n5xnpF_6RS4",
+    "title": "The Last Tripod Head You\u2019ll Ever Need | K&F Concept 3-Way Tripod Head",
+    "link": "https://www.youtube.com/shorts/n5xnpF_6RS4",
+    "published": "2026-01-27 02:01:16",
+    "thumbnail": "",
+    "feed_title": "ark.curate",
+    "video_id": "n5xnpF_6RS4"
+  },
+  {
+    "id": "t3_1qo9in6",
+    "title": "California governor Gavin Newsom accuses TikTok of suppressing content critical of the current American president",
+    "link": "https://www.reddit.com/r/technology/comments/1qo9in6/california_governor_gavin_newsom_accuses_tiktok/",
+    "published": "2026-01-27 01:46:33",
+    "thumbnail": "https://external-preview.redd.it/25Zv7m1akVw7mGfzMBdsEqry33jP8xWP_uD4ab4cXso.png?width=640&crop=smart&auto=webp&s=342f65e5feadc39d66973ff1fac45a9460e2200d",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qo95l6",
+    "title": "\u2018Mother of all deals\u2019: EU and India sign free trade agreement",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qo95l6/mother_of_all_deals_eu_and_india_sign_free_trade/",
+    "published": "2026-01-27 01:24:45",
+    "thumbnail": "https://external-preview.redd.it/C0OmcmGuIAoVW2LavB1b9z3d021IlDe6j6f_iYWFRCg.jpeg?width=640&crop=smart&auto=webp&s=fc162f7180a7f923ffa21dfd0ef71a1c51542fb9",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qo946r",
+    "title": "Sick of seeing the letters \"AI\" everywhere",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qo946r/sick_of_seeing_the_letters_ai_everywhere/",
+    "published": "2026-01-27 01:22:23",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qo59n4",
+    "title": "10+ Things to Know About the New AirTag 2",
+    "link": "https://www.reddit.com/r/apple/comments/1qo59n4/10_things_to_know_about_the_new_airtag_2/",
+    "published": "2026-01-26 21:39:53",
+    "thumbnail": "https://external-preview.redd.it/ysqafXnVn-8Dvt-VEwPzPCG51Hi94SHox-TAvs-WAWY.jpeg?width=640&crop=smart&auto=webp&s=abaf96fa764cc862e420e956fb1b287511a279e9",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "6977d3095102b0f71212b0ac",
+    "title": "Peanut",
+    "link": "https://pitchfork.com/reviews/albums/otto-benson-peanut/",
+    "published": "2026-01-26 21:03:00",
+    "thumbnail": "https://media.pitchfork.com/photos/6977d266075752375480c503/master/pass/Otto%20Benson%20-%20Peanut%20album%20art.jpg",
+    "feed_title": "Best New Albums",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qo1sob",
+    "title": "Weird Recommendation of the Day; Dwarves: Glory, Death and Loot",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qo1sob/weird_recommendation_of_the_day_dwarves_glory/",
+    "published": "2026-01-26 18:57:35",
+    "thumbnail": "https://external-preview.redd.it/wwvVw8OXCG299EdrF3uba1jEdMhZxyU76lO-L-eEqbE.jpeg?width=640&crop=smart&auto=webp&s=d2d3536423c6d6a93eecca2fc1144dfb8105fa14",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qo15q8",
+    "title": "Microsoft Jan 22nd Root Cause Analysis Released",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qo15q8/microsoft_jan_22nd_root_cause_analysis_released/",
+    "published": "2026-01-26 18:30:04",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:Rfsxbw5bHgk",
+    "title": "Intel is SO BACK",
+    "link": "https://www.youtube.com/watch?v=Rfsxbw5bHgk",
+    "published": "2026-01-26 18:10:12",
+    "thumbnail": "",
+    "feed_title": "TechLinked",
+    "video_id": "Rfsxbw5bHgk"
+  },
+  {
+    "id": "t3_1qo09jc",
+    "title": "DHS suspends Bovino's access to social media after posts defending his unverified claims about Alex Pretti",
+    "link": "https://www.reddit.com/r/technology/comments/1qo09jc/dhs_suspends_bovinos_access_to_social_media_after/",
+    "published": "2026-01-26 17:52:12",
+    "thumbnail": "https://external-preview.redd.it/v_Cfy_QTpsycKjMHH5I-v3oDtPe5yc88K8KZQ7qp9-g.jpeg?width=640&crop=smart&auto=webp&s=77a597264b94e79c8c4c3aa4d769a33ae19545b3",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:Wpxv-8nG8ec",
+    "title": "OpenAI Town Hall with Sam Altman",
+    "link": "https://www.youtube.com/watch?v=Wpxv-8nG8ec",
+    "published": "2026-01-26 17:06:09",
+    "thumbnail": "",
+    "feed_title": "OpenAI",
+    "video_id": "Wpxv-8nG8ec"
+  },
+  {
+    "id": "yt:video:334cYL8XoIU",
+    "title": "they\u2019ll never be the same",
+    "link": "https://www.youtube.com/shorts/334cYL8XoIU",
+    "published": "2026-01-26 16:59:02",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "334cYL8XoIU"
+  },
+  {
+    "id": "yt:video:E2dPq12nSpM",
+    "title": "time to get those steps in",
+    "link": "https://www.youtube.com/shorts/E2dPq12nSpM",
+    "published": "2026-01-26 16:56:32",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "E2dPq12nSpM"
+  },
+  {
+    "id": "yt:video:vR3vwp8Z5io",
+    "title": "I Got Getting Killed",
+    "link": "https://www.youtube.com/watch?v=vR3vwp8Z5io",
+    "published": "2026-01-26 16:50:51",
+    "thumbnail": "",
+    "feed_title": "theneedledrop",
+    "video_id": "vR3vwp8Z5io"
+  },
+  {
+    "id": "t3_1qny5u4",
+    "title": "i got the new mcon from ohsnap!",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qny5u4/i_got_the_new_mcon_from_ohsnap/",
+    "published": "2026-01-26 16:22:31",
+    "thumbnail": "",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:AaA4FYWox1k",
+    "title": "iOS 26.3 Beta 3 Released - What's New?",
+    "link": "https://www.youtube.com/watch?v=AaA4FYWox1k",
+    "published": "2026-01-26 16:20:57",
+    "thumbnail": "",
+    "feed_title": "Brandon Butch",
+    "video_id": "AaA4FYWox1k"
+  },
+  {
+    "id": "t3_1qnxcjb",
+    "title": "ICE Making List of Anyone Who Films Them: \u201cWe have a nice little database and now you\u2019re considered a domestic terrorist.\u201d",
+    "link": "https://www.reddit.com/r/technology/comments/1qnxcjb/ice_making_list_of_anyone_who_films_them_we_have/",
+    "published": "2026-01-26 15:49:51",
+    "thumbnail": "https://external-preview.redd.it/qxY6JydneBdXDyrz4EPKWugPFg3nZ71Qh9jiswTtTf8.jpeg?width=640&crop=smart&auto=webp&s=877c79a2cb870e376db522b72d7c1dd7fb426549",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:UMnMsuwbBYg",
+    "title": "Why you keep failing your productivity systems  #adhdselfimprovement #productivity",
+    "link": "https://www.youtube.com/shorts/UMnMsuwbBYg",
+    "published": "2026-01-26 15:30:23",
+    "thumbnail": "",
+    "feed_title": "Ruri Ohama",
+    "video_id": "UMnMsuwbBYg"
+  },
+  {
+    "id": "yt:video:6cEv-ALC9fQ",
+    "title": "Stop Decorating. Start Storytelling.",
+    "link": "https://www.youtube.com/shorts/6cEv-ALC9fQ",
+    "published": "2026-01-26 15:00:07",
+    "thumbnail": "",
+    "feed_title": "Reynard Lowell",
+    "video_id": "6cEv-ALC9fQ"
+  },
+  {
+    "id": "t3_1qnutq3",
+    "title": "Aside From That, Mr. Cook, What Did You Think of the Movie?",
+    "link": "https://www.reddit.com/r/apple/comments/1qnutq3/aside_from_that_mr_cook_what_did_you_think_of_the/",
+    "published": "2026-01-26 14:13:28",
+    "thumbnail": "https://external-preview.redd.it/nEUj9nJqR-R-KaGBpP2qzaHm_yUTQZM_Im9rtaJzA2Y.png?width=640&crop=smart&auto=webp&s=7ae5dbe9ebfaa107c86fd643f93ab2beaebc434b",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:PPU3TfVG0E8",
+    "title": "How Soap Became a Luxury Category",
+    "link": "https://www.youtube.com/shorts/PPU3TfVG0E8",
+    "published": "2026-01-26 14:04:45",
+    "thumbnail": "",
+    "feed_title": "Taylor Bell",
+    "video_id": "PPU3TfVG0E8"
+  },
+  {
+    "id": "yt:video:Ns0wlVB7oJI",
+    "title": "Reginald and Warrington Hudlin on Bringing Kid \u2019n Play to the Screen with HOUSE PARTY (1990)",
+    "link": "https://www.youtube.com/watch?v=Ns0wlVB7oJI",
+    "published": "2026-01-26 14:01:43",
+    "thumbnail": "",
+    "feed_title": "CRITERION",
+    "video_id": "Ns0wlVB7oJI"
+  },
+  {
+    "id": "yt:video:B1ebnu6ZOKg",
+    "title": "Don't ask me anything nothin'! \ud83e\udd75 Drag Race Season 18 takes on Da Bomb! \ud83d\udca3",
+    "link": "https://www.youtube.com/shorts/B1ebnu6ZOKg",
+    "published": "2026-01-26 14:00:18",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "B1ebnu6ZOKg"
+  },
+  {
+    "id": "t3_1qnu932",
+    "title": "TikTok uninstalls are up 150% following U.S. joint venture",
+    "link": "https://www.reddit.com/r/technology/comments/1qnu932/tiktok_uninstalls_are_up_150_following_us_joint/",
+    "published": "2026-01-26 13:52:43",
+    "thumbnail": "https://external-preview.redd.it/6qCk49UZXcrmQnwdYW5vGydqDgcJoXc-5KkNlpc2XWI.jpeg?width=640&crop=smart&auto=webp&s=c0e087ff8d128ae0395973a40682e1c8347f4978",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qnu0n7",
+    "title": "New Employer Wants Me to essentially Notify My Current Manager Before Onboarding is finalized \u2014 Is This Normal?",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qnu0n7/new_employer_wants_me_to_essentially_notify_my/",
+    "published": "2026-01-26 13:44:12",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qntunb",
+    "title": "Apple Drops Surprise Updates for Older iPhones and iPads",
+    "link": "https://www.reddit.com/r/apple/comments/1qntunb/apple_drops_surprise_updates_for_older_iphones/",
+    "published": "2026-01-26 13:38:16",
+    "thumbnail": "https://external-preview.redd.it/VzihHDNbfksCrUe3BAxWRMHhRgZ4Nl2O6p7M6DeAmp0.jpeg?width=640&crop=smart&auto=webp&s=21a0367dd24e86377204aaba6853d5ff6e4ca855",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:RRuQsm7Nldc",
+    "title": "iPhone 17 Pro After 4 Months: Battery, Durability, Camera & More",
+    "link": "https://www.youtube.com/watch?v=RRuQsm7Nldc",
+    "published": "2026-01-26 13:14:04",
+    "thumbnail": "",
+    "feed_title": "MacRumors",
+    "video_id": "RRuQsm7Nldc"
+  },
+  {
+    "id": "https://www.macstories.net/?p=80202",
+    "title": "New Year, New Audio Setup: SoundSource from Rogue Amoeba [Sponsor]",
+    "link": "https://www.macstories.net/sponsored/new-year-new-audio-setup-soundsource-from-rogue-amoeba-sponsor/",
+    "published": "2026-01-26 13:10:17",
+    "thumbnail": "https://cdn.macstories.net/ra-macstories-hero-1769460667752.png",
+    "feed_title": "MacStories",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qnt013",
+    "title": "Employee sent payroll data to wrong recipient. How do you guys handle this?",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qnt013/employee_sent_payroll_data_to_wrong_recipient_how/",
+    "published": "2026-01-26 13:08:02",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qnslf0",
+    "title": "Apple Watch user gave ChatGPT Health his data, with troubling results",
+    "link": "https://www.reddit.com/r/apple/comments/1qnslf0/apple_watch_user_gave_chatgpt_health_his_data/",
+    "published": "2026-01-26 12:53:45",
+    "thumbnail": "https://external-preview.redd.it/qsQqQ5o-h--umHjTgsyPBrhWKPMfxKmkMTE7D1zx_eM.jpeg?width=640&crop=smart&auto=webp&s=a8dca374c726b98ae30b2f29dc3fecda301f0e8a",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qnsbu5",
+    "title": "France will replace Microsoft Teams, Google Meet, Zoom, Webex and others with its own sovereign video conferencing application \"Visio\" for public officials",
+    "link": "https://www.reddit.com/r/technology/comments/1qnsbu5/france_will_replace_microsoft_teams_google_meet/",
+    "published": "2026-01-26 12:44:03",
+    "thumbnail": "",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "https://www.macstories.net/?p=80196",
+    "title": "Tim Cook Attended an Exclusive Weekend Screening of the Upcoming \u2018Melania\u2019 Documentary",
+    "link": "https://www.macstories.net/news/tim-cook-attended-an-exclussive-weekend-screening-of-the-upcoming-melania-documentary/",
+    "published": "2026-01-26 12:39:07",
+    "thumbnail": "",
+    "feed_title": "MacStories",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:M8h30nkfraU",
+    "title": "iOS 26.2.1 Released - What's New?",
+    "link": "https://www.youtube.com/watch?v=M8h30nkfraU",
+    "published": "2026-01-26 12:05:46",
+    "thumbnail": "",
+    "feed_title": "Brandon Butch",
+    "video_id": "M8h30nkfraU"
+  },
+  {
+    "id": "yt:video:HvTo60eXjcs",
+    "title": "Reginald Hudlin\u2019s Closet Picks",
+    "link": "https://www.youtube.com/watch?v=HvTo60eXjcs",
+    "published": "2026-01-26 12:05:22",
+    "thumbnail": "",
+    "feed_title": "CRITERION",
+    "video_id": "HvTo60eXjcs"
+  },
+  {
+    "id": "yt:video:w7o355LsM9I",
+    "title": "Are juniors screwed? (Getting a job in a post-AI world)",
+    "link": "https://www.youtube.com/watch?v=w7o355LsM9I",
+    "published": "2026-01-26 11:54:55",
+    "thumbnail": "",
+    "feed_title": "Theo - t3\u2024gg",
+    "video_id": "w7o355LsM9I"
+  },
+  {
+    "id": "yt:video:pBqvgcOzk4s",
+    "title": "HOW TO FADE YOUR BEARD ( Trailer )",
+    "link": "https://www.youtube.com/shorts/pBqvgcOzk4s",
+    "published": "2026-01-26 11:52:09",
+    "thumbnail": "",
+    "feed_title": "Matty Conrad",
+    "video_id": "pBqvgcOzk4s"
+  },
+  {
+    "id": "t3_1qnqji6",
+    "title": "US officially out of WHO, leaving hundreds of millions of dollars unpaid",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qnqji6/us_officially_out_of_who_leaving_hundreds_of/",
+    "published": "2026-01-26 11:41:45",
+    "thumbnail": "https://external-preview.redd.it/cHncwYweO1czVoEirrA-mzzUGFmmAqmkTf4YoXLkQGs.jpeg?width=640&crop=smart&auto=webp&s=ae5bd70dd153bc115b101ef8f6760e38e66f30d9",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:QeIRzCLwMfo",
+    "title": "Akon\u2019s big break came from this\u2026",
+    "link": "https://www.youtube.com/shorts/QeIRzCLwMfo",
+    "published": "2026-01-26 11:22:56",
+    "thumbnail": "",
+    "feed_title": "Track Star*",
+    "video_id": "QeIRzCLwMfo"
+  },
+  {
+    "id": "yt:video:vZdbbN3FCzE",
+    "title": "The Downfall of OnePlus will be Studied",
+    "link": "https://www.youtube.com/watch?v=vZdbbN3FCzE",
+    "published": "2026-01-26 11:13:01",
+    "thumbnail": "",
+    "feed_title": "Marques Brownlee",
+    "video_id": "vZdbbN3FCzE"
+  },
+  {
+    "id": "yt:video:TcvQ9D7Flns",
+    "title": "C64 Cassette DOA",
+    "link": "https://www.youtube.com/shorts/TcvQ9D7Flns",
+    "published": "2026-01-26 11:01:29",
+    "thumbnail": "",
+    "feed_title": "The PrimeTime",
+    "video_id": "TcvQ9D7Flns"
+  },
+  {
+    "id": "t3_1qnozxa",
+    "title": "Volkswagen considers pulling out of US factory plans over tariffs",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qnozxa/volkswagen_considers_pulling_out_of_us_factory/",
+    "published": "2026-01-26 10:49:50",
+    "thumbnail": "https://external-preview.redd.it/6uhZI5df4JLt7w-LaJYZ8eN1qG_P8nkwveGfvlED8h8.jpeg?width=640&crop=smart&auto=webp&s=60467b5f0150f837ee660f601ca14eca5a1183d5",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:HELBshHsHkI",
+    "title": "Walk Club - SNL",
+    "link": "https://www.youtube.com/watch?v=HELBshHsHkI",
+    "published": "2026-01-26 10:30:26",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "HELBshHsHkI"
+  },
+  {
+    "id": "t3_1qno6dt",
+    "title": "Game devs skipping GDC 2026 over ICE concerns, US safety fears",
+    "link": "https://www.reddit.com/r/technology/comments/1qno6dt/game_devs_skipping_gdc_2026_over_ice_concerns_us/",
+    "published": "2026-01-26 10:22:28",
+    "thumbnail": "https://external-preview.redd.it/pmLGIzBlf4F7F8E84SwS2fa_BYztuc6GxDfrGI5e_qg.jpeg?width=640&crop=smart&auto=webp&s=ab026459f58b81ca07c11fd64a006d1e146bafbd",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qnnxrb",
+    "title": "iOS 26.2.1 released",
+    "link": "https://www.reddit.com/r/apple/comments/1qnnxrb/ios_2621_released/",
+    "published": "2026-01-26 10:14:32",
+    "thumbnail": "https://external-preview.redd.it/yqf8zAnp91ewC3KGrT6kivnpz0L3V2jQZ8OVCecDo-s.jpeg?width=640&crop=smart&auto=webp&s=ffc3885e6954a253bc5409eca66ba94d3471e24c",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:hcnEfb9Qoc4",
+    "title": "Monarch: Legacy of Monsters \u2014 All Titan Sightings From Season 1 | Apple TV",
+    "link": "https://www.youtube.com/watch?v=hcnEfb9Qoc4",
+    "published": "2026-01-26 10:09:28",
+    "thumbnail": "",
+    "feed_title": "Apple TV",
+    "video_id": "hcnEfb9Qoc4"
+  },
+  {
+    "id": "yt:video:rquHZexQ0Hs",
+    "title": "149 Million Passwords LEAKED",
+    "link": "https://www.youtube.com/shorts/rquHZexQ0Hs",
+    "published": "2026-01-26 10:01:03",
+    "thumbnail": "",
+    "feed_title": "David Bombal",
+    "video_id": "rquHZexQ0Hs"
+  },
+  {
+    "id": "yt:video:l1_-hhA2sPU",
+    "title": "CM Punk takes on his SPICIEST opponent yet: HIS WIFE, AJ!",
+    "link": "https://www.youtube.com/shorts/l1_-hhA2sPU",
+    "published": "2026-01-26 10:00:53",
+    "thumbnail": "",
+    "feed_title": "First We Feast",
+    "video_id": "l1_-hhA2sPU"
+  },
+  {
+    "id": "yt:video:VGlHbdGTbfA",
+    "title": "The Incident - SNL",
+    "link": "https://www.youtube.com/watch?v=VGlHbdGTbfA",
+    "published": "2026-01-26 10:00:39",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "VGlHbdGTbfA"
+  },
+  {
+    "id": "yt:video:jk-bN317bqI",
+    "title": "What to Do if ICE Invades Your Neighborhood",
+    "link": "https://www.youtube.com/shorts/jk-bN317bqI",
+    "published": "2026-01-26 10:00:04",
+    "thumbnail": "",
+    "feed_title": "WIRED",
+    "video_id": "jk-bN317bqI"
+  },
+  {
+    "id": "yt:video:5qXa9T-IGsg",
+    "title": "Joyce Manor's \"What's In My Bag?\" | Amoeba Music",
+    "link": "https://www.youtube.com/watch?v=5qXa9T-IGsg",
+    "published": "2026-01-26 09:54:02",
+    "thumbnail": "",
+    "feed_title": "Amoeba",
+    "video_id": "5qXa9T-IGsg"
+  },
+  {
+    "id": "yt:video:T35f-hkfWCo",
+    "title": "The iPad Pro Finally Feels Like a Computer\u2026 But There Is Still One Issue",
+    "link": "https://www.youtube.com/watch?v=T35f-hkfWCo",
+    "published": "2026-01-26 09:30:15",
+    "thumbnail": "",
+    "feed_title": "9to5Mac",
+    "video_id": "T35f-hkfWCo"
+  },
+  {
+    "id": "t3_1qnmlus",
+    "title": "Apple\u2019s new M6 chip could launch surprisingly soon, per report",
+    "link": "https://www.reddit.com/r/apple/comments/1qnmlus/apples_new_m6_chip_could_launch_surprisingly_soon/",
+    "published": "2026-01-26 09:29:40",
+    "thumbnail": "https://external-preview.redd.it/zyr0_Y8yPiHU1193CjPABIqR5NEM4k7XMeAqZJUtCpQ.jpeg?width=640&crop=smart&auto=webp&s=1766e3f3776b239e778f4d6f4942038fda4b7078",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:UnFANWiDETY",
+    "title": "This creamy Tuscan bean soup is cosy, creamy and packed with beans for protein and fibre \u2764\ufe0f",
+    "link": "https://www.youtube.com/shorts/UnFANWiDETY",
+    "published": "2026-01-26 09:08:53",
+    "thumbnail": "",
+    "feed_title": "The Happy Pear",
+    "video_id": "UnFANWiDETY"
+  },
+  {
+    "id": "yt:video:K_G5ScaLU58",
+    "title": "let's catch up! \u22b9\u208a\u27e1\u22c6 linh answers your burning questions",
+    "link": "https://www.youtube.com/watch?v=K_G5ScaLU58",
+    "published": "2026-01-26 09:00:24",
+    "thumbnail": "",
+    "feed_title": "linh truong",
+    "video_id": "K_G5ScaLU58"
+  },
+  {
+    "id": "yt:video:Z3N3sRat39Q",
+    "title": "The Order of the Primal Source Code",
+    "link": "https://www.youtube.com/shorts/Z3N3sRat39Q",
+    "published": "2026-01-26 07:41:35",
+    "thumbnail": "",
+    "feed_title": "Artem Causalitas",
+    "video_id": "Z3N3sRat39Q"
+  },
+  {
+    "id": "yt:video:3CuNwHC7uOE",
+    "title": "Why \"Eat The Frog\" Method Never Works for ADHD #adhd #adhdawareness",
+    "link": "https://www.youtube.com/shorts/3CuNwHC7uOE",
+    "published": "2026-01-26 07:38:28",
+    "thumbnail": "",
+    "feed_title": "Ruri Ohama",
+    "video_id": "3CuNwHC7uOE"
+  },
+  {
+    "id": "yt:video:9OEWRa94Uiw",
+    "title": "This iPhone Case Does it ALL! \ud83d\udd25",
+    "link": "https://www.youtube.com/shorts/9OEWRa94Uiw",
+    "published": "2026-01-26 07:37:00",
+    "thumbnail": "",
+    "feed_title": "Brandon Butch",
+    "video_id": "9OEWRa94Uiw"
+  },
+  {
+    "id": "yt:video:wyTNINrB0hM",
+    "title": "I Rewatched Survivor Season ONE. Here's What I Learned.",
+    "link": "https://www.youtube.com/watch?v=wyTNINrB0hM",
+    "published": "2026-01-26 07:34:34",
+    "thumbnail": "",
+    "feed_title": "The Art Of Storytelling",
+    "video_id": "wyTNINrB0hM"
+  },
+  {
+    "id": "yt:video:13qpUSzteuY",
+    "title": "Layoffs at Amazon | Day in the Life of a Software Engineer",
+    "link": "https://www.youtube.com/watch?v=13qpUSzteuY",
+    "published": "2026-01-26 07:30:03",
+    "thumbnail": "",
+    "feed_title": "Sarah Li",
+    "video_id": "13qpUSzteuY"
+  },
+  {
+    "id": "yt:video:qMHajUQbuWE",
+    "title": "My Favorite Apple Watch Band - Nomad Stratos Icy Blue Glow",
+    "link": "https://www.youtube.com/shorts/qMHajUQbuWE",
+    "published": "2026-01-26 07:01:27",
+    "thumbnail": "",
+    "feed_title": "ThisIsE",
+    "video_id": "qMHajUQbuWE"
+  },
+  {
+    "id": "yt:video:Vc971K_jln0",
+    "title": "How to: AVOID Danger in Japan",
+    "link": "https://www.youtube.com/shorts/Vc971K_jln0",
+    "published": "2026-01-26 07:00:53",
+    "thumbnail": "",
+    "feed_title": "Patricia O'Connor",
+    "video_id": "Vc971K_jln0"
+  },
+  {
+    "id": "yt:video:fDwt9AiItqU",
+    "title": "Windows is Ruining New Laptops.",
+    "link": "https://www.youtube.com/watch?v=fDwt9AiItqU",
+    "published": "2026-01-26 06:50:54",
+    "thumbnail": "",
+    "feed_title": "Dave2D",
+    "video_id": "fDwt9AiItqU"
+  },
+  {
+    "id": "https://www.macstories.net/?p=80192",
+    "title": "Apple Introduces New and Improved AirTag",
+    "link": "https://www.macstories.net/news/apple-introduces-new-and-improved-airtag/",
+    "published": "2026-01-26 06:32:11",
+    "thumbnail": "https://cdn.macstories.net/apple-airtag-finewoven-key-ring_inline-jpg-large_2x-1769436619843.jpeg",
+    "feed_title": "MacStories",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:NBovWMWGp04",
+    "title": "Google Dorks EXPLAINED (-, +, \"\")",
+    "link": "https://www.youtube.com/shorts/NBovWMWGp04",
+    "published": "2026-01-26 06:30:17",
+    "thumbnail": "",
+    "feed_title": "David Bombal",
+    "video_id": "NBovWMWGp04"
+  },
+  {
+    "id": "yt:video:NLV2vGB3gDQ",
+    "title": "this japanese high-tech cup makes everything 2x tastier",
+    "link": "https://www.youtube.com/shorts/NLV2vGB3gDQ",
+    "published": "2026-01-26 06:30:00",
+    "thumbnail": "",
+    "feed_title": "Reysu",
+    "video_id": "NLV2vGB3gDQ"
+  },
+  {
+    "id": "t3_1qnh00x",
+    "title": "Walking games?",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qnh00x/walking_games/",
+    "published": "2026-01-26 06:08:53",
+    "thumbnail": "",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:KSB5gpf0rIA",
+    "title": "What AI wants to do to me",
+    "link": "https://www.youtube.com/shorts/KSB5gpf0rIA",
+    "published": "2026-01-26 06:02:42",
+    "thumbnail": "",
+    "feed_title": "The PrimeTime",
+    "video_id": "KSB5gpf0rIA"
+  },
+  {
+    "id": "t3_1qnguf7",
+    "title": "Apple introduces new AirTag with expanded range and improved findability",
+    "link": "https://www.reddit.com/r/apple/comments/1qnguf7/apple_introduces_new_airtag_with_expanded_range/",
+    "published": "2026-01-26 06:02:35",
+    "thumbnail": "https://external-preview.redd.it/Sxe78KjFh7Vi8DX47677-9M9mJG-p33Sa9VEcvpqIqg.jpeg?width=640&crop=smart&auto=webp&s=844eb2ead4bead6b305dee8c31735608ff9d6ef0",
+    "feed_title": "top scoring links : apple",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:qzue2ZtBfnk",
+    "title": "Weekend Update ft. Marcello Hern\u00e1ndez and Jeremy Culhane - SNL",
+    "link": "https://www.youtube.com/watch?v=qzue2ZtBfnk",
+    "published": "2026-01-26 06:01:18",
+    "thumbnail": "",
+    "feed_title": "Saturday Night Live",
+    "video_id": "qzue2ZtBfnk"
+  },
+  {
+    "id": "yt:video:hZaTb7YnR2w",
+    "title": "how to learn a new programming language #programming #learntocode #bashbunni",
+    "link": "https://www.youtube.com/shorts/hZaTb7YnR2w",
+    "published": "2026-01-26 06:01:11",
+    "thumbnail": "",
+    "feed_title": "bashbunni",
+    "video_id": "hZaTb7YnR2w"
+  },
+  {
+    "id": "yt:video:-dbfDyaGATk",
+    "title": "Testing French Montana and Max B's Music Knowledge | Track Star* Versus",
+    "link": "https://www.youtube.com/watch?v=-dbfDyaGATk",
+    "published": "2026-01-26 06:00:00",
+    "thumbnail": "",
+    "feed_title": "Track Star*",
+    "video_id": "-dbfDyaGATk"
+  },
+  {
+    "id": "yt:video:3_mwKbYvbUg",
+    "title": "One Prompt Every AGENTIC Codebase Should Have (For Engineering Teams)",
+    "link": "https://www.youtube.com/watch?v=3_mwKbYvbUg",
+    "published": "2026-01-26 06:00:00",
+    "thumbnail": "",
+    "feed_title": "IndyDevDan",
+    "video_id": "3_mwKbYvbUg"
+  },
+  {
+    "id": "https://4sysops.com/?p=1605219",
+    "title": "Microsoft discontinues support for answer files (unattend.xml) in Windows Deployment Services (WDS): Reasons and alternatives",
+    "link": "https://4sysops.com/archives/microsoft-discontinues-support-for-answer-files-unattendxml-in-windows-deployment-services-wds-reasons-and-alternatives/",
+    "published": "2026-01-26 05:26:28",
+    "thumbnail": "",
+    "feed_title": "4sysops",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:ns_W1mSyQFI",
+    "title": "5 Most Common Tax Mistakes High-Income Earners Make",
+    "link": "https://www.youtube.com/watch?v=ns_W1mSyQFI",
+    "published": "2026-01-26 05:01:25",
+    "thumbnail": "",
+    "feed_title": "Tae Kim - Financial Tortoise",
+    "video_id": "ns_W1mSyQFI"
+  },
+  {
+    "id": "yt:video:ZV5Fx4qMDgA",
+    "title": "AI will replace developers in 6 months. Again...",
+    "link": "https://www.youtube.com/watch?v=ZV5Fx4qMDgA",
+    "published": "2026-01-26 05:01:03",
+    "thumbnail": "",
+    "feed_title": "Awesome",
+    "video_id": "ZV5Fx4qMDgA"
+  },
+  {
+    "id": "yt:video:DvXeoTnjQyg",
+    "title": "Why Americans can't quit football | The Gray Area",
+    "link": "https://www.youtube.com/watch?v=DvXeoTnjQyg",
+    "published": "2026-01-26 05:00:21",
+    "thumbnail": "",
+    "feed_title": "Vox",
+    "video_id": "DvXeoTnjQyg"
+  },
+  {
+    "id": "yt:video:3-DnSsUqPrg",
+    "title": "an ode to autumn",
+    "link": "https://www.youtube.com/watch?v=3-DnSsUqPrg",
+    "published": "2026-01-26 05:00:13",
+    "thumbnail": "",
+    "feed_title": "inemuifj",
+    "video_id": "3-DnSsUqPrg"
+  },
+  {
+    "id": "yt:video:-0MD3Jn60fw",
+    "title": "Even Linus?",
+    "link": "https://www.youtube.com/watch?v=-0MD3Jn60fw",
+    "published": "2026-01-26 04:40:45",
+    "thumbnail": "",
+    "feed_title": "The PrimeTime",
+    "video_id": "-0MD3Jn60fw"
+  },
+  {
+    "id": "t3_1qne7yo",
+    "title": "Games like Animal Crossing PCamp (Portait mode)",
+    "link": "https://www.reddit.com/r/iosgaming/comments/1qne7yo/games_like_animal_crossing_pcamp_portait_mode/",
+    "published": "2026-01-26 04:04:05",
+    "thumbnail": "",
+    "feed_title": "top scoring links : iosgaming",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qnd3ap",
+    "title": "House Democrats introduced legislation that if passed would force federal immigration enforcement agents to wear a public-facing identification in the form of a clearly visible and scannable QR code during enforcement actions.",
+    "link": "https://www.reddit.com/r/technology/comments/1qnd3ap/house_democrats_introduced_legislation_that_if/",
+    "published": "2026-01-26 03:03:30",
+    "thumbnail": "https://external-preview.redd.it/eIIvFuJSSISssuapSCPZ_CuotqQbK54HVjc1M0dd6DY.jpeg?width=640&crop=smart&auto=webp&s=8d223d0ed70ec67d37ea79ae2c55cf1958f90fc4",
+    "feed_title": "top scoring links : technology",
+    "video_id": null
+  },
+  {
+    "id": "yt:video:CbmUwwVGaf4",
+    "title": "Exposing the People Behind Deepfake Porn Sites with Bellingcat Investigator Kolina Koltai",
+    "link": "https://www.youtube.com/watch?v=CbmUwwVGaf4",
+    "published": "2026-01-26 03:00:17",
+    "thumbnail": "",
+    "feed_title": "404 Media",
+    "video_id": "CbmUwwVGaf4"
+  },
+  {
+    "id": "https://calnewport.com/?p=16771",
+    "title": "Is the Internet Hijacking Our Ambition?",
+    "link": "https://calnewport.com/is-the-internet-hijacking-our-ambition/",
+    "published": "2026-01-26 03:00:00",
+    "thumbnail": "",
+    "feed_title": "Study Hacks - Decoding Patterns of Success - Cal Newport",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qncrcu",
+    "title": "European Commission to open investigation into Elon Musk\u2019s X",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qncrcu/european_commission_to_open_investigation_into/",
+    "published": "2026-01-26 02:44:46",
+    "thumbnail": "https://external-preview.redd.it/4R0BUVYZujw2_nAKPOmeGu3o-8nsqv-SMF7wkc6Xq0k.jpeg?width=640&crop=smart&auto=webp&s=a99d58725ff7ebf54f7e7ed764874a5a24f100d3",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qnaedt",
+    "title": "Venezuela\u2019s acting president says she has had \u201cenough\u201d of US orders | CNN",
+    "link": "https://www.reddit.com/r/worldnews/comments/1qnaedt/venezuelas_acting_president_says_she_has_had/",
+    "published": "2026-01-26 00:22:38",
+    "thumbnail": "https://external-preview.redd.it/JxjNvnPjZAT0ErAQo8djig0IBtq2E74ldRoLEHEd9YI.jpeg?width=640&crop=smart&auto=webp&s=1298bda62bcbc348d64672e66a8ddbfa66168686",
+    "feed_title": "top scoring links : worldnews",
+    "video_id": null
+  },
+  {
+    "id": "t3_1qna3aa",
+    "title": "How do you automate certificates?",
+    "link": "https://www.reddit.com/r/sysadmin/comments/1qna3aa/how_do_you_automate_certificates/",
+    "published": "2026-01-26 00:04:06",
+    "thumbnail": "",
+    "feed_title": "top scoring links : sysadmin",
+    "video_id": null
+  }
+]</script>
+</body>
+</html>

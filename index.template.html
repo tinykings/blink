@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blink</title>
+    <meta name="theme-color" content="#2e3440">
+    <link rel="stylesheet" href="css/style.css">    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- PWA for iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RSS Reader">
+    
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" href="images/icon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="images/icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/icon.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="images/icon.png">
+    
+    <!-- Standard Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="images/icon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/icon.png">
+    
+    <!-- Viewport for mobile scaling - Fixed for iOS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <link rel="icon" type="image/png" href="images/icon.png">
+
+ </head>
+ <body>
+    <div id="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+     <div id="feed-container" style="display: none;"></div>
+     <section id="archive-section" class="archive-section" style="display:none;">
+        <h3>Archive</h3>
+        <p id="archive-empty" class="archive-empty">Star items to keep them handy even after they leave the main feed.</p>
+        <ul id="archive-list" class="archive-list"></ul>
+     </section>
+     <div class="footer-bar">
+         <a class="repo-link" href="https://github.com/tinykings/blink" target="_blank" rel="noopener noreferrer">blink</a>
+         <p class="last-updated"><!-- last_updated_placeholder --></p>
+         <div class="header-icons" role="toolbar" aria-label="Actions">
+            <button id="settings-icon" class="icon-btn" title="Settings" aria-label="Settings">Settings</button>
+             <button id="refresh-icon" class="icon-btn" title="Refresh" aria-label="Refresh">Refresh</button>
+            <button id="view-toggle-button" class="icon-btn">all</button>
+         </div>
+     </div>
+     <script defer src="js/main.js"></script>
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="settings-modal" style="display:none;">
+        <div class="settings-modal-content feeds-modal-content">
+            <h2>Settings</h2>
+            <div id="feeds-status" class="feeds-status"></div>
+
+            <div id="sync-panel" class="settings-panel">
+                <p class="sync-description">Connect to GitHub to sync starred items across devices.</p>
+                <form id="settings-form">
+                    <label for="gist-id">Gist ID:</label>
+                    <input type="text" id="gist-id" name="gist-id" autocomplete="off" placeholder="For syncing starred items">
+                    <label for="github-token">GitHub Token:</label>
+                    <input type="password" id="github-token" name="github-token" autocomplete="off">
+                    <p class="settings-hint">Token needs <code>gist</code> scope to sync stars.</p>
+                </form>
+            </div>
+            
+            <div class="settings-modal-actions">
+                <button type="button" id="feeds-save" class="icon-btn" disabled>Save</button>
+                <button type="button" id="feeds-cancel" class="icon-btn">Close</button>
+            </div>
+        </div>
+    </div>
+ </body>
+</html>
