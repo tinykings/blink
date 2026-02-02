@@ -82,8 +82,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCJfJWct8jN1RpCuVWk3zHTA
 https://www.youtube.com/feeds/videos.xml?channel_id=UCTvH45HvnOzqXvfNJqdc3xg
 # Noisy Pixel
 https://www.youtube.com/feeds/videos.xml?channel_id=UCYtuVAsWV5wTITaLgEGqqZg
-# WULFF DEN
-https://www.youtube.com/feeds/videos.xml?channel_id=UCr613nJgA50o8DUUT00qHvw
 # TechDweeb
 https://www.youtube.com/feeds/videos.xml?channel_id=UCgRaK4A7yi4ZELCLUjdP_pg
 # /noclip
