@@ -18,6 +18,7 @@ https://4sysops.com/feed/
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 https://gg.deals/us/news/feed/
+https://github.com/basecamp/omarchy/releases.atom
 
 #youtube
 # Linux Gamer Life
