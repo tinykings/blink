@@ -39,8 +39,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCfHmyqCntYHQ81ZukNu66rg
 https://www.youtube.com/feeds/videos.xml?channel_id=UCoAlewNQrVj1jSoye5QFMcQ
 # Gaming In The Wild
 https://www.youtube.com/feeds/videos.xml?channel_id=UC2CxEBWZNBMDV5evJvFWkpQ
-# Linus Tech Tips
-https://www.youtube.com/feeds/videos.xml?channel_id=UCXuqSBlHAE6Xw-yeJA0Tunw
 # TheBackgroundNPC 🧙‍♂️
 https://www.youtube.com/feeds/videos.xml?channel_id=UCuEAyHQajqJrWeVrJKgIS_Q
 # Cadaea
