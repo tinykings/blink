@@ -23,8 +23,6 @@ https://github.com/basecamp/omarchy/releases.atom
 #youtube
 # Linux Gamer Life
 https://www.youtube.com/feeds/videos.xml?channel_id=UCeRKQYn0niKhkxwuCRwppiA
-# theneedledrop
-https://www.youtube.com/feeds/videos.xml?channel_id=UCt7fwAhXDy3oNFTAzF2o8Pw
 # David Hartley
 https://www.youtube.com/feeds/videos.xml?channel_id=UCydX8ueOwv5_bvd7Uj0HBHw
 # Rogan 🎮 gaming nonsense
