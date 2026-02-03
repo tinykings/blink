@@ -21,6 +21,8 @@ https://gg.deals/us/news/feed/
 https://github.com/basecamp/omarchy/releases.atom
 
 #youtube
+https://www.youtube.com/@jakkuh_t
+
 # Linux Gamer Life
 https://www.youtube.com/feeds/videos.xml?channel_id=UCeRKQYn0niKhkxwuCRwppiA
 # David Hartley
