@@ -101,10 +101,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCuVxaQDraOja6xKidcmoufA
 https://www.youtube.com/feeds/videos.xml?channel_id=UC-2OWg_yYnoU_IAYHwJKeDw
 # Raycevick
 https://www.youtube.com/feeds/videos.xml?channel_id=UC1JTQBa5QxZCpXrFSkMxmPw
-# theneedledrop
-https://www.youtube.com/feeds/videos.xml?channel_id=UCt7fwAhXDy3oNFTAzF2o8Pw
-# David Hartley
-https://www.youtube.com/feeds/videos.xml?channel_id=UCydX8ueOwv5_bvd7Uj0HBHw
 # PewDiePie
 https://www.youtube.com/feeds/videos.xml?channel_id=UC-lHJZR3Gqxm24_Vd_AJ5Yw
 # Better Creating
@@ -489,8 +485,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCoC47do520os_4DBMEFGg4A
 https://www.youtube.com/feeds/videos.xml?channel_id=UCEP-696sFVJMSNf0XgfdqGQ
 # Enrico Tartarotti
 https://www.youtube.com/feeds/videos.xml?channel_id=UCuQT7Vc3OjjZuGkqehNxb6w
-# Middle 8
-https://www.youtube.com/feeds/videos.xml?channel_id=UCfeppgcy70ERp4gQrsYijsg
 # MintCity
 https://www.youtube.com/feeds/videos.xml?channel_id=UCIoYxzjYbqkb7SWFzr6_u1Q
 # Dreams of Code

@@ -3,7 +3,9 @@ import json
 import logging
 import re
 import requests
+import time
 import warnings
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -20,10 +22,41 @@ warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 
 # Configuration
 TIMEZONE = 'America/Los_Angeles'
-ITEMS_RETENTION_DAYS = 5
+ITEMS_RETENTION_DAYS = 2
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
 REQUEST_TIMEOUT = 30
 MAX_WORKERS = 10
+MAX_RETRIES = 3
+RETRY_BASE_DELAY = 1.0  # seconds
+
+
+@dataclass
+class FeedStats:
+    """Track feed fetch statistics."""
+    total: int = 0
+    successful: int = 0
+    failed: int = 0
+    retried: int = 0
+    failed_feeds: List[str] = field(default_factory=list)
+
+    def record_success(self, url: str) -> None:
+        self.successful += 1
+
+    def record_failure(self, url: str, error: str) -> None:
+        self.failed += 1
+        self.failed_feeds.append(f"{url}: {error}")
+
+    def record_retry(self) -> None:
+        self.retried += 1
+
+    def log_summary(self) -> None:
+        logger.info(f"Feed fetch summary: {self.successful}/{self.total} successful, {self.failed} failed, {self.retried} retries")
+        if self.failed_feeds:
+            logger.warning(f"Failed feeds ({len(self.failed_feeds)}):")
+            for feed_error in self.failed_feeds[:10]:  # Limit output
+                logger.warning(f"  - {feed_error}")
+            if len(self.failed_feeds) > 10:
+                logger.warning(f"  ... and {len(self.failed_feeds) - 10} more")
 
 
 class FeedProcessor:
@@ -169,42 +202,64 @@ class FeedProcessor:
         logger.info(f"Found {len(all_rss_urls)} RSS feeds to process")
         return all_rss_urls
     
-    def fetch_single_feed(self, url: str) -> List[Dict[str, Any]]:
-        """Fetch and parse a single RSS feed."""
-        try:
-            response = self.session.get(url, timeout=REQUEST_TIMEOUT)
-            response.raise_for_status()
-            
-            feed = feedparser.parse(response.content)
-            if feed.bozo and isinstance(feed.bozo_exception, Exception):
-                logger.warning(f"Parse error for {url}: {feed.bozo_exception}")
-                if not feed.entries:
-                    return []
-            
-            return self._process_feed_entries(feed, url)
-            
-        except requests.RequestException as e:
-            logger.error(f"Error fetching feed {url}: {e}")
-        except Exception as e:
-            logger.error(f"Error processing feed {url}: {e}")
+    def fetch_single_feed(self, url: str, stats: Optional[FeedStats] = None) -> List[Dict[str, Any]]:
+        """Fetch and parse a single RSS feed with retry logic."""
+        last_error = None
+
+        for attempt in range(MAX_RETRIES):
+            try:
+                response = self.session.get(url, timeout=REQUEST_TIMEOUT)
+                response.raise_for_status()
+
+                feed = feedparser.parse(response.content)
+                if feed.bozo and isinstance(feed.bozo_exception, Exception):
+                    logger.warning(f"Parse error for {url}: {feed.bozo_exception}")
+                    if not feed.entries:
+                        if stats:
+                            stats.record_failure(url, f"Parse error: {feed.bozo_exception}")
+                        return []
+
+                if stats:
+                    stats.record_success(url)
+                return self._process_feed_entries(feed, url)
+
+            except requests.RequestException as e:
+                last_error = str(e)
+                if attempt < MAX_RETRIES - 1:
+                    delay = RETRY_BASE_DELAY * (2 ** attempt)  # Exponential backoff
+                    logger.debug(f"Retry {attempt + 1}/{MAX_RETRIES} for {url} after {delay}s")
+                    if stats:
+                        stats.record_retry()
+                    time.sleep(delay)
+                else:
+                    logger.error(f"Error fetching feed {url} after {MAX_RETRIES} attempts: {e}")
+            except Exception as e:
+                last_error = str(e)
+                logger.error(f"Error processing feed {url}: {e}")
+                break
+
+        if stats:
+            stats.record_failure(url, last_error or "Unknown error")
         return []
 
-    def fetch_feeds(self, urls: List[str]) -> List[Dict[str, Any]]:
+    def fetch_feeds(self, urls: List[str]) -> Tuple[List[Dict[str, Any]], FeedStats]:
         """Fetch and parse RSS feeds from URLs in parallel."""
         logger.info(f"Fetching {len(urls)} feeds")
         all_items = []
-        
+        stats = FeedStats(total=len(urls))
+
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            future_to_url = {executor.submit(self.fetch_single_feed, url): url for url in urls}
+            future_to_url = {executor.submit(self.fetch_single_feed, url, stats): url for url in urls}
             for i, future in enumerate(as_completed(future_to_url)):
                 url = future_to_url[future]
                 items = future.result()
                 all_items.extend(items)
                 if (i + 1) % 10 == 0 or (i + 1) == len(urls):
                     logger.info(f"Processed {i+1}/{len(urls)} feeds")
-        
+
+        stats.log_summary()
         logger.info(f"Fetched {len(all_items)} total items")
-        return all_items
+        return all_items, stats
     
     def _process_feed_entries(self, feed: feedparser.FeedParserDict, url: str) -> List[Dict[str, Any]]:
         """Process entries from a single feed."""
@@ -374,19 +429,21 @@ class FeedProcessor:
 def main():
     """Main execution function."""
     processor = FeedProcessor()
-    
+
     # Process URLs and fetch feeds
     feed_urls = processor.process_urls_file('feeds.txt')
-    feed_items = processor.fetch_feeds(feed_urls)
+    feed_items, stats = processor.fetch_feeds(feed_urls)
     sorted_items = processor.sort_items(feed_items)
-    
+
     # Generate HTML and JSON
     html_snippet, json_data = processor.process_items_for_display(sorted_items)
-    
+
     # Update HTML file
     processor.update_html_file(html_snippet, json_data)
-    
+
     logger.info(f"Successfully processed {len(sorted_items)} items")
+    if stats.failed > 0:
+        logger.warning(f"Note: {stats.failed} feeds failed to fetch")
 
 
 if __name__ == "__main__":

@@ -305,6 +305,13 @@ body {
     content-visibility: auto;
     contain-intrinsic-size: 300px;
     position: relative;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.feed-item.keyboard-focused {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent-color), transparent 60%),
+                0 2px 8px var(--box-shadow-color);
 }
 
 .feed-item h2 {
