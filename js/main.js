@@ -205,13 +205,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const publishedTime = publishedSource ? new Date(publishedSource).getTime() : NaN;
                 return {
                     id: item.id,
-                    title: item.title,
+                    title: item.title || 'Untitled',
                     url: item.url || item.link,
                     published: publishedSource,
                     publishedTime
                 };
             })
-            .filter(item => item.url && Number.isFinite(item.publishedTime) && (now - item.publishedTime) > retentionMs)
+            .filter(item => {
+                // Require URL for clickability, but be lenient on date
+                if (!item.url) return false;
+                // If no valid date, still show it (don't silently hide)
+                if (!Number.isFinite(item.publishedTime)) return true;
+                return (now - item.publishedTime) > retentionMs;
+            })
             .sort((a, b) => b.publishedTime - a.publishedTime);
 
         archiveSection.style.display = '';
@@ -265,9 +271,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!itemId) return;
         const meta = gistSync.getLocal();
         if (!meta || !Array.isArray(meta.items)) return;
-        const index = meta.items.findIndex(item => item && item.id === itemId);
-        if (index === -1) return;
-        meta.items.splice(index, 1);
+        const item = meta.items.find(item => item && item.id === itemId);
+        if (!item) return;
+
+        // Unstar instead of delete - preserves seen history
+        item.starred = false;
+        item.starred_changed_at = new Date().toISOString();
+
         meta.updated_at = new Date().toISOString();
         gistSync.setLocal(meta);
         renderArchive(meta.items || []);

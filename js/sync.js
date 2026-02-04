@@ -95,7 +95,7 @@ async function pushRemote(obj) {
     if (!gistId || !token) return;
 
     const now = Date.now();
-    const retentionDays = getRetentionDays() + 1;
+    const retentionDays = getRetentionDays();
     const retentionMs = retentionDays * 24 * 60 * 60 * 1000;
 
     const filteredItems = (obj.items || []).filter(item => {
@@ -184,13 +184,17 @@ function merge(localObj, remoteObj) {
                 existing.date = item.date;
             }
         } else {
-            const remoteUpdateTime = getTimeOrZero(remoteObj.updated_at);
-            const localChangeTime = getTimeOrZero(item.starred_changed_at || item.starredChangedAt || item.date);
-
-            if (item.starred && remoteUpdateTime > localChangeTime) {
-                continue;
+            // Item only exists locally - always include starred items
+            if (item.starred) {
+                mergedById.set(item.id, { ...item });
+            } else {
+                // For non-starred, check if it was deleted remotely
+                const remoteUpdateTime = getTimeOrZero(remoteObj.updated_at);
+                const localChangeTime = getTimeOrZero(item.starred_changed_at || item.starredChangedAt || item.date);
+                if (remoteUpdateTime <= localChangeTime) {
+                    mergedById.set(item.id, { ...item });
+                }
             }
-            mergedById.set(item.id, { ...item });
         }
     }
 
