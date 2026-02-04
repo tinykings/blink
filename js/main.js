@@ -125,9 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let mediaHtml = '';
         if (item.video_id) {
             const thumbnailUrl = `https://img.youtube.com/vi/${item.video_id}/sddefault.jpg`;
-            mediaHtml = `<div class="video-placeholder" data-video-id="${item.video_id}"><img src="${thumbnailUrl}" alt="Video Thumbnail" class="video-thumbnail"><div class="play-button"></div></div>`;
+            mediaHtml = `<div class="video-placeholder" data-video-id="${item.video_id}"><img src="${thumbnailUrl}" alt="Video Thumbnail" class="video-thumbnail" loading="lazy"><div class="play-button"></div></div>`;
         } else if (item.thumbnail) {
-            mediaHtml = `<a href="${item.link}" target="_blank"><img src="${item.thumbnail}" alt="${item.title}" class="feed-thumbnail"></a>`;
+            mediaHtml = `<a href="${item.link}" target="_blank"><img src="${item.thumbnail}" alt="${item.title}" class="feed-thumbnail" loading="lazy"></a>`;
         }
 
         const starredItems = getStarredItems();
