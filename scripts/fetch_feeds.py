@@ -195,13 +195,55 @@ class FeedProcessor:
                         converted_entries.append((original_url, original_url, channel_name))
                         logger.warning(f"Could not convert YouTube channel: {original_url}")
         
+        # Write back converted YouTube URLs to feeds.txt
+        self._update_feeds_file(file_path, converted_entries)
+
         # Return all RSS URLs
-        all_rss_urls = rss_urls + [entry[0] for entry in converted_entries 
+        all_rss_urls = rss_urls + [entry[0] for entry in converted_entries
                                    if entry[0].startswith("https://www.youtube.com/feeds/videos.xml")]
-        
+
         logger.info(f"Found {len(all_rss_urls)} RSS feeds to process")
         return all_rss_urls
     
+    def _update_feeds_file(self, file_path: str, converted_entries: List[Tuple[str, str, Optional[str]]]) -> None:
+        """Replace YouTube channel URLs in feeds.txt with their RSS feed equivalents."""
+        # Build a map from original channel URL -> (rss_url, channel_name)
+        replacements = {}
+        for rss_url, original_url, channel_name in converted_entries:
+            if original_url == rss_url:
+                continue
+            if not rss_url.startswith("https://www.youtube.com/feeds/videos.xml"):
+                continue
+            replacements[original_url] = (rss_url, channel_name)
+
+        if not replacements:
+            return
+
+        try:
+            with open(file_path, 'r') as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            return
+
+        new_lines = []
+        for line in lines:
+            stripped = line.strip()
+            if stripped in replacements:
+                rss_url, channel_name = replacements[stripped]
+                if channel_name:
+                    new_lines.append(f"# {channel_name}\n")
+                new_lines.append(f"{rss_url}\n")
+                logger.info(f"Updated feeds.txt: {stripped} -> {rss_url}")
+            else:
+                new_lines.append(line)
+
+        try:
+            with open(file_path, 'w') as f:
+                f.writelines(new_lines)
+            logger.info(f"Saved updated feeds to {file_path}")
+        except IOError as e:
+            logger.error(f"Could not update {file_path}: {e}")
+
     def fetch_single_feed(self, url: str, stats: Optional[FeedStats] = None) -> List[Dict[str, Any]]:
         """Fetch and parse a single RSS feed with retry logic."""
         last_error = None
