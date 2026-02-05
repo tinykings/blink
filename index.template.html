@@ -31,9 +31,20 @@
  </head>
  <body>
     <div id="loading-overlay">
-        <div class="loading-spinner"></div>
+        <div class="skeleton-container">
+            <div class="skeleton-card"><div class="skeleton-media"></div><div class="skeleton-title"></div><div class="skeleton-meta"></div></div>
+            <div class="skeleton-card"><div class="skeleton-media"></div><div class="skeleton-title"></div><div class="skeleton-meta"></div></div>
+            <div class="skeleton-card"><div class="skeleton-title" style="width:85%"></div><div class="skeleton-meta"></div></div>
+            <div class="skeleton-card"><div class="skeleton-media"></div><div class="skeleton-title"></div><div class="skeleton-meta"></div></div>
+            <div class="skeleton-card"><div class="skeleton-title" style="width:65%"></div><div class="skeleton-meta"></div></div>
+        </div>
     </div>
      <div id="feed-container" style="display: none;"></div>
+     <div id="empty-state" class="empty-state" style="display:none;">
+        <div class="empty-state-icon">&#x2713;</div>
+        <p class="empty-state-text">You're all caught up</p>
+        <p class="empty-state-sub">No new items right now</p>
+     </div>
      <section id="archive-section" class="archive-section" style="display:none;">
         <h3>Archive</h3>
         <p id="archive-empty" class="archive-empty">Star items to keep them handy even after they leave the main feed.</p>
@@ -43,10 +54,24 @@
          <a class="repo-link" href="https://github.com/tinykings/blink" target="_blank" rel="noopener noreferrer">blink</a>
          <p class="last-updated"><!-- last_updated_placeholder --></p>
          <div class="header-icons" role="toolbar" aria-label="Actions">
-            <button id="settings-icon" class="icon-btn" title="Settings" aria-label="Settings">Settings</button>
-             <button id="refresh-icon" class="icon-btn" title="Refresh" aria-label="Refresh">Refresh</button>
-            <button id="view-toggle-button" class="icon-btn">all</button>
+            <button id="settings-icon" class="icon-btn" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+             <button id="refresh-icon" class="icon-btn" title="Refresh" aria-label="Refresh"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+            <button id="view-toggle-button" class="icon-btn" title="Toggle view" aria-label="Toggle view"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
          </div>
+     </div>
+     <div id="toast-container" class="toast-container"></div>
+     <button id="scroll-top-btn" class="icon-btn scroll-top-btn" title="Scroll to top" aria-label="Scroll to top"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></button>
+     <div id="keyboard-help" class="keyboard-help-overlay" style="display:none;">
+        <div class="keyboard-help-content">
+            <h2>Keyboard Shortcuts</h2>
+            <ul class="keyboard-help-list">
+                <li><kbd>j</kbd> <span class="key-desc">Next item</span></li>
+                <li><kbd>k</kbd> <span class="key-desc">Previous item</span></li>
+                <li><kbd>s</kbd> <span class="key-desc">Star / unstar item</span></li>
+                <li><kbd>o</kbd> <span class="key-desc">Open item in new tab</span></li>
+                <li><kbd>?</kbd> <span class="key-desc">Show this help</span></li>
+            </ul>
+        </div>
      </div>
      <script type="module" src="js/main.js"></script>
     <!-- Settings Modal -->

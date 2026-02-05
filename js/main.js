@@ -4,6 +4,35 @@ import { createYouTubePlayer } from './youtube.js';
 import { getRetentionDays, getStarredItems, escapeItemId, getSafeArchiveUrl } from './storage.js';
 import { gistSync } from './sync.js';
 
+function relativeTime(dateStr) {
+    if (!dateStr) return '';
+    const now = Date.now();
+    const then = new Date(dateStr).getTime();
+    if (!Number.isFinite(then)) return '';
+    const diff = now - then;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return `${days}d ago`;
+    return new Date(then).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function showToast(message, type = 'info', duration = 3000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('toast-out');
+        toast.addEventListener('animationend', () => toast.remove());
+    }, duration);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Settings Modal
     const settingsIcon = document.getElementById('settings-icon');
@@ -88,6 +117,13 @@ document.addEventListener('DOMContentLoaded', () => {
         feedsSaveBtn.addEventListener('click', saveChanges);
     }
 
+    const keyboardHelp = document.getElementById('keyboard-help');
+    if (keyboardHelp) {
+        keyboardHelp.addEventListener('click', e => {
+            if (e.target === keyboardHelp) keyboardHelp.style.display = 'none';
+        });
+    }
+
     [gistIdInput, githubTokenInput].forEach(input => {
         if (input) {
             input.addEventListener('input', () => {
@@ -104,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const archiveSection = document.getElementById('archive-section');
     const archiveList = document.getElementById('archive-list');
     const archiveEmpty = document.getElementById('archive-empty');
+    const emptyState = document.getElementById('empty-state');
     let feedData = [];
     let feedDataById = new Map();
     let showingNew = true;
@@ -134,7 +171,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const isStarred = starredItems.includes(item.id);
         const starHtml = `<span class="star-icon ${isStarred ? 'starred' : ''}" data-item-id="${item.id}">★</span>`;
 
-        return `<div class="feed-item" data-item-id="${item.id}">${starHtml}${mediaHtml}<div class="feed-item-info"><h2><a href="${item.link}" target="_blank">${item.title}</a></h2></div></div>`;
+        let metaHtml = '';
+        const source = item.feed_title || '';
+        const time = relativeTime(item.published);
+        if (source || time) {
+            const parts = [];
+            if (source) parts.push(`<span class="feed-source">${source}</span>`);
+            if (source && time) parts.push('<span class="meta-sep">&middot;</span>');
+            if (time) parts.push(`<span class="feed-time">${time}</span>`);
+            metaHtml = `<div class="feed-item-meta">${parts.join('')}</div>`;
+        }
+
+        return `<div class="feed-item" data-item-id="${item.id}">${starHtml}${mediaHtml}<div class="feed-item-info"><h2><a href="${item.link}" target="_blank">${item.title}</a></h2>${metaHtml}</div></div>`;
     }
 
     function getDomMetadataForItem(itemId) {
@@ -311,13 +359,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyView(metaItems) {
         if (!feedContainer) return;
         const allItems = Array.from(feedContainer.querySelectorAll('.feed-item'));
-        if (allItems.length === 0) return;
+        if (allItems.length === 0) {
+            if (emptyState && showingNew) emptyState.style.display = '';
+            return;
+        }
 
         const metaItemsById = new Map((metaItems || []).map(i => [i.id, i]));
 
         if (showingNew) {
-            viewToggleButton.textContent = 'new';
-
             allItems.sort((a, b) => {
                 const aItem = metaItemsById.get(a.dataset.itemId);
                 const bItem = metaItemsById.get(b.dataset.itemId);
@@ -327,22 +376,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 return aIsStarred ? 1 : -1;
             });
 
+            let visibleCount = 0;
             const fragment = document.createDocumentFragment();
             allItems.forEach(item => {
                 const metaItem = metaItemsById.get(item.dataset.itemId);
                 const shouldHide = metaItem && metaItem.seen && !metaItem.starred;
                 item.style.display = shouldHide ? 'none' : '';
+                if (!shouldHide) visibleCount++;
                 fragment.appendChild(item);
             });
             feedContainer.appendChild(fragment);
+
+            if (emptyState) emptyState.style.display = visibleCount === 0 ? '' : 'none';
         } else {
-            viewToggleButton.textContent = 'all';
             const fragment = document.createDocumentFragment();
             allItems.forEach(item => {
                 item.style.display = '';
                 fragment.appendChild(item);
             });
             feedContainer.appendChild(fragment);
+            if (emptyState) emptyState.style.display = 'none';
+        }
+
+        // Update view toggle icon
+        const toggleSvg = viewToggleButton.querySelector('svg');
+        if (toggleSvg) {
+            if (showingNew) {
+                toggleSvg.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+            } else {
+                toggleSvg.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+            }
         }
 
         // Reset keyboard navigation when view changes
@@ -398,7 +461,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             case '?': // Show keyboard help
                 e.preventDefault();
-                alert('Keyboard shortcuts:\n\nj - Next item\nk - Previous item\ns - Star/unstar item\no/Enter - Open item\n? - Show this help');
+                const helpOverlay = document.getElementById('keyboard-help');
+                if (helpOverlay) {
+                    const isVisible = helpOverlay.style.display !== 'none';
+                    helpOverlay.style.display = isVisible ? 'none' : 'flex';
+                }
                 break;
         }
     });
@@ -486,9 +553,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Sync toast notifications
+    window.addEventListener('blink-sync', (e) => {
+        const { type, message } = e.detail || {};
+        if (message) showToast(message, type === 'error' ? 'error' : 'success', 2500);
+    });
+
+    // Scroll-to-top button
+    const scrollTopBtn = document.getElementById('scroll-top-btn');
+    if (scrollTopBtn) {
+        let scrollTicking = false;
+        window.addEventListener('scroll', () => {
+            if (!scrollTicking) {
+                requestAnimationFrame(() => {
+                    scrollTopBtn.classList.toggle('visible', window.scrollY > 600);
+                    scrollTicking = false;
+                });
+                scrollTicking = true;
+            }
+        }, { passive: true });
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
     const startupLogic = async () => {
         const loadingOverlay = document.getElementById('loading-overlay');
-        if (loadingOverlay) loadingOverlay.style.display = 'flex';
+        if (loadingOverlay) loadingOverlay.style.display = '';
 
         await gistSync.syncOnStartup();
         const meta = gistSync.getLocal();

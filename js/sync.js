@@ -214,8 +214,15 @@ function schedulePush() {
         const local = getLocal();
         try {
             await pushRemote(local);
-        } catch (e) { console.warn('Failed pushing to gist:', e); }
+        } catch (e) {
+            console.warn('Failed pushing to gist:', e);
+            dispatchSyncEvent('error', 'Sync push failed');
+        }
     }, DEBOUNCE_MS);
+}
+
+function dispatchSyncEvent(type, message) {
+    window.dispatchEvent(new CustomEvent('blink-sync', { detail: { type, message } }));
 }
 
 /**
@@ -224,11 +231,17 @@ function schedulePush() {
 export async function syncOnStartup() {
     const cfg = getConfig();
     if (!cfg.gistId || !cfg.token) return;
-    const remote = await fetchRemote();
-    if (remote) {
-        const local = getLocal();
-        const resolved = merge(local, remote);
-        setLocal(resolved);
+    try {
+        const remote = await fetchRemote();
+        if (remote) {
+            const local = getLocal();
+            const resolved = merge(local, remote);
+            setLocal(resolved);
+            dispatchSyncEvent('success', 'Synced');
+        }
+    } catch (e) {
+        console.warn('Sync on startup failed:', e);
+        dispatchSyncEvent('error', 'Sync failed');
     }
 }
 
