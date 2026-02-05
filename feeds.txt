@@ -22,7 +22,8 @@ https://gg.deals/us/news/feed/
 
 #youtube
 
-https://www.youtube.com/@jakkuh_t
+# jakkuh
+https://www.youtube.com/feeds/videos.xml?channel_id=UCJa14zeVf8p6clixTOIOVyQ
 
 # Linux Gamer Life
 https://www.youtube.com/feeds/videos.xml?channel_id=UCeRKQYn0niKhkxwuCRwppiA

@@ -72,38 +72,75 @@ class FeedProcessor:
     def get_youtube_channel_info(self, url: str) -> Tuple[Optional[str], Optional[str]]:
         """Extract YouTube channel ID and name from URL."""
         logger.debug(f"Extracting YouTube channel info from: {url}")
-        
+
         try:
             response = self.session.get(url, timeout=REQUEST_TIMEOUT)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'lxml')
-            
-            # Try to find channel ID
+
+            # Try to find channel ID using multiple strategies
             channel_id = None
+
+            # Strategy 1: meta itemprop tag
             meta_tag = soup.find('meta', itemprop='channelId')
             if meta_tag and meta_tag.get('content'):
                 channel_id = meta_tag['content']
-            
-            # Fallback: extract from canonical URL
+
+            # Strategy 2: canonical URL
             if not channel_id:
                 link_tag = soup.find('link', rel='canonical')
                 if link_tag and link_tag.get('href'):
                     match = re.search(r'channel/(UC[\w-]+)', link_tag['href'])
                     if match:
                         channel_id = match.group(1)
-            
+
+            # Strategy 3: og:url or twitter:url meta tags
+            if not channel_id:
+                for prop in ['og:url', 'twitter:url']:
+                    meta = soup.find('meta', attrs={'property': prop}) or soup.find('meta', attrs={'name': prop})
+                    if meta and meta.get('content'):
+                        match = re.search(r'channel/(UC[\w-]+)', meta['content'])
+                        if match:
+                            channel_id = match.group(1)
+                            break
+
+            # Strategy 4: externalId in inline JSON data
+            if not channel_id:
+                match = re.search(r'"externalId"\s*:\s*"(UC[\w-]+)"', response.text)
+                if match:
+                    channel_id = match.group(1)
+
             # Extract channel name
             channel_name = None
             title_tag = soup.find('title')
             if title_tag:
                 title_text = title_tag.get_text().strip()
                 channel_name = title_text.replace(' - YouTube', '').strip()
-            
-            return channel_id, channel_name
-            
+
+            if channel_id:
+                return channel_id, channel_name
+
         except requests.RequestException as e:
-            logger.error(f"Error fetching YouTube channel page {url}: {e}")
-            return None, None
+            logger.warning(f"HTML scrape failed for {url}: {e}")
+
+        # Fallback: try the /videos page which may have different HTML
+        try:
+            handle_match = re.search(r'youtube\.com/(@[\w.-]+)', url)
+            if handle_match:
+                resolve_url = f"https://www.youtube.com/{handle_match.group(1)}/videos"
+                response = self.session.get(resolve_url, timeout=REQUEST_TIMEOUT)
+                match = re.search(r'"externalId"\s*:\s*"(UC[\w-]+)"', response.text)
+                if not match:
+                    match = re.search(r'channel/(UC[\w-]+)', response.text)
+                if match:
+                    channel_id = match.group(1)
+                    logger.info(f"Resolved channel ID via fallback for {url}: {channel_id}")
+                    return channel_id, None
+        except requests.RequestException as e:
+            logger.warning(f"Fallback resolution failed for {url}: {e}")
+
+        logger.error(f"Could not extract channel ID from {url}")
+        return None, None
     
     def process_urls_file(self, file_path: str) -> List[str]:
         """Process URLs file and convert YouTube channels to RSS feeds."""
