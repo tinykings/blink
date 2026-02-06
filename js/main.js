@@ -533,7 +533,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (refreshIcon) {
-        refreshIcon.addEventListener('click', () => window.location.reload());
+        refreshIcon.addEventListener('click', () => {
+            window.scrollTo(0, 0);
+            window.location.reload();
+        });
     }
 
     if (archiveList) {
