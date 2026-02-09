@@ -21,7 +21,8 @@ https://www.reddit.com/r/games/top.rss?t=week
 https://gg.deals/us/news/feed/
 
 #youtube
-https://www.youtube.com/@Level1Linux
+# Level1Linux
+https://www.youtube.com/feeds/videos.xml?channel_id=UCOWcZ6Wicl-1N34H0zZe38w
 # jakkuh
 https://www.youtube.com/feeds/videos.xml?channel_id=UCJa14zeVf8p6clixTOIOVyQ
 # Linux Gamer Life
