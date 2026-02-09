@@ -10,15 +10,12 @@ export function getRetentionDays() {
     if (cachedRetentionDays !== null) {
         return cachedRetentionDays;
     }
-    const lastUpdatedElement = document.querySelector('.last-updated');
-    if (lastUpdatedElement) {
-        const match = lastUpdatedElement.textContent.match(/\|\s*(\d+)d/);
-        if (match && match[1]) {
-            const parsed = parseInt(match[1], 10);
-            if (!Number.isNaN(parsed)) {
-                cachedRetentionDays = parsed;
-                return cachedRetentionDays;
-            }
+    const footerBar = document.querySelector('.footer-bar');
+    if (footerBar) {
+        const parsed = parseInt(footerBar.dataset.retentionDays, 10);
+        if (!Number.isNaN(parsed)) {
+            cachedRetentionDays = parsed;
+            return cachedRetentionDays;
         }
     }
     cachedRetentionDays = 2;
