@@ -493,8 +493,7 @@ class FeedProcessor:
         
         # Update timestamp
         now = self.utc_now.astimezone(self.local_tz)
-        timestamp = now.strftime("%m-%d %I:%M")
-        last_updated_text = f"{timestamp} | {ITEMS_RETENTION_DAYS}d"
+        last_updated_text = now.strftime("%I:%M")
         template = template.replace('<!-- last_updated_placeholder -->', last_updated_text)
         
         try:

@@ -134,18 +134,9 @@ body {
     border-top: 1px solid var(--border-color);
 }
 
-.footer-bar .repo-link {
-    font-size: var(--font-size-medium);
-    color: var(--accent-color);
-    text-decoration: none;
-}
-.footer-bar .repo-link:hover {
-    color: var(--accent-color-hover);
-    text-decoration: underline;
-}
-
 .footer-bar .last-updated {
     margin: 0;
+    text-align: center;
 }
 
 .last-updated {
@@ -156,12 +147,15 @@ body {
 
 .header-icons {
     display: flex;
+    flex: 1;
     gap: var(--spacing-medium);
 }
 
 .footer-right {
     display: flex;
+    flex: 1;
     align-items: center;
+    justify-content: flex-end;
     gap: var(--spacing-medium);
 }
 
