@@ -2,32 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Blink</title>
     <meta name="theme-color" content="#2e3440">
-    <link rel="stylesheet" href="css/style.css">    <!-- PWA Manifest -->
+
+    <link rel="preconnect" href="https://img.youtube.com">
+    <link rel="preconnect" href="https://api.github.com">
+
+    <link rel="stylesheet" href="css/style.css">
     <link rel="manifest" href="manifest.json">
-    
+
+    <link rel="modulepreload" href="js/main.js">
+    <link rel="modulepreload" href="js/sync.js">
+    <link rel="modulepreload" href="js/storage.js">
+    <link rel="modulepreload" href="js/youtube.js">
+
     <!-- PWA for iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="RSS Reader">
-    
-    <!-- iOS Icons -->
-    <link rel="apple-touch-icon" href="images/icon.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="images/icon.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="images/icon.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="images/icon.png">
-    
-    <!-- Standard Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="images/icon.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="images/icon.png">
-    
-    <!-- Viewport for mobile scaling - Fixed for iOS -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <link rel="icon" type="image/png" href="images/icon.png">
 
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="images/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/icon-192.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="images/icon-192.png">
+
+    <!-- Standard Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="images/icon-192.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/icon-192.png">
+    <link rel="icon" type="image/png" href="images/icon-192.png">
+
+    <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+    </script>
  </head>
  <body>
     <div id="loading-overlay">
@@ -91,7 +101,7 @@
                     <p class="settings-hint">Token needs <code>gist</code> scope to sync stars.</p>
                 </form>
             </div>
-            
+
             <div class="settings-modal-actions">
                 <button type="button" id="feeds-save" class="icon-btn" disabled>Save</button>
                 <button type="button" id="feeds-cancel" class="icon-btn">Close</button>

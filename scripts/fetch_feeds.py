@@ -415,54 +415,14 @@ class FeedProcessor:
         """Sort items by published date."""
         return sorted(items, key=lambda x: x['published'], reverse=True)
     
-    def process_items_for_display(self, items: List[Dict[str, Any]]) -> Tuple[str, str]:
-        """Generate HTML and JSON for all items."""
+    def process_items_for_display(self, items: List[Dict[str, Any]]) -> str:
+        """Generate JSON for all items."""
         logger.info("Processing items for display")
 
         if not items:
-            return "", "[]"
+            return "[]"
 
-        # Generate HTML for all items
-        html_snippet = self._generate_all_items_html(items)
-
-        # Generate JSON for all items
-        json_data = self._generate_all_items_json(items)
-
-        return html_snippet, json_data
-
-    def _generate_all_items_html(self, items: List[Dict[str, Any]]) -> str:
-        """Generate HTML for all feed items."""
-        html = ''
-        for i, item in enumerate(items):
-            html += self._generate_item_html(item, str(i))
-        return html
-
-    def _generate_item_html(self, item: Dict[str, Any], item_id: str) -> str:
-        """Generate HTML for a single feed item."""
-        html = f'<div class="feed-item" data-item-id="{item["id"]}">\n'
-        
-        # Add star icon placeholder
-        html += f'<span class="star-icon" data-item-id="{item["id"]}">★</span>\n'
-
-        # Add thumbnail/video placeholder
-        if item['video_id']:
-            thumbnail_url = f"https://img.youtube.com/vi/{item['video_id']}/sddefault.jpg"
-            html += f'''<div class="video-placeholder" data-video-id="{item['video_id']}">
-<img src="{thumbnail_url}" alt="Video Thumbnail" class="video-thumbnail" loading="lazy" decoding="async">
-<div class="play-button"></div>
-</div>
-'''
-        elif item['thumbnail']:
-            html += f'<a href="{item["link"]}" target="_blank"><img src="{item["thumbnail"]}" alt="{item["title"]}" class="feed-thumbnail" loading="lazy" decoding="async"></a>\n'
-
-        # Add item info (compact: omit published date and feed title)
-        html += f'''<div class="feed-item-info">
-<h2><a href="{item["link"]}" target="_blank">{item["title"]}</a></h2>
-'''
-        html += '</div>\n'
-
-        html += '</div>\n'
-        return html
+        return self._generate_all_items_json(items)
 
     def _generate_all_items_json(self, items: List[Dict[str, Any]]) -> str:
         """Generate JSON data for all items."""
@@ -473,20 +433,17 @@ class FeedProcessor:
             serializable_items.append(item_copy)
         return json.dumps(serializable_items, indent=2)
     
-    def update_html_file(self, html_snippet: str, json_data: str, template_path: str = 'index.template.html', output_path: str = 'index.html') -> None:
+    def update_html_file(self, json_data: str, template_path: str = 'index.template.html', output_path: str = 'index.html') -> None:
         """Update the HTML file with feed data."""
         logger.info(f"Updating {output_path}")
-        
+
         try:
             with open(template_path, 'r', encoding='utf-8') as f:
                 template = f.read()
         except FileNotFoundError:
             logger.error(f"Template file {template_path} not found")
             return
-        
-        # Replace placeholders
-        template = template.replace('<div id="feed-container"></div>', f'<div id="feed-container">{html_snippet}</div>')
-        
+
         # Add JSON data
         json_script = f'<script id="feed-data" type="application/json">{json_data}</script>'
         template = template.replace('</body>', f'{json_script}\n</body>')
@@ -513,11 +470,11 @@ def main():
     feed_items, stats = processor.fetch_feeds(feed_urls)
     sorted_items = processor.sort_items(feed_items)
 
-    # Generate HTML and JSON
-    html_snippet, json_data = processor.process_items_for_display(sorted_items)
+    # Generate JSON
+    json_data = processor.process_items_for_display(sorted_items)
 
     # Update HTML file
-    processor.update_html_file(html_snippet, json_data)
+    processor.update_html_file(json_data)
 
     logger.info(f"Successfully processed {len(sorted_items)} items")
     if stats.failed > 0:

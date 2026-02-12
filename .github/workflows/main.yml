@@ -48,7 +48,7 @@ jobs:
           mkdir -p _site
           cp index.html _site/
           cp -r css js images _site/
-          cp manifest.json _site/
+          cp manifest.json sw.js _site/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

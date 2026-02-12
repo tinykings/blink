@@ -6,6 +6,10 @@ const API_BASE = 'https://api.github.com/gists';
 let pushTimeout = null;
 const DEBOUNCE_MS = 1000;
 
+let pendingPush = false;
+let lastETag = null;
+let lastKnownRemoteUpdatedAt = null;
+
 /**
  * Get Gist sync configuration from localStorage
  * @returns {{gistId: string|null, token: string|null}}
@@ -69,19 +73,25 @@ export function setLocal(obj) {
 
 /**
  * Fetch remote metadata from GitHub Gist
- * @returns {Promise<Object|null>} The remote metadata or null
+ * @returns {Promise<Object|null>} The remote metadata or null (null also on 304)
  */
 async function fetchRemote() {
     const { gistId, token } = getConfig();
     if (!gistId || !token) return null;
-    const res = await fetch(`${API_BASE}/${gistId}`, { headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' } });
+    const headers = { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' };
+    if (lastETag) headers['If-None-Match'] = lastETag;
+    const res = await fetch(`${API_BASE}/${gistId}`, { headers });
+    if (res.status === 304) return null;
     if (!res.ok) return null;
+    const etag = res.headers.get('ETag');
+    if (etag) lastETag = etag;
     const data = await res.json();
     const file = data.files && data.files['starred.json'];
     if (!file || !file.content) return null;
     try {
         const remoteData = JSON.parse(file.content);
         remoteData.updated_at = data.updated_at;
+        lastKnownRemoteUpdatedAt = data.updated_at;
         return remoteData;
     } catch { return null; }
 }
@@ -114,11 +124,18 @@ async function pushRemote(obj) {
     delete payloadData.seenItems;
 
     const payload = { files: { 'starred.json': { content: JSON.stringify(payloadData, null, 2) } } };
-    await fetch(`${API_BASE}/${gistId}`, {
+    const res = await fetch(`${API_BASE}/${gistId}`, {
         method: 'PATCH',
         headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
     });
+    if (!res.ok) {
+        throw new Error(`Gist push failed: ${res.status}`);
+    }
+    const data = await res.json();
+    if (data.updated_at) lastKnownRemoteUpdatedAt = data.updated_at;
+    const etag = res.headers.get('ETag');
+    if (etag) lastETag = etag;
 }
 
 /**
@@ -211,11 +228,29 @@ function merge(localObj, remoteObj) {
 function schedulePush() {
     if (pushTimeout) clearTimeout(pushTimeout);
     pushTimeout = setTimeout(async () => {
-        const local = getLocal();
         try {
+            const local = getLocal();
+            // Optimistic concurrency: check for remote changes before pushing
+            const remote = await fetchRemote();
+            if (remote && lastKnownRemoteUpdatedAt) {
+                const remoteTime = getTimeOrZero(remote.updated_at);
+                const knownTime = getTimeOrZero(lastKnownRemoteUpdatedAt);
+                if (remoteTime > knownTime) {
+                    // Remote changed since we last saw it — merge first
+                    const merged = merge(local, remote);
+                    setLocal(merged);
+                    await pushRemote(merged);
+                    pendingPush = false;
+                    dispatchSyncEvent('success', 'Synced');
+                    return;
+                }
+            }
             await pushRemote(local);
+            pendingPush = false;
+            dispatchSyncEvent('success', 'Synced');
         } catch (e) {
             console.warn('Failed pushing to gist:', e);
+            pendingPush = true;
             dispatchSyncEvent('error', 'Sync push failed');
         }
     }, DEBOUNCE_MS);
@@ -224,6 +259,22 @@ function schedulePush() {
 function dispatchSyncEvent(type, message) {
     window.dispatchEvent(new CustomEvent('blink-sync', { detail: { type, message } }));
 }
+
+/**
+ * Retry pending push if we're online
+ */
+function retryPendingPush() {
+    if (!pendingPush) return;
+    const cfg = getConfig();
+    if (!cfg.gistId || !cfg.token) return;
+    schedulePush();
+}
+
+// Retry on reconnect and when tab becomes visible
+window.addEventListener('online', retryPendingPush);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') retryPendingPush();
+});
 
 /**
  * Sync on application startup

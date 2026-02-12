@@ -194,8 +194,7 @@ body {
     margin-top: calc(env(safe-area-inset-top) + var(--spacing-xlarge));
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
-    will-change: transform;
-    transform: translateZ(0);
+
 }
 
 .archive-section {
