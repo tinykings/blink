@@ -332,50 +332,10 @@ document.addEventListener('DOMContentLoaded', () => {
         gistSync.pushSoon();
     }
 
-    const markAsSeen = (itemId) => {
-        if (!itemId) return;
-        let meta = gistSync.getLocal();
-        meta.items = meta.items || [];
-        let item = meta.items.find(i => i.id === itemId);
-        const now = new Date().toISOString();
-        if (item) {
-            if (!item.seen) {
-                item.seen = true;
-                meta.updated_at = now;
-                gistSync.setLocal(meta);
-                gistSync.pushSoon();
-            }
-        } else {
-            meta.items.push({ id: itemId, date: now, starred: false, seen: true });
-            meta.updated_at = now;
-            gistSync.setLocal(meta);
-            gistSync.pushSoon();
-        }
-    };
-
-    const seenObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const itemId = entry.target.dataset.itemId;
-                markAsSeen(itemId);
-                seenObserver.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1 });
-
     function renderFeed() {
         if (!feedContainer) return;
         if (feedData.length) {
             feedContainer.innerHTML = feedData.map(generateItemHtml).join('');
-            
-            const meta = gistSync.getLocal();
-            const seenIds = new Set((meta.items || []).filter(i => i.seen).map(i => i.id));
-            
-            feedContainer.querySelectorAll('.feed-item').forEach(item => {
-                if (!seenIds.has(item.dataset.itemId)) {
-                    seenObserver.observe(item);
-                }
-            });
         }
     }
 
@@ -561,8 +521,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const videoPlaceholder = e.target.closest('.video-placeholder');
             if (videoPlaceholder && !videoPlaceholder.classList.contains('video-loaded')) {
                 const videoId = videoPlaceholder.getAttribute('data-video-id');
-                const itemId = videoPlaceholder.closest('.feed-item')?.dataset.itemId;
-                if (itemId) markAsSeen(itemId);
                 if (videoId) {
                     videoPlaceholder.classList.add('video-loaded');
                     const playerContainer = document.createElement('div');
@@ -570,30 +528,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     videoPlaceholder.appendChild(playerContainer);
                     createYouTubePlayer(playerContainer, videoId);
                 }
-                return;
             }
-
-            const link = e.target.closest('a');
-            if (link && link.closest('.feed-item')) {
-                const itemId = link.closest('.feed-item').dataset.itemId;
-                markAsSeen(itemId);
-            }
-        });
-    }
-
-    if (refreshIcon) {
-        refreshIcon.addEventListener('click', () => {
-            window.scrollTo(0, 0);
-            window.location.reload();
         });
     }
 
     const markAllReadBtn = document.getElementById('mark-all-read-btn');
     if (markAllReadBtn) {
         markAllReadBtn.addEventListener('click', () => {
-            const confirmed = window.confirm('Mark all items as read?');
-            if (!confirmed) return;
-
             const meta = gistSync.getLocal();
             meta.items = meta.items || [];
             const now = new Date().toISOString();
@@ -614,9 +555,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 meta.updated_at = now;
                 gistSync.setLocal(meta);
                 gistSync.pushSoon();
-                applyView(meta.items);
-                showToast('All items marked as read', 'success');
             }
+            
+            window.scrollTo(0, 0);
+            // Give a tiny bit of time for localStorage to settle before reload
+            setTimeout(() => {
+                window.location.reload();
+            }, 50);
         });
     }
 
@@ -674,13 +619,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (existingItems.length === 0 && feedData.length) {
             renderFeed();
-        } else if (existingItems.length > 0) {
-            const seenIds = new Set(meta.items.filter(i => i.seen).map(i => i.id));
-            existingItems.forEach(item => {
-                if (!seenIds.has(item.dataset.itemId)) {
-                    seenObserver.observe(item);
-                }
-            });
         }
 
         document.querySelectorAll('#feed-container .star-icon').forEach(star => {
