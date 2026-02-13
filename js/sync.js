@@ -139,6 +139,18 @@ async function pushRemote(obj) {
 }
 
 /**
+ * Force an immediate push to remote
+ * @returns {Promise<void>}
+ */
+export async function upload() {
+    if (pushTimeout) clearTimeout(pushTimeout);
+    const local = getLocal();
+    await pushRemote(local);
+    pendingPush = false;
+    dispatchSyncEvent('success', 'Synced');
+}
+
+/**
  * Merge local and remote metadata
  * @param {Object} localObj - Local metadata
  * @param {Object} remoteObj - Remote metadata
@@ -149,6 +161,8 @@ function merge(localObj, remoteObj) {
     if (!localObj || !localObj.items) return remoteObj;
 
     const mergedById = new Map();
+    const now = Date.now();
+    const retentionMs = getRetentionDays() * 24 * 60 * 60 * 1000;
 
     // Process remote items first
     for (const item of (remoteObj.items || [])) {
@@ -201,14 +215,18 @@ function merge(localObj, remoteObj) {
                 existing.date = item.date;
             }
         } else {
-            // Item only exists locally - always include starred items
+            // Item only exists locally
             if (item.starred) {
                 mergedById.set(item.id, { ...item });
             } else {
-                // For non-starred, check if it was deleted remotely
-                const remoteUpdateTime = getTimeOrZero(remoteObj.updated_at);
-                const localChangeTime = getTimeOrZero(item.starred_changed_at || item.starredChangedAt || item.date);
-                if (remoteUpdateTime <= localChangeTime) {
+                // For non-starred, check if it should be kept
+                const localChangeTime = getTimeOrZero(item.starred_changed_at || item.starredChangedAt || item.date || item.published);
+                const isOld = (now - localChangeTime) > (retentionMs * 1.5); // Grace period
+
+                if (!isOld) {
+                    // If remote is newer, but this item isn't in it, it MIGHT have been deleted.
+                    // However, it's safer to keep "seen" status locally for current feed items
+                    // than to aggressively delete them and have them reappear as new.
                     mergedById.set(item.id, { ...item });
                 }
             }

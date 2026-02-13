@@ -2,7 +2,7 @@
 
 import { createYouTubePlayer } from './youtube.js';
 import { getRetentionDays, getStarredItems, escapeItemId, getSafeArchiveUrl } from './storage.js';
-import { gistSync } from './sync.js';
+import { gistSync, upload } from './sync.js';
 
 function relativeTime(dateStr) {
     if (!dateStr) return '';
@@ -534,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const markAllReadBtn = document.getElementById('mark-all-read-btn');
     if (markAllReadBtn) {
-        markAllReadBtn.addEventListener('click', () => {
+        markAllReadBtn.addEventListener('click', async () => {
             const meta = gistSync.getLocal();
             meta.items = meta.items || [];
             const now = new Date().toISOString();
@@ -543,10 +543,11 @@ document.addEventListener('DOMContentLoaded', () => {
             feedData.forEach(item => {
                 let metaItem = meta.items.find(i => i.id === item.id);
                 if (!metaItem) {
-                    meta.items.push({ id: item.id, date: now, starred: false, seen: true });
+                    meta.items.push({ id: item.id, date: now, starred: false, seen: true, starred_changed_at: now });
                     changed = true;
                 } else if (!metaItem.seen) {
                     metaItem.seen = true;
+                    metaItem.starred_changed_at = now;
                     changed = true;
                 }
             });
@@ -554,14 +555,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (changed) {
                 meta.updated_at = now;
                 gistSync.setLocal(meta);
-                gistSync.pushSoon();
+                try {
+                    await upload();
+                } catch (e) {
+                    console.warn('Final push before refresh failed:', e);
+                }
             }
             
             window.scrollTo(0, 0);
-            // Give a tiny bit of time for localStorage to settle before reload
-            setTimeout(() => {
-                window.location.reload();
-            }, 50);
+            window.location.reload();
         });
     }
 
