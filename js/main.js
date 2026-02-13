@@ -535,6 +535,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const markAllReadBtn = document.getElementById('mark-all-read-btn');
     if (markAllReadBtn) {
         markAllReadBtn.addEventListener('click', async () => {
+            if (markAllReadBtn.disabled) return;
+            
             const meta = gistSync.getLocal();
             meta.items = meta.items || [];
             const now = new Date().toISOString();
@@ -553,17 +555,29 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (changed) {
+                markAllReadBtn.disabled = true;
+                markAllReadBtn.classList.add('syncing');
+                showToast('Syncing...', 'info', 1000);
+                
                 meta.updated_at = now;
                 gistSync.setLocal(meta);
                 try {
                     await upload();
+                    showToast('Synced', 'success', 1000);
                 } catch (e) {
                     console.warn('Final push before refresh failed:', e);
+                    showToast('Sync failed, reloading anyway', 'error', 2000);
                 }
+                
+                // Extra beat to let the user see the success/error
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    window.location.reload();
+                }, 500);
+            } else {
+                window.scrollTo(0, 0);
+                window.location.reload();
             }
-            
-            window.scrollTo(0, 0);
-            window.location.reload();
         });
     }
 
