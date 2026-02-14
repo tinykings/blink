@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'blink-v4';
+const CACHE_VERSION = 'blink-v5';
 const PRECACHE_ASSETS = [
   'css/style.css',
   'js/main.js',
@@ -34,7 +34,20 @@ self.addEventListener('fetch', (event) => {
   // Only handle same-origin requests
   if (url.origin !== location.origin) return;
 
-  // Stale-while-revalidate for all same-origin assets
+  // Network-first for navigation (HTML pages) so reloads get fresh content
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        if (response.ok) {
+          caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, response.clone()));
+        }
+        return response;
+      }).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Stale-while-revalidate for all other same-origin assets
   event.respondWith(
     caches.open(CACHE_VERSION).then((cache) =>
       cache.match(event.request).then((cached) => {
