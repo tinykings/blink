@@ -13,6 +13,7 @@ https://www.404media.co/rss
 https://4sysops.com/feed/
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
+https://www.reddit.com/r/iosgaming/top.rss?t=week
 
 #youtube
 # PewDiePie
