@@ -20,6 +20,7 @@ https://www.reddit.com/r/games/top.rss?t=week
 https://gg.deals/us/news/feed/
 
 #youtube
+https://www.youtube.com/@doompenguin7453
 # Level1Linux
 https://www.youtube.com/feeds/videos.xml?channel_id=UCOWcZ6Wicl-1N34H0zZe38w
 # jakkuh
