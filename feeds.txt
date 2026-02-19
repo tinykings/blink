@@ -20,6 +20,8 @@ https://www.reddit.com/r/games/top.rss?t=week
 https://gg.deals/us/news/feed/
 
 #youtube
+https://www.youtube.com/@laustoic
+
 # Doom Penguin
 https://www.youtube.com/feeds/videos.xml?channel_id=UCalMe4bgGKK61amQBvR4xNg
 # Level1Linux
