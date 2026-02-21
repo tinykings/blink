@@ -17,7 +17,8 @@ https://github.com/basecamp/omarchy/releases.atom
 https://www.reddit.com/r/pcgaming/top.rss?t=week
 https://www.reddit.com/r/linux_gaming/top.rss?t=week
 https://www.reddit.com/r/games/top.rss?t=week
-https://gg.deals/us/news/feed/
+https://gg.deals/us/news/feed
+https://blog.tomaszdunia.pl/zdradzilem-teamapple-eng/
 
 #youtube
 # laustoic
