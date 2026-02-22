@@ -1,11 +1,12 @@
 #rss
 https://www.reddit.com/r/sysadmin/top.rss?t=week
-https://www.reddit.com/r/apple/top.rss?t=week
 https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
+https://www.reddit.com/r/pcgaming/top.rss?t=week
+https://www.reddit.com/r/linux_gaming/top.rss?t=week
+https://www.reddit.com/r/games/top.rss?t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
-https://www.macstories.net/feed/
 https://www.bleepingcomputer.com/feed/
 https://www.thelazyadministrator.com/feed/
 https://feeds.feedburner.com/StudyHacks
@@ -14,16 +15,12 @@ https://4sysops.com/feed/
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 https://github.com/basecamp/omarchy/releases.atom
-https://www.reddit.com/r/pcgaming/top.rss?t=week
-https://www.reddit.com/r/linux_gaming/top.rss?t=week
-https://www.reddit.com/r/games/top.rss?t=week
 https://gg.deals/us/news/feed
 https://blog.tomaszdunia.pl/zdradzilem-teamapple-eng/
 
 #youtube
 # laustoic
 https://www.youtube.com/feeds/videos.xml?channel_id=UChHOzUIfKqtAeUGjqR7_whQ
-
 # Doom Penguin
 https://www.youtube.com/feeds/videos.xml?channel_id=UCalMe4bgGKK61amQBvR4xNg
 # Level1Linux
@@ -48,7 +45,7 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCfHmyqCntYHQ81ZukNu66rg
 https://www.youtube.com/feeds/videos.xml?channel_id=UCoAlewNQrVj1jSoye5QFMcQ
 # Gaming In The Wild
 https://www.youtube.com/feeds/videos.xml?channel_id=UC2CxEBWZNBMDV5evJvFWkpQ
-# TheBackgroundNPC 🧙‍♂️
+# TheBackgroundNPC
 https://www.youtube.com/feeds/videos.xml?channel_id=UCuEAyHQajqJrWeVrJKgIS_Q
 # Cadaea
 https://www.youtube.com/feeds/videos.xml?channel_id=UCNw8oK_m3j5W9ATu3AhsnAg
@@ -136,10 +133,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCgDqL4yzXb4BflimZaxL4Vg
 https://www.youtube.com/feeds/videos.xml?channel_id=UChgNGLBeUG7yC-3SxaZlSBg
 # Anna B.
 https://www.youtube.com/feeds/videos.xml?channel_id=UCeKK8ntn4oyHKUH7iFOg1zw
-# Apple
-https://www.youtube.com/feeds/videos.xml?channel_id=UCE_M8A5yxnLfW0KghEeajjw
-# Apple TV
-https://www.youtube.com/feeds/videos.xml?channel_id=UC1Myj674wRVXB9I4c6Hm5zA
 # arcologies
 https://www.youtube.com/feeds/videos.xml?channel_id=UC-3EC9T_BOMN1mdM9ZS0rLw
 # ark.curate
@@ -262,8 +255,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCXzaNznHLJ_GjB8vjVzd3Uw
 https://www.youtube.com/feeds/videos.xml?channel_id=UCQySZfn3B_fnmcr0XYq6TZw
 # INTO THEIR SPACE
 https://www.youtube.com/feeds/videos.xml?channel_id=UCaJdujMPNjKIuIlwIHHzXrQ
-# Intune Training
-https://www.youtube.com/feeds/videos.xml?channel_id=UCfmMlhX5TW8cicxHw6ExYVA
 # Jack Rhysider
 https://www.youtube.com/feeds/videos.xml?channel_id=UCMIqrmh2lMdzhlCPK5ahsAg
 # jenn cho
@@ -303,9 +294,7 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCoNTMWgGuXtGPLv9UeJZwBw
 # Lucile
 https://www.youtube.com/feeds/videos.xml?channel_id=UCJdLzKzBQIsY3IIsCxGS7EA
 # Mac Address
-https://www.youtube.com/feeds/videos.xml?channel_id=UC0KfjyvabuE2J-RBC6ko2Lw
-# MacRumors
-https://www.youtube.com/feeds/videos.xml?channel_id=UCaFGDBmGK_jw66u3av2Ysjw
+https://www.youtube.com/feeds/videos.xml?channel_id=UC0KfjyvabuE2J-RBC6ko2Lw\
 # Madeline Hegedus
 https://www.youtube.com/feeds/videos.xml?channel_id=UCNVB6_eY4h2Xj54dQFxjJ8A
 # Makari Espe
@@ -492,8 +481,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCoC47do520os_4DBMEFGg4A
 https://www.youtube.com/feeds/videos.xml?channel_id=UCEP-696sFVJMSNf0XgfdqGQ
 # Enrico Tartarotti
 https://www.youtube.com/feeds/videos.xml?channel_id=UCuQT7Vc3OjjZuGkqehNxb6w
-# MintCity
-https://www.youtube.com/feeds/videos.xml?channel_id=UCIoYxzjYbqkb7SWFzr6_u1Q
 # Dreams of Code
 https://www.youtube.com/feeds/videos.xml?channel_id=UCWQaM7SpSECp9FELz-cHzuQ
 # AI For Humans
