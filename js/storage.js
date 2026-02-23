@@ -93,5 +93,8 @@ export function sanitizeItemForStorage(item) {
     if (item.title) minimal.title = item.title;
     if (item.url || item.link) minimal.url = item.url || item.link;
     if (item.published) minimal.published = item.published;
+    if (item.thumbnail) minimal.thumbnail = item.thumbnail;
+    if (item.video_id) minimal.video_id = item.video_id;
+    if (item.feed_title) minimal.feed_title = item.feed_title;
     return minimal;
 }

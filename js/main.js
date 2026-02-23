@@ -1,7 +1,7 @@
 // Main application entry point
 
 import { createYouTubePlayer } from './youtube.js';
-import { getRetentionDays, getStarredItems, escapeItemId, getSafeArchiveUrl } from './storage.js';
+import { getRetentionDays, getStarredItems, escapeItemId } from './storage.js';
 import { gistSync, upload } from './sync.js';
 
 function relativeTime(dateStr) {
@@ -91,8 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (success) {
                 const meta = gistSync.getLocal();
                 renderFeed();
+                renderArchivedItems(meta.items || []);
                 applyView(meta.items || []);
-                renderArchive(meta.items || []);
             }
         }
 
@@ -137,9 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedContainer = document.getElementById('feed-container');
     const refreshIcon = document.getElementById('refresh-icon');
     const viewToggleButton = document.getElementById('view-toggle-button');
-    const archiveSection = document.getElementById('archive-section');
-    const archiveList = document.getElementById('archive-list');
-    const archiveEmpty = document.getElementById('archive-empty');
     const emptyState = document.getElementById('empty-state');
     let feedData = [];
     let feedDataById = new Map();
@@ -204,7 +201,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return {
                 title: feedItem.title,
                 url: feedItem.link,
-                published: feedItem.published
+                published: feedItem.published,
+                thumbnail: feedItem.thumbnail || '',
+                video_id: feedItem.video_id || '',
+                feed_title: feedItem.feed_title || ''
             };
         }
         return getDomMetadataForItem(itemId);
@@ -215,121 +215,55 @@ document.addEventListener('DOMContentLoaded', () => {
         let changed = false;
         meta.items.forEach(item => {
             if (!item || !item.starred) return;
-            if (item.title && (item.url || item.link) && item.published) return;
             const metadata = resolveItemMetadata(item.id);
             if (metadata) {
                 let itemChanged = false;
-                if (!item.title && metadata.title) {
-                    item.title = metadata.title;
-                    itemChanged = true;
-                }
-                if (!item.url && metadata.url) {
-                    item.url = metadata.url;
-                    itemChanged = true;
-                }
-                if (!item.link && metadata.url) {
-                    item.link = metadata.url;
-                    itemChanged = true;
-                }
-                if (!item.published && metadata.published) {
-                    item.published = metadata.published;
-                    itemChanged = true;
-                }
+                if (!item.title && metadata.title) { item.title = metadata.title; itemChanged = true; }
+                if (!item.url && metadata.url) { item.url = metadata.url; itemChanged = true; }
+                if (!item.link && metadata.url) { item.link = metadata.url; itemChanged = true; }
+                if (!item.published && metadata.published) { item.published = metadata.published; itemChanged = true; }
+                if (!item.thumbnail && metadata.thumbnail) { item.thumbnail = metadata.thumbnail; itemChanged = true; }
+                if (!item.video_id && metadata.video_id) { item.video_id = metadata.video_id; itemChanged = true; }
+                if (!item.feed_title && metadata.feed_title) { item.feed_title = metadata.feed_title; itemChanged = true; }
                 if (itemChanged) changed = true;
             }
         });
         return changed;
     }
 
-    function renderArchive(metaItems = []) {
-        if (!archiveSection || !archiveList) return;
-        const retentionMs = getRetentionDays() * 24 * 60 * 60 * 1000;
-        const now = Date.now();
+    function renderArchivedItems(metaItems = []) {
+        if (!feedContainer) return;
+        // Remove any previously rendered archived items
+        feedContainer.querySelectorAll('.feed-item[data-archived]').forEach(el => el.remove());
+
         const activeFeedIds = new Set(feedData.map(item => item.id));
-        const archived = (metaItems || [])
+        const archivedStarred = (metaItems || [])
             .filter(item => item && item.starred && !activeFeedIds.has(item.id))
-            .map(item => {
-                const publishedSource = item.published || item.date;
-                const publishedTime = publishedSource ? new Date(publishedSource).getTime() : NaN;
-                return {
-                    id: item.id,
-                    title: item.title || 'Untitled',
-                    url: item.url || item.link,
-                    published: publishedSource,
-                    publishedTime
-                };
-            })
-            .filter(item => {
-                // Require URL for clickability, but be lenient on date
-                if (!item.url) return false;
-                // If no valid date, still show it (don't silently hide)
-                if (!Number.isFinite(item.publishedTime)) return true;
-                return (now - item.publishedTime) > retentionMs;
-            })
-            .sort((a, b) => b.publishedTime - a.publishedTime);
+            .filter(item => item.url || item.link);
 
-        archiveSection.style.display = '';
-        if (archived.length === 0) {
-            archiveList.innerHTML = '';
-            if (archiveEmpty) archiveEmpty.style.display = '';
-            return;
-        }
+        if (archivedStarred.length === 0) return;
 
-        if (archiveEmpty) archiveEmpty.style.display = 'none';
-        archiveList.innerHTML = '';
         const fragment = document.createDocumentFragment();
-        archived.forEach(item => {
-            const li = document.createElement('li');
-            li.className = 'archive-item';
-            li.dataset.itemId = item.id;
-
-            const linkWrapper = document.createElement('div');
-            linkWrapper.className = 'archive-item-info';
-
-            const link = document.createElement('a');
-            const title = item.title || 'Untitled item';
-            link.textContent = title;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            const safeUrl = getSafeArchiveUrl(item.url);
-            if (safeUrl) {
-                link.href = safeUrl;
-            } else {
-                link.removeAttribute('href');
-                link.setAttribute('aria-disabled', 'true');
+        archivedStarred.forEach(metaItem => {
+            // Normalize to feed item shape for generateItemHtml
+            const feedLike = {
+                id: metaItem.id,
+                title: metaItem.title || 'Untitled',
+                link: metaItem.url || metaItem.link,
+                published: metaItem.published,
+                feed_title: metaItem.feed_title || '',
+                thumbnail: metaItem.thumbnail || '',
+                video_id: metaItem.video_id || ''
+            };
+            const temp = document.createElement('div');
+            temp.innerHTML = generateItemHtml(feedLike);
+            const el = temp.firstElementChild;
+            if (el) {
+                el.dataset.archived = 'true';
+                fragment.appendChild(el);
             }
-            linkWrapper.appendChild(link);
-            li.appendChild(linkWrapper);
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.type = 'button';
-            deleteBtn.className = 'archive-delete-btn';
-            deleteBtn.textContent = 'Delete';
-            deleteBtn.dataset.itemId = item.id;
-            deleteBtn.title = 'Delete this archived item';
-            deleteBtn.setAttribute('aria-label', `Delete ${title} from archive`);
-            li.appendChild(deleteBtn);
-
-            fragment.appendChild(li);
         });
-        archiveList.appendChild(fragment);
-    }
-
-    function deleteArchivedItem(itemId) {
-        if (!itemId) return;
-        const meta = gistSync.getLocal();
-        if (!meta || !Array.isArray(meta.items)) return;
-        const item = meta.items.find(item => item && item.id === itemId);
-        if (!item) return;
-
-        // Unstar instead of delete - preserves seen history
-        item.starred = false;
-        item.starred_changed_at = new Date().toISOString();
-
-        meta.updated_at = new Date().toISOString();
-        gistSync.setLocal(meta);
-        renderArchive(meta.items || []);
-        gistSync.pushSoon();
+        feedContainer.appendChild(fragment);
     }
 
     function renderFeed() {
@@ -492,6 +426,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             item.link = metadata.url;
                         }
                         if (!item.published && metadata.published) item.published = metadata.published;
+                        if (!item.thumbnail && metadata.thumbnail) item.thumbnail = metadata.thumbnail;
+                        if (!item.video_id && metadata.video_id) item.video_id = metadata.video_id;
+                        if (!item.feed_title && metadata.feed_title) item.feed_title = metadata.feed_title;
                     }
                     starIcon.classList.toggle('starred', item.starred);
                 } else {
@@ -505,7 +442,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         title: metadata.title || '',
                         url: metadata.url || '',
                         link: metadata.url || '',
-                        published
+                        published,
+                        thumbnail: metadata.thumbnail || '',
+                        video_id: metadata.video_id || '',
+                        feed_title: metadata.feed_title || ''
                     };
                     items.push(item);
                     starIcon.classList.add('starred');
@@ -513,7 +453,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 meta.items = items;
                 meta.updated_at = now;
                 gistSync.setLocal(meta);
-                renderArchive(meta.items || []);
+                renderArchivedItems(meta.items || []);
+                applyView(meta.items || []);
                 gistSync.pushSoon();
                 return;
             }
@@ -581,23 +522,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (archiveList) {
-        archiveList.addEventListener('click', e => {
-            const deleteBtn = e.target.closest('.archive-delete-btn');
-            if (!deleteBtn) return;
-            e.preventDefault();
-            const itemId = deleteBtn.dataset.itemId || deleteBtn.closest('li')?.dataset.itemId;
-            if (!itemId) return;
-
-            const archiveItem = deleteBtn.closest('.archive-item');
-            const itemTitle = archiveItem?.querySelector('.archive-item-info a')?.textContent?.trim();
-            const confirmed = window.confirm(itemTitle ? `Delete "${itemTitle}" from the archive? This cannot be undone.` : 'Delete this archived item? This cannot be undone.');
-            if (!confirmed) return;
-
-            deleteArchivedItem(itemId);
-        });
-    }
-
     // Sync toast notifications
     window.addEventListener('blink-sync', (e) => {
         const { type, message } = e.detail || {};
@@ -645,8 +569,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         ensureMetadataForItems(meta);
+        renderArchivedItems(meta.items || []);
         applyView(meta.items || []);
-        renderArchive(meta.items || []);
 
         if (loadingOverlay) loadingOverlay.style.display = 'none';
         if (feedContainer) feedContainer.style.display = '';

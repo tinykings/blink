@@ -207,6 +207,9 @@ function merge(localObj, remoteObj) {
             if (!existing.url && item.url) existing.url = item.url;
             if (!existing.link && item.link) existing.link = item.link;
             if (!existing.published && item.published) existing.published = item.published;
+            if (!existing.thumbnail && item.thumbnail) existing.thumbnail = item.thumbnail;
+            if (!existing.video_id && item.video_id) existing.video_id = item.video_id;
+            if (!existing.feed_title && item.feed_title) existing.feed_title = item.feed_title;
             if (item.date && existing.date) {
                 const itemTime = new Date(item.date).getTime();
                 const existingTime = new Date(existing.date).getTime();
