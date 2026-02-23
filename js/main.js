@@ -504,7 +504,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 gistSync.setLocal(meta);
                 try {
                     await upload();
-                    showToast('Synced', 'success', 1000);
                 } catch (e) {
                     console.warn('Final push before refresh failed:', e);
                     showToast('Sync failed, reloading anyway', 'error', 2000);
