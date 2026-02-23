@@ -1,6 +1,6 @@
 // Main application entry point
 
-import { createYouTubePlayer } from './youtube.js';
+import { createYouTubePlayer, stopVideoByItemId, videoPlayers } from './youtube.js';
 import { getRetentionDays, getStarredItems, escapeItemId } from './storage.js';
 import { gistSync, upload } from './sync.js';
 
@@ -315,6 +315,9 @@ document.addEventListener('DOMContentLoaded', () => {
             allItems.forEach(item => {
                 const metaItem = metaItemsById.get(item.dataset.itemId);
                 const shouldHide = metaItem && metaItem.seen && !metaItem.starred;
+                if (shouldHide && videoPlayers.has(item.dataset.itemId)) {
+                    stopVideoByItemId(item.dataset.itemId);
+                }
                 item.style.display = shouldHide ? 'none' : '';
                 if (!shouldHide) visibleCount++;
                 fragment.appendChild(item);
@@ -462,12 +465,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const videoPlaceholder = e.target.closest('.video-placeholder');
             if (videoPlaceholder && !videoPlaceholder.classList.contains('video-loaded')) {
                 const videoId = videoPlaceholder.getAttribute('data-video-id');
+                const itemId = videoPlaceholder.closest('.feed-item')?.dataset.itemId;
                 if (videoId) {
                     videoPlaceholder.classList.add('video-loaded');
                     const playerContainer = document.createElement('div');
                     videoPlaceholder.innerHTML = '';
                     videoPlaceholder.appendChild(playerContainer);
-                    createYouTubePlayer(playerContainer, videoId);
+                    createYouTubePlayer(playerContainer, videoId, itemId);
                 }
             }
         });

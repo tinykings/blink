@@ -2,6 +2,7 @@
 
 let onYouTubeIframeAPIReadyCallbacks = [];
 let ytApiLoaded = false;
+const videoPlayers = new Map();
 
 // Set up global callback for YouTube API
 window.onYouTubeIframeAPIReady = function () {
@@ -38,10 +39,11 @@ export function loadYouTubeAPI(callback) {
  * Initialize a YouTube player in the given container
  * @param {HTMLElement} container - The container element for the player
  * @param {string} videoId - The YouTube video ID
+ * @param {string} itemId - The item ID to associate with this player
  */
-export function createYouTubePlayer(container, videoId) {
+export function createYouTubePlayer(container, videoId, itemId) {
     loadYouTubeAPI(() => {
-        new YT.Player(container, {
+        const player = new YT.Player(container, {
             videoId: videoId,
             width: '100%',
             height: '100%',
@@ -58,5 +60,21 @@ export function createYouTubePlayer(container, videoId) {
                 }
             }
         });
+        if (itemId) {
+            videoPlayers.set(itemId, player);
+        }
     });
 }
+
+/**
+ * Stop (pause and clear) a video by item ID
+ * @param {string} itemId - The item ID
+ */
+export function stopVideoByItemId(itemId) {
+    const player = videoPlayers.get(itemId);
+    if (player && player.stopVideo) {
+        player.stopVideo();
+    }
+}
+
+export { videoPlayers };
