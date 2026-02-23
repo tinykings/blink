@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 meta.updated_at = now;
                 gistSync.setLocal(meta);
                 renderArchivedItems(meta.items || []);
-                applyView(meta.items || []);
+                if (item.starred) applyView(meta.items || []);
                 gistSync.pushSoon();
                 return;
             }
