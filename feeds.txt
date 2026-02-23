@@ -6,6 +6,7 @@ https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp
 https://www.reddit.com/r/pcgaming/top.rss?t=week
 https://www.reddit.com/r/linux_gaming/top.rss?t=week
 https://www.reddit.com/r/games/top.rss?t=week
+https://www.reddit.com/r/GrapheneOS/top.rss?t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.bleepingcomputer.com/feed/
 https://www.thelazyadministrator.com/feed/
