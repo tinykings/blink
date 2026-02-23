@@ -525,11 +525,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Sync toast notifications
-    window.addEventListener('blink-sync', (e) => {
-        const { type, message } = e.detail || {};
-        if (message) showToast(message, type === 'error' ? 'error' : 'success', 2500);
-    });
 
     // Scroll-to-top button
     const scrollTopBtn = document.getElementById('scroll-top-btn');
