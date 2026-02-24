@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (githubRepoInput) githubRepoInput.value = localStorage.getItem('GITHUB_REPO') || '';
         clearFeedsStatus();
         pendingSyncChanges = false;
-        updateSaveButton();
+        feedsSaveBtn.disabled = false;
         if (syncPanel) syncPanel.style.display = '';
     }
 
@@ -77,8 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function saveChanges() {
-        if (!pendingSyncChanges) return;
-
         feedsSaveBtn.disabled = true;
 
         const gistId = gistIdInput ? gistIdInput.value.trim() : '';
@@ -134,8 +132,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 pendingSyncChanges = true;
                 updateSaveButton();
             });
+            input.addEventListener('change', () => {
+                pendingSyncChanges = true;
+                updateSaveButton();
+            });
         }
     });
+
+    const settingsForm = document.getElementById('settings-form');
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', e => e.preventDefault());
+    }
 
     // Main feed elements
     const feedContainer = document.getElementById('feed-container');
