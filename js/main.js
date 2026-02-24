@@ -481,15 +481,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Mark all read + trigger GitHub Actions workflow + wait + reload
     const markAllReadBtn = document.getElementById('mark-all-read-btn');
     if (markAllReadBtn) {
         markAllReadBtn.addEventListener('click', async () => {
             if (markAllReadBtn.disabled) return;
-            
+
+            markAllReadBtn.disabled = true;
+            markAllReadBtn.classList.add('fetching');
+
+            // Step 1: mark all current feed items as seen and sync to Gist
             const meta = gistSync.getLocal();
             meta.items = meta.items || [];
             const now = new Date().toISOString();
-            
+
             let changed = false;
             feedData.forEach(item => {
                 let metaItem = meta.items.find(i => i.id === item.id);
@@ -504,50 +509,29 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (changed) {
-                markAllReadBtn.disabled = true;
-                markAllReadBtn.classList.add('syncing');
-                showToast('Syncing...', 'info', 1000);
-                
                 meta.updated_at = now;
                 gistSync.setLocal(meta);
                 try {
                     await upload();
                 } catch (e) {
-                    console.warn('Final push before refresh failed:', e);
-                    showToast('Sync failed, reloading anyway', 'error', 2000);
+                    console.warn('Gist sync before refresh failed:', e);
                 }
-                
-                // Extra beat to let the user see the success/error
-                setTimeout(() => {
-                    window.scrollTo(0, 0);
-                    window.location.reload();
-                }, 500);
-            } else {
-                window.scrollTo(0, 0);
-                window.location.reload();
             }
-        });
-    }
 
-
-    // Fetch-now button: triggers the GitHub Actions workflow and polls until done
-    const fetchNowBtn = document.getElementById('fetch-now-btn');
-    if (fetchNowBtn) {
-        fetchNowBtn.addEventListener('click', async () => {
-            if (fetchNowBtn.disabled) return;
-
+            // Step 2: trigger the GitHub Actions workflow if configured
             const token = localStorage.getItem('GITHUB_TOKEN');
             const repo = localStorage.getItem('GITHUB_REPO');
 
             if (!token || !repo) {
-                showToast('Set GitHub token and repository in Settings first', 'error', 4000);
+                // No workflow configured — just reload as before
+                markAllReadBtn.disabled = false;
+                markAllReadBtn.classList.remove('fetching');
+                window.scrollTo(0, 0);
+                window.location.reload();
                 return;
             }
 
-            fetchNowBtn.disabled = true;
-            fetchNowBtn.classList.add('fetching');
-            showToast('Triggering feed refresh\u2026', 'info', 3000);
-
+            showToast('Fetching latest feeds\u2026', 'info', 5000);
             const dispatchedAt = new Date().toISOString();
 
             try {
@@ -569,21 +553,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(err.message || `HTTP ${res.status}`);
                 }
 
-                showToast('Feeds updating\u2026 checking status', 'info', 5000);
-                await pollWorkflowUntilDone(repo, token, dispatchedAt);
+                // Step 3: poll until the workflow run completes, then reload
+                await pollWorkflowUntilDone(repo, token, dispatchedAt, markAllReadBtn);
 
             } catch (e) {
                 console.error('Workflow dispatch failed:', e);
-                showToast(`Refresh failed: ${e.message}`, 'error', 4000);
-                fetchNowBtn.disabled = false;
-                fetchNowBtn.classList.remove('fetching');
+                showToast(`Could not trigger refresh: ${e.message}`, 'error', 4000);
+                markAllReadBtn.disabled = false;
+                markAllReadBtn.classList.remove('fetching');
             }
         });
     }
 
-    async function pollWorkflowUntilDone(repo, token, dispatchedAt) {
-        const fetchNowBtn = document.getElementById('fetch-now-btn');
-        const MAX_POLLS = 40;   // ~200s max at 5s intervals
+    async function pollWorkflowUntilDone(repo, token, dispatchedAt, btn) {
+        const MAX_POLLS = 40;   // ~200 s max at 5 s intervals
         const POLL_INTERVAL = 5000;
 
         for (let i = 0; i < MAX_POLLS; i++) {
@@ -604,14 +587,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
                 const runs = data.workflow_runs || [];
 
-                // Find the most recent run created at or after our dispatch
+                // Find a run created at or after our dispatch timestamp
                 const run = runs.find(r => r.created_at >= dispatchedAt);
                 if (!run) continue; // Run not visible yet, keep polling
 
                 if (run.status === 'completed') {
-                    if (fetchNowBtn) {
-                        fetchNowBtn.disabled = false;
-                        fetchNowBtn.classList.remove('fetching');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.classList.remove('fetching');
                     }
                     if (run.conclusion === 'success') {
                         showToast('Feeds updated! Reloading\u2026', 'success', 2500);
@@ -624,18 +607,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     return;
                 }
-                // Still queued/in_progress, keep polling
+                // Still queued / in_progress — keep polling
             } catch (e) {
                 console.warn('Workflow poll error:', e);
             }
         }
 
-        // Timeout after MAX_POLLS
-        if (fetchNowBtn) {
-            fetchNowBtn.disabled = false;
-            fetchNowBtn.classList.remove('fetching');
+        // Timed out
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('fetching');
         }
-        showToast('Refresh is taking longer than expected \u2014 reload manually when ready', 'error', 5000);
+        showToast('Refresh is taking a while \u2014 reload manually when ready', 'error', 5000);
     }
 
     // Scroll-to-top button
