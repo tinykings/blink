@@ -488,16 +488,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Mark all read + trigger GitHub Actions workflow + wait + reload
+    // Mark all read + reload page (no workflow trigger)
     const markAllReadBtn = document.getElementById('mark-all-read-btn');
     if (markAllReadBtn) {
         markAllReadBtn.addEventListener('click', async () => {
             if (markAllReadBtn.disabled) return;
 
-            markAllReadBtn.disabled = true;
-            markAllReadBtn.classList.add('fetching');
-
-            // Step 1: mark all current feed items as seen and sync to Gist
             const meta = gistSync.getLocal();
             meta.items = meta.items || [];
             const now = new Date().toISOString();
@@ -516,29 +512,44 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (changed) {
+                markAllReadBtn.disabled = true;
+                markAllReadBtn.classList.add('fetching');
                 meta.updated_at = now;
                 gistSync.setLocal(meta);
                 try {
                     await upload();
                 } catch (e) {
-                    console.warn('Gist sync before refresh failed:', e);
+                    console.warn('Final push before refresh failed:', e);
                 }
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    window.location.reload();
+                }, 500);
+            } else {
+                window.scrollTo(0, 0);
+                window.location.reload();
             }
+        });
+    }
 
-            // Step 2: trigger the GitHub Actions workflow if configured
+    // Fetch-now button: trigger GitHub Actions workflow, poll until done, then reload
+    const fetchNowBtn = document.getElementById('fetch-now-btn');
+    if (fetchNowBtn) {
+        fetchNowBtn.addEventListener('click', async () => {
+            if (fetchNowBtn.disabled) return;
+
             const token = localStorage.getItem('GITHUB_TOKEN');
             const repo = localStorage.getItem('GITHUB_REPO');
 
             if (!token || !repo) {
-                // No workflow configured — just reload as before
-                markAllReadBtn.disabled = false;
-                markAllReadBtn.classList.remove('fetching');
-                window.scrollTo(0, 0);
-                window.location.reload();
+                showToast('Set GitHub token and repository in Settings first', 'error', 4000);
                 return;
             }
 
+            fetchNowBtn.disabled = true;
+            fetchNowBtn.classList.add('fetching');
             showToast('Fetching latest feeds\u2026', 'info', 5000);
+
             const dispatchedAt = new Date().toISOString();
 
             try {
@@ -560,14 +571,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(err.message || `HTTP ${res.status}`);
                 }
 
-                // Step 3: poll until the workflow run completes, then reload
-                await pollWorkflowUntilDone(repo, token, dispatchedAt, markAllReadBtn);
+                await pollWorkflowUntilDone(repo, token, dispatchedAt, fetchNowBtn);
 
             } catch (e) {
                 console.error('Workflow dispatch failed:', e);
                 showToast(`Could not trigger refresh: ${e.message}`, 'error', 4000);
-                markAllReadBtn.disabled = false;
-                markAllReadBtn.classList.remove('fetching');
+                fetchNowBtn.disabled = false;
+                fetchNowBtn.classList.remove('fetching');
             }
         });
     }
