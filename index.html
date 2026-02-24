@@ -46,7 +46,7 @@
          </div>
          <p class="last-updated">09:39</p>
          <div class="footer-right">
-             <button id="mark-all-read-btn" class="icon-btn" title="Mark all as read and refresh" aria-label="Mark all as read and refresh"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
+             <button id="mark-all-read-btn" class="icon-btn" title="Mark as read &amp; fetch latest feeds" aria-label="Mark as read and fetch latest feeds"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
          </div>
      </div>
      <script type="module" src="js/main.js"></script>
@@ -63,7 +63,9 @@
                     <input type="text" id="gist-id" name="gist-id" autocomplete="off" placeholder="For syncing starred items">
                     <label for="github-token">GitHub Token:</label>
                     <input type="password" id="github-token" name="github-token" autocomplete="off">
-                    <p class="settings-hint">Token needs <code>gist</code> scope to sync stars.</p>
+                    <label for="github-repo">Repository (owner/repo):</label>
+                    <input type="text" id="github-repo" name="github-repo" autocomplete="off" placeholder="e.g. alice/blink">
+                    <p class="settings-hint">Token needs <code>gist</code> scope to sync stars, <code>repo</code> scope to trigger feed refreshes.</p>
                 </form>
             </div>
             

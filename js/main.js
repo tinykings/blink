@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsModal = document.getElementById('settings-modal');
     const gistIdInput = document.getElementById('gist-id');
     const githubTokenInput = document.getElementById('github-token');
+    const githubRepoInput = document.getElementById('github-repo');
     const feedsStatus = document.getElementById('feeds-status');
     const feedsSaveBtn = document.getElementById('feeds-save');
     const feedsCancelBtn = document.getElementById('feeds-cancel');
@@ -64,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsModal.style.display = 'flex';
         if (gistIdInput) gistIdInput.value = localStorage.getItem('GIST_ID') || '';
         if (githubTokenInput) githubTokenInput.value = localStorage.getItem('GITHUB_TOKEN') || '';
+        if (githubRepoInput) githubRepoInput.value = localStorage.getItem('GITHUB_REPO') || '';
         clearFeedsStatus();
         pendingSyncChanges = false;
         updateSaveButton();
@@ -81,8 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const gistId = gistIdInput ? gistIdInput.value.trim() : '';
         const githubToken = githubTokenInput ? githubTokenInput.value.trim() : '';
+        const githubRepo = githubRepoInput ? githubRepoInput.value.trim() : '';
         localStorage.setItem('GIST_ID', gistId);
         localStorage.setItem('GITHUB_TOKEN', githubToken);
+        localStorage.setItem('GITHUB_REPO', githubRepo);
 
         if (gistId && githubToken) {
             showFeedsStatus('Syncing from Gist...', 'info');
@@ -124,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    [gistIdInput, githubTokenInput].forEach(input => {
+    [gistIdInput, githubTokenInput, githubRepoInput].forEach(input => {
         if (input) {
             input.addEventListener('input', () => {
                 pendingSyncChanges = true;
@@ -477,15 +481,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Mark all read + trigger GitHub Actions workflow + wait + reload
     const markAllReadBtn = document.getElementById('mark-all-read-btn');
     if (markAllReadBtn) {
         markAllReadBtn.addEventListener('click', async () => {
             if (markAllReadBtn.disabled) return;
-            
+
+            markAllReadBtn.disabled = true;
+            markAllReadBtn.classList.add('fetching');
+
+            // Step 1: mark all current feed items as seen and sync to Gist
             const meta = gistSync.getLocal();
             meta.items = meta.items || [];
             const now = new Date().toISOString();
-            
+
             let changed = false;
             feedData.forEach(item => {
                 let metaItem = meta.items.find(i => i.id === item.id);
@@ -500,31 +509,117 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (changed) {
-                markAllReadBtn.disabled = true;
-                markAllReadBtn.classList.add('syncing');
-                showToast('Syncing...', 'info', 1000);
-                
                 meta.updated_at = now;
                 gistSync.setLocal(meta);
                 try {
                     await upload();
                 } catch (e) {
-                    console.warn('Final push before refresh failed:', e);
-                    showToast('Sync failed, reloading anyway', 'error', 2000);
+                    console.warn('Gist sync before refresh failed:', e);
                 }
-                
-                // Extra beat to let the user see the success/error
-                setTimeout(() => {
-                    window.scrollTo(0, 0);
-                    window.location.reload();
-                }, 500);
-            } else {
+            }
+
+            // Step 2: trigger the GitHub Actions workflow if configured
+            const token = localStorage.getItem('GITHUB_TOKEN');
+            const repo = localStorage.getItem('GITHUB_REPO');
+
+            if (!token || !repo) {
+                // No workflow configured — just reload as before
+                markAllReadBtn.disabled = false;
+                markAllReadBtn.classList.remove('fetching');
                 window.scrollTo(0, 0);
                 window.location.reload();
+                return;
+            }
+
+            showToast('Fetching latest feeds\u2026', 'info', 5000);
+            const dispatchedAt = new Date().toISOString();
+
+            try {
+                const res = await fetch(
+                    `https://api.github.com/repos/${repo}/actions/workflows/main.yml/dispatches`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Accept': 'application/vnd.github+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ ref: 'main' })
+                    }
+                );
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.message || `HTTP ${res.status}`);
+                }
+
+                // Step 3: poll until the workflow run completes, then reload
+                await pollWorkflowUntilDone(repo, token, dispatchedAt, markAllReadBtn);
+
+            } catch (e) {
+                console.error('Workflow dispatch failed:', e);
+                showToast(`Could not trigger refresh: ${e.message}`, 'error', 4000);
+                markAllReadBtn.disabled = false;
+                markAllReadBtn.classList.remove('fetching');
             }
         });
     }
 
+    async function pollWorkflowUntilDone(repo, token, dispatchedAt, btn) {
+        const MAX_POLLS = 40;   // ~200 s max at 5 s intervals
+        const POLL_INTERVAL = 5000;
+
+        for (let i = 0; i < MAX_POLLS; i++) {
+            await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+
+            try {
+                const res = await fetch(
+                    `https://api.github.com/repos/${repo}/actions/runs?event=workflow_dispatch&per_page=5`,
+                    {
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Accept': 'application/vnd.github+json'
+                        }
+                    }
+                );
+                if (!res.ok) continue;
+
+                const data = await res.json();
+                const runs = data.workflow_runs || [];
+
+                // Find a run created at or after our dispatch timestamp
+                const run = runs.find(r => r.created_at >= dispatchedAt);
+                if (!run) continue; // Run not visible yet, keep polling
+
+                if (run.status === 'completed') {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.classList.remove('fetching');
+                    }
+                    if (run.conclusion === 'success') {
+                        showToast('Feeds updated! Reloading\u2026', 'success', 2500);
+                        setTimeout(() => {
+                            window.scrollTo(0, 0);
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        showToast(`Workflow ended: ${run.conclusion || 'unknown'}`, 'error', 4000);
+                    }
+                    return;
+                }
+                // Still queued / in_progress — keep polling
+            } catch (e) {
+                console.warn('Workflow poll error:', e);
+            }
+        }
+
+        // Timed out
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('fetching');
+        }
+        showToast('Refresh is taking a while \u2014 reload manually when ready', 'error', 5000);
+    }
 
     // Scroll-to-top button
     const scrollTopBtn = document.getElementById('scroll-top-btn');
