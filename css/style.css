@@ -698,3 +698,18 @@ img {
     stroke-linecap: round;
     stroke-linejoin: round;
 }
+
+/* Fetch-now button spinning state */
+@keyframes icon-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.icon-btn.fetching {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.icon-btn.fetching svg {
+    animation: icon-spin 1s linear infinite;
+}

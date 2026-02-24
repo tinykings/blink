@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsModal = document.getElementById('settings-modal');
     const gistIdInput = document.getElementById('gist-id');
     const githubTokenInput = document.getElementById('github-token');
+    const githubRepoInput = document.getElementById('github-repo');
     const feedsStatus = document.getElementById('feeds-status');
     const feedsSaveBtn = document.getElementById('feeds-save');
     const feedsCancelBtn = document.getElementById('feeds-cancel');
@@ -64,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsModal.style.display = 'flex';
         if (gistIdInput) gistIdInput.value = localStorage.getItem('GIST_ID') || '';
         if (githubTokenInput) githubTokenInput.value = localStorage.getItem('GITHUB_TOKEN') || '';
+        if (githubRepoInput) githubRepoInput.value = localStorage.getItem('GITHUB_REPO') || '';
         clearFeedsStatus();
         pendingSyncChanges = false;
         updateSaveButton();
@@ -81,8 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const gistId = gistIdInput ? gistIdInput.value.trim() : '';
         const githubToken = githubTokenInput ? githubTokenInput.value.trim() : '';
+        const githubRepo = githubRepoInput ? githubRepoInput.value.trim() : '';
         localStorage.setItem('GIST_ID', gistId);
         localStorage.setItem('GITHUB_TOKEN', githubToken);
+        localStorage.setItem('GITHUB_REPO', githubRepo);
 
         if (gistId && githubToken) {
             showFeedsStatus('Syncing from Gist...', 'info');
@@ -124,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    [gistIdInput, githubTokenInput].forEach(input => {
+    [gistIdInput, githubTokenInput, githubRepoInput].forEach(input => {
         if (input) {
             input.addEventListener('input', () => {
                 pendingSyncChanges = true;
@@ -525,6 +529,114 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
+    // Fetch-now button: triggers the GitHub Actions workflow and polls until done
+    const fetchNowBtn = document.getElementById('fetch-now-btn');
+    if (fetchNowBtn) {
+        fetchNowBtn.addEventListener('click', async () => {
+            if (fetchNowBtn.disabled) return;
+
+            const token = localStorage.getItem('GITHUB_TOKEN');
+            const repo = localStorage.getItem('GITHUB_REPO');
+
+            if (!token || !repo) {
+                showToast('Set GitHub token and repository in Settings first', 'error', 4000);
+                return;
+            }
+
+            fetchNowBtn.disabled = true;
+            fetchNowBtn.classList.add('fetching');
+            showToast('Triggering feed refresh\u2026', 'info', 3000);
+
+            const dispatchedAt = new Date().toISOString();
+
+            try {
+                const res = await fetch(
+                    `https://api.github.com/repos/${repo}/actions/workflows/main.yml/dispatches`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Accept': 'application/vnd.github+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ ref: 'main' })
+                    }
+                );
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.message || `HTTP ${res.status}`);
+                }
+
+                showToast('Feeds updating\u2026 checking status', 'info', 5000);
+                await pollWorkflowUntilDone(repo, token, dispatchedAt);
+
+            } catch (e) {
+                console.error('Workflow dispatch failed:', e);
+                showToast(`Refresh failed: ${e.message}`, 'error', 4000);
+                fetchNowBtn.disabled = false;
+                fetchNowBtn.classList.remove('fetching');
+            }
+        });
+    }
+
+    async function pollWorkflowUntilDone(repo, token, dispatchedAt) {
+        const fetchNowBtn = document.getElementById('fetch-now-btn');
+        const MAX_POLLS = 40;   // ~200s max at 5s intervals
+        const POLL_INTERVAL = 5000;
+
+        for (let i = 0; i < MAX_POLLS; i++) {
+            await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+
+            try {
+                const res = await fetch(
+                    `https://api.github.com/repos/${repo}/actions/runs?event=workflow_dispatch&per_page=5`,
+                    {
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Accept': 'application/vnd.github+json'
+                        }
+                    }
+                );
+                if (!res.ok) continue;
+
+                const data = await res.json();
+                const runs = data.workflow_runs || [];
+
+                // Find the most recent run created at or after our dispatch
+                const run = runs.find(r => r.created_at >= dispatchedAt);
+                if (!run) continue; // Run not visible yet, keep polling
+
+                if (run.status === 'completed') {
+                    if (fetchNowBtn) {
+                        fetchNowBtn.disabled = false;
+                        fetchNowBtn.classList.remove('fetching');
+                    }
+                    if (run.conclusion === 'success') {
+                        showToast('Feeds updated! Reloading\u2026', 'success', 2500);
+                        setTimeout(() => {
+                            window.scrollTo(0, 0);
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        showToast(`Workflow ended: ${run.conclusion || 'unknown'}`, 'error', 4000);
+                    }
+                    return;
+                }
+                // Still queued/in_progress, keep polling
+            } catch (e) {
+                console.warn('Workflow poll error:', e);
+            }
+        }
+
+        // Timeout after MAX_POLLS
+        if (fetchNowBtn) {
+            fetchNowBtn.disabled = false;
+            fetchNowBtn.classList.remove('fetching');
+        }
+        showToast('Refresh is taking longer than expected \u2014 reload manually when ready', 'error', 5000);
+    }
 
     // Scroll-to-top button
     const scrollTopBtn = document.getElementById('scroll-top-btn');
