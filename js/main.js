@@ -20,17 +20,20 @@ function relativeTime(dateStr) {
     return new Date(then).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function showToast(message, type = 'info', duration = 3000) {
+function showToast(message, type = 'info', duration = 3000, persistent = false) {
     const container = document.getElementById('toast-container');
     if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
     container.appendChild(toast);
-    setTimeout(() => {
-        toast.classList.add('toast-out');
-        toast.addEventListener('animationend', () => toast.remove());
-    }, duration);
+    if (!persistent) {
+        setTimeout(() => {
+            toast.classList.add('toast-out');
+            toast.addEventListener('animationend', () => toast.remove());
+        }, duration);
+    }
+    return toast;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -548,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             fetchNowBtn.disabled = true;
             fetchNowBtn.classList.add('fetching');
-            showToast('Fetching latest feeds\u2026', 'info', 5000);
+            const toast = showToast('Fetching latest feeds…', 'info', 0, true);
 
             const dispatchedAt = new Date().toISOString();
 
@@ -571,10 +574,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(err.message || `HTTP ${res.status}`);
                 }
 
-                await pollWorkflowUntilDone(repo, token, dispatchedAt, fetchNowBtn);
+                await pollWorkflowUntilDone(repo, token, dispatchedAt, fetchNowBtn, toast);
 
             } catch (e) {
                 console.error('Workflow dispatch failed:', e);
+                if (toast) toast.remove();
                 showToast(`Could not trigger refresh: ${e.message}`, 'error', 4000);
                 fetchNowBtn.disabled = false;
                 fetchNowBtn.classList.remove('fetching');
@@ -582,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function pollWorkflowUntilDone(repo, token, dispatchedAt, btn) {
+    async function pollWorkflowUntilDone(repo, token, dispatchedAt, btn, toast) {
         const MAX_POLLS = 40;   // ~200 s max at 5 s intervals
         const POLL_INTERVAL = 5000;
 
@@ -613,6 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         btn.disabled = false;
                         btn.classList.remove('fetching');
                     }
+                    if (toast) toast.remove();
                     if (run.conclusion === 'success') {
                         showToast('Feeds updated! Reloading\u2026', 'success', 2500);
                         setTimeout(() => {
@@ -625,6 +630,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 // Still queued / in_progress — keep polling
+                if (toast) {
+                    const statusText = run.status === 'in_progress' ? 'Running workflow…' : 'Waiting in queue…';
+                    toast.textContent = `Fetching latest feeds: ${statusText}`;
+                }
             } catch (e) {
                 console.warn('Workflow poll error:', e);
             }
@@ -635,6 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = false;
             btn.classList.remove('fetching');
         }
+        if (toast) toast.remove();
         showToast('Refresh is taking a while \u2014 reload manually when ready', 'error', 5000);
     }
 
