@@ -284,8 +284,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCpXLm3fQI7H-xgMwGkqZpRg
 https://www.youtube.com/feeds/videos.xml?channel_id=UC6QQXHTWzhjlLJQpRPoJ4IA
 # prestongoes
 https://www.youtube.com/feeds/videos.xml?channel_id=UCI3yTtc0kShZ-S_Qsd5VTSQ
-# Proper Honest Tech
-https://www.youtube.com/feeds/videos.xml?channel_id=UCi7eZm4CkFiLEZ4tF4Er4lA
 # Resident Advisor
 https://www.youtube.com/feeds/videos.xml?channel_id=UCDHvlud7Hf86FxFsogrBcMg
 # Reynard Lowell
@@ -324,10 +322,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCe1R0tqKeEZmbCMPZzH5M2g
 https://www.youtube.com/feeds/videos.xml?channel_id=UCAxsaGC49lyvf68n45zg-xw
 # Snazzy Labs
 https://www.youtube.com/feeds/videos.xml?channel_id=UCO2x-p9gg9TLKneXlibGR7w
-# Stephen Robles
-https://www.youtube.com/feeds/videos.xml?channel_id=UCpCrcUPVtIvXLDnHnexu-WQ
-# Stranger Things
-https://www.youtube.com/feeds/videos.xml?channel_id=UChmpTxQ0Gp8KEJKsqzeg9Lg
 # Sun Knudsen
 https://www.youtube.com/feeds/videos.xml?channel_id=UCkHN7h7CFeYL6Y1N5JcEZug
 # Tae Kim - Financial Tortoise
