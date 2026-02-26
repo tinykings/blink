@@ -3,7 +3,7 @@ https://www.reddit.com/r/sysadmin/top.rss?t=week
 https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
-https://www.reddit.com/r/GrapheneOS/top.rss?t=week
+https://www.reddit.com/r/apple/top.rss?t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.bleepingcomputer.com/feed/
 https://www.thelazyadministrator.com/feed/
@@ -12,10 +12,23 @@ https://www.404media.co/rss
 https://4sysops.com/feed/
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
-https://github.com/basecamp/omarchy/releases.atom
-https://blog.tomaszdunia.pl/zdradzilem-teamapple-eng/
+https://www.macstories.net/feed/
 
 #youtube
+# Stephen Robles
+https://www.youtube.com/feeds/videos.xml?channel_id=UCpCrcUPVtIvXLDnHnexu-WQ
+# Proper Honest Tech
+https://www.youtube.com/feeds/videos.xml?channel_id=UCi7eZm4CkFiLEZ4tF4Er4lA
+# 9to5Mac
+https://www.youtube.com/feeds/videos.xml?channel_id=UChjRM_qQAaOAiLNbOGbYcRA
+# Apple
+https://www.youtube.com/feeds/videos.xml?channel_id=UCE_M8A5yxnLfW0KghEeajjw
+# Apple TV
+https://www.youtube.com/feeds/videos.xml?channel_id=UC1Myj674wRVXB9I4c6Hm5zA
+# Mac Address
+https://www.youtube.com/feeds/videos.xml?channel_id=UC0KfjyvabuE2J-RBC6ko2Lw
+# MacRumors
+https://www.youtube.com/feeds/videos.xml?channel_id=UCaFGDBmGK_jw66u3av2Ysjw
 # laustoic
 https://www.youtube.com/feeds/videos.xml?channel_id=UChHOzUIfKqtAeUGjqR7_whQ
 # jakkuh
