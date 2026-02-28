@@ -491,16 +491,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Mark all read + reload page (no workflow trigger)
-    const markAllReadBtn = document.getElementById('mark-all-read-btn');
-    if (markAllReadBtn) {
-        markAllReadBtn.addEventListener('click', async () => {
-            if (markAllReadBtn.disabled) return;
+    // Combined Mark-all-read and Fetch-now
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+            if (refreshBtn.disabled) return;
 
+            // 1. Mark all read
             const meta = gistSync.getLocal();
             meta.items = meta.items || [];
             const now = new Date().toISOString();
-
             let changed = false;
             feedData.forEach(item => {
                 let metaItem = meta.items.find(i => i.id === item.id);
@@ -514,44 +514,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
+            refreshBtn.disabled = true;
+            refreshBtn.classList.add('fetching');
+            const toast = showToast('Refreshing feeds…', 'info', 0, true);
+
             if (changed) {
-                markAllReadBtn.disabled = true;
-                markAllReadBtn.classList.add('fetching');
                 meta.updated_at = now;
                 gistSync.setLocal(meta);
                 try {
                     await upload();
                 } catch (e) {
-                    console.warn('Final push before refresh failed:', e);
+                    console.warn('Metadata upload failed:', e);
                 }
-                setTimeout(() => {
-                    window.scrollTo(0, 0);
-                    window.location.reload();
-                }, 500);
-            } else {
-                window.scrollTo(0, 0);
-                window.location.reload();
             }
-        });
-    }
 
-    // Fetch-now button: trigger GitHub Actions workflow, poll until done, then reload
-    const fetchNowBtn = document.getElementById('fetch-now-btn');
-    if (fetchNowBtn) {
-        fetchNowBtn.addEventListener('click', async () => {
-            if (fetchNowBtn.disabled) return;
-
+            // 2. Fetch now
             const token = localStorage.getItem('GITHUB_TOKEN');
             const repo = localStorage.getItem('GITHUB_REPO');
 
             if (!token || !repo) {
+                if (toast) toast.remove();
                 showToast('Set GitHub token and repository in Settings first', 'error', 4000);
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    window.location.reload();
+                }, 2000);
                 return;
             }
-
-            fetchNowBtn.disabled = true;
-            fetchNowBtn.classList.add('fetching');
-            const toast = showToast('Fetching latest feeds…', 'info', 0, true);
 
             const dispatchedAt = new Date().toISOString();
 
@@ -574,14 +563,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(err.message || `HTTP ${res.status}`);
                 }
 
-                await pollWorkflowUntilDone(repo, token, dispatchedAt, fetchNowBtn, toast);
+                await pollWorkflowUntilDone(repo, token, dispatchedAt, refreshBtn, toast);
 
             } catch (e) {
                 console.error('Workflow dispatch failed:', e);
                 if (toast) toast.remove();
-                showToast(`Could not trigger refresh: ${e.message}`, 'error', 4000);
-                fetchNowBtn.disabled = false;
-                fetchNowBtn.classList.remove('fetching');
+                showToast(`Could not trigger refresh: ${e.message}. Reloading…`, 'error', 4000);
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    window.location.reload();
+                }, 2000);
             }
         });
     }
