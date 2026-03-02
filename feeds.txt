@@ -3,10 +3,10 @@ https://www.reddit.com/r/sysadmin/top.rss?t=week
 https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
+https://www.reddit.com/r/apple/top.rss?t=week
 https://www.reddit.com/r/pcgaming/top.rss?t=week
 https://www.reddit.com/r/linux_gaming/top.rss?t=week
 https://www.reddit.com/r/games/top.rss?t=week
-https://www.reddit.com/r/GrapheneOS/top.rss?t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.bleepingcomputer.com/feed/
 https://www.thelazyadministrator.com/feed/
@@ -15,19 +15,10 @@ https://www.404media.co/rss
 https://4sysops.com/feed/
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
-https://github.com/basecamp/omarchy/releases.atom
+https://www.macstories.net/feed/
 https://gg.deals/us/news/feed
-https://blog.tomaszdunia.pl/zdradzilem-teamapple-eng/
 
 #youtube
-# laustoic
-https://www.youtube.com/feeds/videos.xml?channel_id=UChHOzUIfKqtAeUGjqR7_whQ
-# Doom Penguin
-https://www.youtube.com/feeds/videos.xml?channel_id=UCalMe4bgGKK61amQBvR4xNg
-# Level1Linux
-https://www.youtube.com/feeds/videos.xml?channel_id=UCOWcZ6Wicl-1N34H0zZe38w
-# jakkuh
-https://www.youtube.com/feeds/videos.xml?channel_id=UCJa14zeVf8p6clixTOIOVyQ
 # Linux Gamer Life
 https://www.youtube.com/feeds/videos.xml?channel_id=UCeRKQYn0niKhkxwuCRwppiA
 # David Hartley
@@ -106,6 +97,28 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCuVxaQDraOja6xKidcmoufA
 https://www.youtube.com/feeds/videos.xml?channel_id=UC-2OWg_yYnoU_IAYHwJKeDw
 # Raycevick
 https://www.youtube.com/feeds/videos.xml?channel_id=UC1JTQBa5QxZCpXrFSkMxmPw
+# Doom Penguin
+https://www.youtube.com/feeds/videos.xml?channel_id=UCalMe4bgGKK61amQBvR4xNg
+# Level1Linux
+https://www.youtube.com/feeds/videos.xml?channel_id=UCOWcZ6Wicl-1N34H0zZe38w
+# Stephen Robles
+https://www.youtube.com/feeds/videos.xml?channel_id=UCpCrcUPVtIvXLDnHnexu-WQ
+# Proper Honest Tech
+https://www.youtube.com/feeds/videos.xml?channel_id=UCi7eZm4CkFiLEZ4tF4Er4lA
+# 9to5Mac
+https://www.youtube.com/feeds/videos.xml?channel_id=UChjRM_qQAaOAiLNbOGbYcRA
+# Apple
+https://www.youtube.com/feeds/videos.xml?channel_id=UCE_M8A5yxnLfW0KghEeajjw
+# Apple TV
+https://www.youtube.com/feeds/videos.xml?channel_id=UC1Myj674wRVXB9I4c6Hm5zA
+# Mac Address
+https://www.youtube.com/feeds/videos.xml?channel_id=UC0KfjyvabuE2J-RBC6ko2Lw
+# MacRumors
+https://www.youtube.com/feeds/videos.xml?channel_id=UCaFGDBmGK_jw66u3av2Ysjw
+# laustoic
+https://www.youtube.com/feeds/videos.xml?channel_id=UChHOzUIfKqtAeUGjqR7_whQ
+# jakkuh
+https://www.youtube.com/feeds/videos.xml?channel_id=UCJa14zeVf8p6clixTOIOVyQ
 # PewDiePie
 https://www.youtube.com/feeds/videos.xml?channel_id=UC-lHJZR3Gqxm24_Vd_AJ5Yw
 # Better Creating
@@ -118,8 +131,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCXzw-OdotBUcNA9yhuYQBwA
 https://www.youtube.com/feeds/videos.xml?channel_id=UCexls6lVQMZT6aSfLPNTonA
 # Theo - t3․gg
 https://www.youtube.com/feeds/videos.xml?channel_id=UCbRP3c757lWg9M-U7TyEkXA
-# 9to5Mac
-https://www.youtube.com/feeds/videos.xml?channel_id=UChjRM_qQAaOAiLNbOGbYcRA
 # 404 Media
 https://www.youtube.com/feeds/videos.xml?channel_id=UC7YMZb0X_W06ToOazhFuXIQ
 # A Better Computer
@@ -372,8 +383,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCpXLm3fQI7H-xgMwGkqZpRg
 https://www.youtube.com/feeds/videos.xml?channel_id=UC6QQXHTWzhjlLJQpRPoJ4IA
 # prestongoes
 https://www.youtube.com/feeds/videos.xml?channel_id=UCI3yTtc0kShZ-S_Qsd5VTSQ
-# Proper Honest Tech
-https://www.youtube.com/feeds/videos.xml?channel_id=UCi7eZm4CkFiLEZ4tF4Er4lA
 # Resident Advisor
 https://www.youtube.com/feeds/videos.xml?channel_id=UCDHvlud7Hf86FxFsogrBcMg
 # Reynard Lowell
@@ -412,10 +421,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCe1R0tqKeEZmbCMPZzH5M2g
 https://www.youtube.com/feeds/videos.xml?channel_id=UCAxsaGC49lyvf68n45zg-xw
 # Snazzy Labs
 https://www.youtube.com/feeds/videos.xml?channel_id=UCO2x-p9gg9TLKneXlibGR7w
-# Stephen Robles
-https://www.youtube.com/feeds/videos.xml?channel_id=UCpCrcUPVtIvXLDnHnexu-WQ
-# Stranger Things
-https://www.youtube.com/feeds/videos.xml?channel_id=UChmpTxQ0Gp8KEJKsqzeg9Lg
 # Sun Knudsen
 https://www.youtube.com/feeds/videos.xml?channel_id=UCkHN7h7CFeYL6Y1N5JcEZug
 # Tae Kim - Financial Tortoise
