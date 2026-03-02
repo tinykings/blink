@@ -19,7 +19,8 @@ https://www.macstories.net/feed/
 https://gg.deals/us/news/feed
 
 #youtube
-https://www.youtube.com/@DammitJeff
+# Dammit Jeff
+https://www.youtube.com/feeds/videos.xml?channel_id=UCXOSur_wiS9TK0WUhJrYrlA
 # Linux Gamer Life
 https://www.youtube.com/feeds/videos.xml?channel_id=UCeRKQYn0niKhkxwuCRwppiA
 # David Hartley
