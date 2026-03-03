@@ -497,8 +497,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCghJTNTO9kcDeUFXMuSDGLQ
 https://www.youtube.com/feeds/videos.xml?channel_id=UC_x36zCEGilGpB1m-V4gmjg
 # Saturday Night Live
 https://www.youtube.com/feeds/videos.xml?channel_id=UCqFzWxSCi39LnW1JKFR3efg
-# CRITERION
-https://www.youtube.com/feeds/videos.xml?channel_id=UCAP57cF-FSjJKzzXg7ntPlQ
 # The Art Of Storytelling
 https://www.youtube.com/feeds/videos.xml?channel_id=UCSW5iY5oGJtx_E_IPFxDraQ
 # Soder Cinema
