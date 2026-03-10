@@ -19,6 +19,7 @@ https://www.macstories.net/feed/
 https://gg.deals/us/news/feed
 
 #youtube
+https://m.youtube.com/@MacStories09
 # Linux Gamer Life
 https://www.youtube.com/feeds/videos.xml?channel_id=UCeRKQYn0niKhkxwuCRwppiA
 # David Hartley
