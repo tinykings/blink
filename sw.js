@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'blink-v6';
+const CACHE_VERSION = 'blink-v7';
 const PRECACHE_ASSETS = [
   'css/style.css',
   'js/main.js',

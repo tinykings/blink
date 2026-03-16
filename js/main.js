@@ -298,20 +298,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const focusedItem = currentItemIndex >= 0 ? getVisibleItems()[currentItemIndex] : null;
+        const focusedId = focusedItem ? focusedItem.dataset.itemId : null;
+
         const metaItemsById = new Map((metaItems || []).map(i => [i.id, i]));
 
         if (showingNew) {
-            allItems.sort((a, b) => {
-                const aItem = metaItemsById.get(a.dataset.itemId);
-                const bItem = metaItemsById.get(b.dataset.itemId);
-                const aIsStarred = aItem?.starred;
-                const bIsStarred = bItem?.starred;
-                if (aIsStarred === bIsStarred) return 0;
-                return aIsStarred ? 1 : -1;
-            });
-
             let visibleCount = 0;
-            const fragment = document.createDocumentFragment();
             allItems.forEach(item => {
                 const metaItem = metaItemsById.get(item.dataset.itemId);
                 const shouldHide = metaItem && metaItem.seen && !metaItem.starred;
@@ -320,18 +313,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 item.style.display = shouldHide ? 'none' : '';
                 if (!shouldHide) visibleCount++;
-                fragment.appendChild(item);
             });
-            feedContainer.appendChild(fragment);
 
             if (emptyState) emptyState.style.display = visibleCount === 0 ? '' : 'none';
         } else {
-            const fragment = document.createDocumentFragment();
             allItems.forEach(item => {
                 item.style.display = '';
-                fragment.appendChild(item);
             });
-            feedContainer.appendChild(fragment);
             if (emptyState) emptyState.style.display = 'none';
         }
 
@@ -345,9 +333,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Reset keyboard navigation when view changes
-        currentItemIndex = -1;
-        highlightItem(-1);
+        // Maintain or reset keyboard navigation
+        if (focusedId) {
+            const newVisibleItems = getVisibleItems();
+            currentItemIndex = newVisibleItems.findIndex(item => item.dataset.itemId === focusedId);
+            if (currentItemIndex === -1) {
+                highlightItem(-1);
+            } else {
+                highlightItem(currentItemIndex);
+            }
+        } else {
+            currentItemIndex = -1;
+            highlightItem(-1);
+        }
     }
 
     if (viewToggleButton) {
@@ -457,7 +455,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 meta.updated_at = now;
                 gistSync.setLocal(meta);
                 renderArchivedItems(meta.items || []);
-                if (item.starred) applyView(meta.items || []);
                 gistSync.pushSoon();
                 return;
             }
