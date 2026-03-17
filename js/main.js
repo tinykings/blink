@@ -269,7 +269,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderFeed() {
         if (!feedContainer) return;
         if (feedData.length) {
-            feedContainer.innerHTML = feedData.map(generateItemHtml).join('');
+            const starredItems = getStarredItems();
+            const starredSet = new Set(starredItems);
+            
+            const unstarred = feedData.filter(item => !starredSet.has(item.id));
+            const starred = feedData.filter(item => starredSet.has(item.id));
+            
+            const unstarredHtml = unstarred.map(generateItemHtml).join('');
+            const starredHtml = starred.map(generateItemHtml).join('');
+            
+            const separatorHtml = starred.length > 0 && unstarred.length > 0 
+                ? '<div class="feed-separator" data-separator><span>★ Starred</span></div>' 
+                : '';
+            
+            feedContainer.innerHTML = unstarredHtml + separatorHtml + starredHtml;
         }
     }
 
@@ -314,6 +327,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.style.display = shouldHide ? 'none' : '';
                 if (!shouldHide) visibleCount++;
             });
+
+            const separator = feedContainer.querySelector('[data-separator]');
+            if (separator) {
+                const starredItems = allItems.filter(item => {
+                    const metaItem = metaItemsById.get(item.dataset.itemId);
+                    return metaItem && metaItem.starred;
+                });
+                const visibleStarred = starredItems.filter(item => item.style.display !== 'none');
+                separator.style.display = visibleStarred.length > 0 ? '' : 'none';
+            }
 
             if (emptyState) emptyState.style.display = visibleCount === 0 ? '' : 'none';
         } else {
