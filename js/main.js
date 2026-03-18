@@ -16,9 +16,10 @@ function relTime(dateStr) {
     return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function makeLinksClickable(text) {
-    const urlRegex = /(https?:\/\/[^\s<]+)/g;
-    return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+function makeLinksClickable(html) {
+    // Only linkify URLs that aren't already inside anchor tags
+    const urlRegex = /(?:^|[^">])((https?:\/\/[^\s<]+))/g;
+    return html.replace(urlRegex, '$1<a href="$1" target="_blank" rel="noopener">$1</a>');
 }
 
 function toast(msg, type = 'info', ms = 3000) {
@@ -145,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (item.thumbnail) {
             media = `<a href="${item.link}" target="_blank"><img src="${item.thumbnail}" alt="" class="thumb" loading="lazy"></a>`;
         }
-        const desc = item.description ? `<p class="desc">${makeLinksClickable(item.description)}</p>` : '';
+        const desc = item.description ? `<div class="desc">${makeLinksClickable(item.description)}</div>` : '';
         const expandBtn = item.description ? `<button class="expand-btn" title="Toggle description" aria-label="Toggle description">_</button>` : '';
         const starred = getStarredItems().includes(item.id);
         const star = `<span class="star${starred ? ' starred' : ''}" data-id="${item.id}">&#9829;</span>`;

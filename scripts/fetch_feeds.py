@@ -447,34 +447,63 @@ class FeedProcessor:
         if not text:
             return ''
         
-        # Parse and extract plain text
+        # Parse HTML
         soup = BeautifulSoup(text, 'lxml')
         
-        # Remove script and style tags
-        for tag in soup(['script', 'style', 'noscript']):
+        # Remove dangerous tags
+        for tag in soup(['script', 'style', 'noscript', 'iframe', 'object', 'embed', 'form', 'input']):
             tag.decompose()
         
-        # Get text content
-        text = soup.get_text(separator=' ', strip=True)
+        # Remove dangerous attributes
+        allowed_tags = {'br', 'p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div'}
+        for tag in soup.find_all(True):
+            if tag.name not in allowed_tags:
+                tag.unwrap()
+            # Remove event handlers and other dangerous attributes
+            attrs_to_remove = [attr for attr in tag.attrs if attr.startswith('on') or attr in ['style', 'class', 'id']]
+            for attr in attrs_to_remove:
+                del tag[attr]
         
-        # Clean up whitespace
-        text = re.sub(r'\s+', ' ', text).strip()
+        # Get HTML with preserved formatting
+        html = str(soup)
         
-        # Limit length (RSS feeds often have very long descriptions)
+        # Clean up whitespace while preserving paragraph breaks
+        html = re.sub(r'<br\s*/?>\s*</p>', '</p>', html)
+        html = re.sub(r'<p>\s*</p>', '', html)
+        html = re.sub(r'\s+', ' ', html)
+        html = html.strip()
+        
+        # Limit length - truncate at word boundary
         max_len = 500
-        if len(text) > max_len:
-            # Try to cut at a sentence or word boundary
-            cutoff = text[:max_len]
-            last_period = cutoff.rfind('. ')
-            last_comma = cutoff.rfind(', ')
-            last_space = cutoff.rfind(' ')
-            cut_point = max(last_period, last_comma, last_space)
-            if cut_point > max_len * 0.6:  # Only cut if we found a good break
-                text = text[:cut_point + 1]
-            else:
-                text = text[:max_len] + '...'
+        if len(html) > max_len:
+            # Find text content length for truncation
+            text_only = soup.get_text()
+            if len(text_only) > max_len:
+                # Get plain text for truncation
+                text_parts = []
+                current_len = 0
+                for element in soup.find_all(string=True):
+                    text_parts.append(str(element))
+                    current_len += len(element)
+                    if current_len >= max_len:
+                        break
+                
+                # Rebuild with truncation
+                result_soup = BeautifulSoup('', 'lxml')
+                for part in text_parts:
+                    result_soup.append(part)
+                
+                html = str(result_soup)
+                # Find last space to break at word
+                if len(html) > max_len:
+                    cutoff = html[:max_len]
+                    last_space = cutoff.rfind(' ')
+                    if last_space > max_len * 0.6:
+                        html = html[:last_space] + '...'
+                    else:
+                        html = html[:max_len] + '...'
         
-        return text
+        return html
     
     def sort_items(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Sort items by published date."""
