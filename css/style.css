@@ -76,9 +76,17 @@ img { max-width: 100%; height: auto; display: block; }
   font-size: 1.15rem;
   font-weight: 500;
   margin-block-end: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .item h2 a { text-decoration: none; }
 .item h2 a:hover { text-decoration: underline; }
+.item.show-desc h2 {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
 
 .meta {
   position: absolute;
