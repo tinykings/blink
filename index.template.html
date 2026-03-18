@@ -3,106 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Blink</title>
     <meta name="theme-color" content="#2e3440">
-
-    <link rel="preconnect" href="https://img.youtube.com">
-    <link rel="preconnect" href="https://api.github.com">
-
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="manifest" href="manifest.json">
-
-    <link rel="modulepreload" href="js/main.js">
-    <link rel="modulepreload" href="js/sync.js">
-    <link rel="modulepreload" href="js/storage.js">
-    <link rel="modulepreload" href="js/youtube.js">
-
-    <!-- PWA for iOS -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="RSS Reader">
-
-    <!-- iOS Icons -->
+    <meta name="apple-mobile-web-app-title" content="Blink">
+    <title>Blink</title>
+    <link rel="preconnect" href="https://img.youtube.com">
+    <link rel="preconnect" href="https://api.github.com">
+    <link rel="preload" href="js/main.js" as="script">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png">
     <link rel="apple-touch-icon" href="images/icon-192.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="images/icon-192.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="images/icon-192.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="images/icon-192.png">
-
-    <!-- Standard Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="images/icon-192.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="images/icon-192.png">
-    <link rel="icon" type="image/png" href="images/icon-192.png">
-
-    <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
-    }
-    </script>
- </head>
- <body>
-    <div id="loading-overlay">
-        <div class="skeleton-container">
+    <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
+</head>
+<body>
+    <div id="loading">
+        <div class="skeleton">
             <div class="skeleton-card"><div class="skeleton-media"></div><div class="skeleton-title"></div><div class="skeleton-meta"></div></div>
             <div class="skeleton-card"><div class="skeleton-media"></div><div class="skeleton-title"></div><div class="skeleton-meta"></div></div>
             <div class="skeleton-card"><div class="skeleton-title" style="width:85%"></div><div class="skeleton-meta"></div></div>
-            <div class="skeleton-card"><div class="skeleton-media"></div><div class="skeleton-title"></div><div class="skeleton-meta"></div></div>
-            <div class="skeleton-card"><div class="skeleton-title" style="width:65%"></div><div class="skeleton-meta"></div></div>
         </div>
     </div>
-     <div id="feed-container" style="display: none;"></div>
-     <div id="empty-state" class="empty-state" style="display:none;">
-        <div class="empty-state-icon">&#x2713;</div>
-        <p class="empty-state-text">You're all caught up</p>
-        <p class="empty-state-sub">No new items right now</p>
-     </div>
-     <div class="footer-bar">
-         <div class="header-icons" role="toolbar" aria-label="Actions">
-            <button id="settings-icon" class="icon-btn" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-            <button id="view-toggle-button" class="icon-btn" title="Toggle view" aria-label="Toggle view"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-         </div>
-         <p class="last-updated"><!-- last_updated_placeholder --></p>
-         <div class="footer-right">
-             <button id="mark-all-read-btn" class="icon-btn" title="Mark all as read and refresh" aria-label="Mark all as read and refresh"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button>
-         </div>
-     </div>
-     <div id="toast-container" class="toast-container"></div>
-     <button id="scroll-top-btn" class="icon-btn scroll-top-btn" title="Scroll to top" aria-label="Scroll to top"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg></button>
-     <div id="keyboard-help" class="keyboard-help-overlay" style="display:none;">
-        <div class="keyboard-help-content">
+
+    <div id="feed"></div>
+    <div id="empty">
+        <div class="icon">&#x2713;</div>
+        <p class="title">You're all caught up</p>
+        <p class="sub">No new items right now</p>
+    </div>
+
+    <footer class="bar">
+        <div class="bar-left">
+            <button id="settings-btn" class="btn" title="Settings" aria-label="Settings">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+            <button id="view-btn" class="btn" title="Toggle view" aria-label="Toggle view">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+        </div>
+        <p class="bar-center"><!-- last_updated_placeholder --></p>
+        <div class="bar-right">
+            <button id="mark-read-btn" class="btn" title="Mark all read" aria-label="Mark all read">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+        </div>
+    </footer>
+
+    <div id="toast-container"></div>
+
+    <button id="scroll-top" class="btn" title="Scroll to top" aria-label="Scroll to top">
+        <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
+
+    <div id="keyboard-help">
+        <div class="modal-content">
             <h2>Keyboard Shortcuts</h2>
-            <ul class="keyboard-help-list">
-                <li><kbd>j</kbd> <span class="key-desc">Next item</span></li>
-                <li><kbd>k</kbd> <span class="key-desc">Previous item</span></li>
-                <li><kbd>s</kbd> <span class="key-desc">Star / unstar item</span></li>
-                <li><kbd>o</kbd> <span class="key-desc">Open item in new tab</span></li>
-                <li><kbd>?</kbd> <span class="key-desc">Show this help</span></li>
+            <ul>
+                <li><kbd>j</kbd> <span class="desc">Next item</span></li>
+                <li><kbd>k</kbd> <span class="desc">Previous item</span></li>
+                <li><kbd>s</kbd> <span class="desc">Star / unstar</span></li>
+                <li><kbd>e</kbd> <span class="desc">Toggle description</span></li>
+                <li><kbd>o</kbd> <span class="desc">Open item</span></li>
+                <li><kbd>?</kbd> <span class="desc">Show help</span></li>
             </ul>
         </div>
-     </div>
-     <script type="module" src="js/main.js"></script>
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="settings-modal" style="display:none;">
-        <div class="settings-modal-content feeds-modal-content">
+    </div>
+
+    <div id="settings-modal" class="modal" style="display:none;">
+        <div class="modal-content">
             <h2>Settings</h2>
-            <div id="feeds-status" class="feeds-status"></div>
-
-            <div id="sync-panel" class="settings-panel">
-                <p class="sync-description">Connect to GitHub to sync starred items across devices.</p>
-                <form id="settings-form">
-                    <label for="gist-id">Gist ID:</label>
-                    <input type="text" id="gist-id" name="gist-id" autocomplete="off" placeholder="For syncing starred items">
-                    <label for="github-token">GitHub Token:</label>
-                    <input type="password" id="github-token" name="github-token" autocomplete="off">
-                    <p class="settings-hint">Token needs <code>gist</code> scope to sync stars.</p>
-                </form>
-            </div>
-
-            <div class="settings-modal-actions">
-                <button type="button" id="feeds-save" class="icon-btn" disabled>Save</button>
-                <button type="button" id="feeds-cancel" class="icon-btn">Close</button>
+            <div id="status" class="status"></div>
+            <p style="font-size:.85rem;color:var(--muted);margin-block-end:12px;">Connect to GitHub to sync starred items across devices.</p>
+            <label for="gist-id">Gist ID</label>
+            <input type="text" id="gist-id" autocomplete="off" placeholder="For syncing starred items">
+            <label for="github-token">GitHub Token</label>
+            <input type="password" id="github-token" autocomplete="off">
+            <p class="hint">Token needs <code>gist</code> scope.</p>
+            <div class="modal-actions">
+                <button id="save-btn" class="btn" disabled>Save</button>
+                <button id="close-btn" class="btn">Close</button>
             </div>
         </div>
     </div>
- </body>
+
+    <script type="module" src="js/main.js"></script>
+</body>
 </html>

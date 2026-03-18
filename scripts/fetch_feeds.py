@@ -359,8 +359,11 @@ class FeedProcessor:
             # Convert to local timezone
             published_time = published_time.astimezone(self.local_tz)
 
-            # Extract thumbnail and video info
-            thumbnail_url, video_id = self._extract_media_info(entry, is_youtube_feed)
+            # Extract thumbnail, video info, and YouTube description
+            thumbnail_url, video_id, yt_desc = self._extract_media_info(entry, is_youtube_feed)
+
+            # Clean description text (prefer YouTube description if available)
+            description = yt_desc if yt_desc else self._clean_description(entry)
 
             items.append({
                 'id': item_id,
@@ -370,6 +373,7 @@ class FeedProcessor:
                 'thumbnail': thumbnail_url,
                 'feed_title': getattr(feed.feed, 'title', ''),
                 'video_id': video_id,
+                'description': description,
             })
         
         return items
@@ -381,16 +385,27 @@ class FeedProcessor:
                 return datetime(*getattr(entry, time_attr)[:6], tzinfo=pytz.utc)
         return self.utc_now
     
-    def _extract_media_info(self, entry: feedparser.FeedParserDict, is_youtube: bool) -> Tuple[str, Optional[str]]:
-        """Extract thumbnail URL and video ID from entry."""
+    def _extract_media_info(self, entry: feedparser.FeedParserDict, is_youtube: bool) -> Tuple[str, Optional[str], str]:
+        """Extract thumbnail URL, video ID, and description from entry."""
         thumbnail_url = ''
         video_id = None
+        description = ''
         
         if is_youtube:
             video_id = entry.get('yt_videoid')
             if not video_id:
                 match = re.search(r"v=([^&]+)", entry.link)
                 video_id = match.group(1) if match else None
+            
+            # Extract YouTube description from media:description or media:group
+            if hasattr(entry, 'media_description') and entry.media_description:
+                description = entry.media_description
+            elif hasattr(entry, 'media_group') and entry.media_group:
+                media_group = entry.media_group
+                if hasattr(media_group, 'media_description') and media_group.media_description:
+                    description = media_group.media_description
+                elif isinstance(media_group, dict) and media_group.get('media_description'):
+                    description = media_group['media_description']
         else:
             # Try various ways to find thumbnail
             if hasattr(entry, 'media_thumbnail') and entry.media_thumbnail:
@@ -409,7 +424,57 @@ class FeedProcessor:
                             thumbnail_url = img_tag['src']
                             break
         
-        return thumbnail_url, video_id
+        return thumbnail_url, video_id, description
+
+    def _clean_description(self, entry: feedparser.FeedParserDict) -> str:
+        """Extract and clean description/summary text from entry."""
+        text = ''
+        
+        # Try summary/summary_detail first
+        if hasattr(entry, 'summary') and entry.summary:
+            text = entry.summary
+        elif hasattr(entry, 'summary_detail') and entry.summary_detail and entry.summary_detail.get('value'):
+            text = entry.summary_detail['value']
+        
+        # Fallback to content if no summary
+        if not text and hasattr(entry, 'content'):
+            content = entry.content
+            if isinstance(content, list) and content:
+                text = content[0].value if hasattr(content[0], 'value') else str(content[0])
+            elif hasattr(content, 'value'):
+                text = content.value
+        
+        if not text:
+            return ''
+        
+        # Parse and extract plain text
+        soup = BeautifulSoup(text, 'lxml')
+        
+        # Remove script and style tags
+        for tag in soup(['script', 'style', 'noscript']):
+            tag.decompose()
+        
+        # Get text content
+        text = soup.get_text(separator=' ', strip=True)
+        
+        # Clean up whitespace
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        # Limit length (RSS feeds often have very long descriptions)
+        max_len = 500
+        if len(text) > max_len:
+            # Try to cut at a sentence or word boundary
+            cutoff = text[:max_len]
+            last_period = cutoff.rfind('. ')
+            last_comma = cutoff.rfind(', ')
+            last_space = cutoff.rfind(' ')
+            cut_point = max(last_period, last_comma, last_space)
+            if cut_point > max_len * 0.6:  # Only cut if we found a good break
+                text = text[:cut_point + 1]
+            else:
+                text = text[:max_len] + '...'
+        
+        return text
     
     def sort_items(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Sort items by published date."""

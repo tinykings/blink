@@ -113,8 +113,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UChjRM_qQAaOAiLNbOGbYcRA
 https://www.youtube.com/feeds/videos.xml?channel_id=UCE_M8A5yxnLfW0KghEeajjw
 # Apple TV
 https://www.youtube.com/feeds/videos.xml?channel_id=UC1Myj674wRVXB9I4c6Hm5zA
-# Mac Address
-https://www.youtube.com/feeds/videos.xml?channel_id=UC0KfjyvabuE2J-RBC6ko2Lw
 # MacRumors
 https://www.youtube.com/feeds/videos.xml?channel_id=UCaFGDBmGK_jw66u3av2Ysjw
 # laustoic
@@ -307,8 +305,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCDivkE8Ckgk14fu1XChEp7w
 https://www.youtube.com/feeds/videos.xml?channel_id=UCoNTMWgGuXtGPLv9UeJZwBw
 # Lucile
 https://www.youtube.com/feeds/videos.xml?channel_id=UCJdLzKzBQIsY3IIsCxGS7EA
-# Mac Address
-https://www.youtube.com/feeds/videos.xml?channel_id=UC0KfjyvabuE2J-RBC6ko2Lw\
 # Madeline Hegedus
 https://www.youtube.com/feeds/videos.xml?channel_id=UCNVB6_eY4h2Xj54dQFxjJ8A
 # Makari Espe
