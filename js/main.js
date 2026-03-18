@@ -38,7 +38,6 @@ function toast(msg, type = 'info', ms = 3000) {
 function $(id) { return document.getElementById(id); }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const settingsBtn = $('settings-btn');
     const settingsModal = $('settings-modal');
     const gistInput = $('gist-id');
     const tokenInput = $('github-token');
@@ -50,8 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const markReadBtn = $('mark-read-btn');
     const emptyEl = $('empty');
     const scrollTopBtn = $('scroll-top');
+    const scrollTopRightBtn = $('scroll-top-right');
     const loadingEl = $('loading');
     const keyboardHelp = $('keyboard-help');
+    const setupForm = $('setup-form');
 
     let feedData = [];
     let feedById = new Map();
@@ -68,6 +69,19 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.error('Feed parse error:', e);
         }
+    }
+
+    const hasGist = localStorage.getItem('GIST_ID');
+    const hasToken = localStorage.getItem('GITHUB_TOKEN');
+    const floatingBtns = $('floating-buttons');
+    const updateHeader = document.querySelector('.update-header');
+    if (!hasGist || !hasToken) {
+        if (setupForm) setupForm.style.display = 'flex';
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (feedEl) feedEl.style.display = 'none';
+        if (emptyEl) emptyEl.style.display = 'none';
+        if (floatingBtns) floatingBtns.style.display = 'none';
+        if (updateHeader) updateHeader.style.display = 'none';
     }
 
     function setStatus(msg, type = 'info') {
@@ -90,25 +104,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeSettings() { settingsModal.style.display = 'none'; }
 
     async function doSave() {
-        if (!pendingChanges) return;
-        saveBtn.disabled = true;
         const gistId = gistInput?.value.trim() || '';
         const token = tokenInput?.value.trim() || '';
         localStorage.setItem('GIST_ID', gistId);
         localStorage.setItem('GITHUB_TOKEN', token);
         if (gistId && token) {
+            if (setupForm) setupForm.style.display = 'none';
+            if (loadingEl) loadingEl.style.display = 'block';
             setStatus('Syncing from Gist...', 'info');
             localStorage.removeItem('blinkMeta');
             if (await gistSync.pull()) {
                 renderAll();
             }
+            if (loadingEl) loadingEl.style.display = 'none';
         }
         pendingChanges = false;
-        setStatus('Settings saved!', 'success');
         saveButton();
     }
 
-    settingsBtn?.addEventListener('click', openSettings);
     closeBtn?.addEventListener('click', closeSettings);
     saveBtn?.addEventListener('click', doSave);
     settingsModal?.addEventListener('click', e => { if (e.target === settingsModal) closeSettings(); });
@@ -150,10 +163,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const expandBtn = item.description ? `<button class="expand-btn" title="Toggle description" aria-label="Toggle description">_</button>` : '';
         const starred = getStarredItems().includes(item.id);
         const star = `<span class="star${starred ? ' starred' : ''}" data-id="${item.id}">&#9829;</span>`;
-        const actions = (expandBtn || star) ? `<div class="item-actions">${expandBtn}${star}</div>` : '';
+        const actions = star ? `<div class="item-actions">${star}</div>` : '';
         const source = item.feed_title || '';
         const time = relTime(item.published);
-        const meta = (source || time) ? `<div class="meta">${source ? `<span>${source}</span>` : ''}${source && time ? '<span class="meta-sep">&middot;</span>' : ''}${time ? `<span class="time">${time}</span>` : ''}</div>` : '';
+        const meta = (source || time || expandBtn) ? `<div class="meta">${expandBtn}${source ? `<span>${source}</span>` : ''}${source && time ? '<span class="meta-sep">&middot;</span>' : ''}${time ? `<span class="time">${time}</span>` : ''}</div>` : '';
         return `<div class="item${showingDesc ? ' show-desc' : ''}" data-id="${item.id}">${media}<h2><a href="${item.link}" target="_blank">${item.title}</a></h2>${meta}${desc}${actions}</div>`;
     }
 
@@ -395,10 +408,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let scrollTick = false;
+    let lastScrollY = 0;
     window.addEventListener('scroll', () => {
         if (!scrollTick) {
             requestAnimationFrame(() => {
-                scrollTopBtn?.classList.toggle('show', window.scrollY > 600);
+                const showBtn = window.scrollY > 600;
+                scrollTopBtn?.classList.toggle('show', showBtn);
+                scrollTopRightBtn?.classList.toggle('show', showBtn);
+                if (window.scrollY < lastScrollY) {
+                    floatingBtns?.classList.remove('hidden');
+                } else if (window.scrollY > lastScrollY && window.scrollY > 100) {
+                    floatingBtns?.classList.add('hidden');
+                }
+                lastScrollY = window.scrollY;
                 scrollTick = false;
             });
             scrollTick = true;
@@ -406,6 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { passive: true });
 
     scrollTopBtn?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    scrollTopRightBtn?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
     (async () => {
         if (loadingEl) loadingEl.style.display = '';

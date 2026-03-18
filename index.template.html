@@ -27,35 +27,44 @@
         </div>
     </div>
 
-    <div id="feed"></div>
+    <div id="feed">
+        <header class="update-header"><!-- last_updated_placeholder --></header>
+    </div>
     <div id="empty">
         <div class="icon">&#x2713;</div>
         <p class="title">You're all caught up</p>
         <p class="sub">No new items right now</p>
     </div>
 
-    <footer class="bar">
-        <div class="bar-left">
-            <button id="settings-btn" class="btn" title="Settings" aria-label="Settings">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            </button>
-            <button id="view-btn" class="btn" title="Toggle view" aria-label="Toggle view">
-                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
+    <div id="setup-form" style="display:none;">
+        <div class="setup-content">
+            <img src="images/icon-192.png" alt="Blink" class="setup-icon">
+            <h2>Blink</h2>
+            <p class="setup-desc">RSS Feed Sync</p>
+            <div class="setup-fields">
+                <input type="text" id="gist-id" autocomplete="off" placeholder="Gist ID">
+            </div>
+            <div class="setup-fields">
+                <input type="password" id="github-token" autocomplete="off" placeholder="GitHub Token">
+                <p class="hint">Token needs <code>gist</code> scope.</p>
+            </div>
+            <button id="save-btn" class="btn setup-btn">Save</button>
         </div>
-        <p class="bar-center"><!-- last_updated_placeholder --></p>
-        <div class="bar-right">
-            <button id="mark-read-btn" class="btn" title="Mark all read" aria-label="Mark all read">
-                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-            </button>
-        </div>
-    </footer>
+    </div>
+
+    <div id="floating-buttons">
+        <button id="view-btn" class="btn floating-btn floating-left" title="Toggle view" aria-label="Toggle view">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button id="scroll-top-right" class="btn floating-btn floating-center" title="Scroll to top" aria-label="Scroll to top">
+            <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <button id="mark-read-btn" class="btn floating-btn floating-right" title="Mark all read" aria-label="Mark all read">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </button>
+    </div>
 
     <div id="toast-container"></div>
-
-    <button id="scroll-top" class="btn" title="Scroll to top" aria-label="Scroll to top">
-        <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
-    </button>
 
     <div id="keyboard-help">
         <div class="modal-content">
