@@ -2,14 +2,14 @@
 
 /* === CSS Custom Properties === */
 :root {
-  --bg: #2e3440;
-  --text: #e5e9f0;
-  --muted: #d8dee9;
-  --accent: #88c0d0;
-  --surface: #3b4252;
-  --border: #434c5e;
-  --shadow: rgba(0,0,0,.18);
-  --visited: #b48ead;
+  --bg: #1c2122;
+  --text: #e8e8e8;
+  --muted: #a8a8a8;
+  --accent: #a2faa3;
+  --surface: #252c2d;
+  --border: #2d3637;
+  --shadow: rgba(0,0,0,.3);
+  --visited: #8fd883;
   --ff: ui-sans-serif, system-ui, -apple-system, sans-serif;
   --mono: ui-monospace, monospace;
   --r: 10px;
@@ -49,7 +49,7 @@ img { max-width: 100%; height: auto; display: block; }
 #feed {
   max-width: 800px;
   margin-inline: auto;
-  padding-block-start: env(safe-area-inset-top, 12px);
+  padding-block-start: calc(env(safe-area-inset-top, 0) + 20px);
 }
 
 /* === Feed Items === */
@@ -123,16 +123,14 @@ img { max-width: 100%; height: auto; display: block; }
   display: grid;
   place-items: center;
   font-size: 1rem;
-  color: #bbb;
+  color: var(--muted);
   cursor: pointer;
   transition: transform .12s, color .12s;
 }
-.expand-btn:hover { color: var(--accent); }
-.expand-btn:active { transform: scale(.95); }
+.expand-btn:hover, .star:hover { color: var(--accent); }
+.expand-btn:active, .star:active { transform: scale(.95); }
 
-.star:hover { color: gold; }
-.star:active { transform: scale(.95); }
-.star.starred { color: gold; animation: pop .3s ease; }
+.star.starred { color: #e4626f; animation: pop .3s ease; }
 @keyframes pop {
   0% { transform: scale(1); }
   40% { transform: scale(1.35); }

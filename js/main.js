@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const desc = item.description ? `<p class="desc">${makeLinksClickable(item.description)}</p>` : '';
         const expandBtn = item.description ? `<button class="expand-btn" title="Toggle description" aria-label="Toggle description">_</button>` : '';
         const starred = getStarredItems().includes(item.id);
-        const star = `<span class="star${starred ? ' starred' : ''}" data-id="${item.id}">&#9733;</span>`;
+        const star = `<span class="star${starred ? ' starred' : ''}" data-id="${item.id}">&#9829;</span>`;
         const actions = (expandBtn || star) ? `<div class="item-actions">${expandBtn}${star}</div>` : '';
         const source = item.feed_title || '';
         const time = relTime(item.published);
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const starredIds = new Set(getStarredItems());
         const unstarred = feedData.filter(i => !starredIds.has(i.id));
         const starred = feedData.filter(i => starredIds.has(i.id));
-        const sep = starred.length && unstarred.length ? '<div class="sep"><span>&#9733; Starred</span></div>' : '';
+        const sep = starred.length && unstarred.length ? '<div class="sep"><span>&#9829; Saved</span></div>' : '';
         feedEl.innerHTML = unstarred.map(itemHtml).join('') + sep + starred.map(itemHtml).join('');
     }
 
