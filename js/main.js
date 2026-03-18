@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const starredIds = new Set(getStarredItems());
         const unstarred = feedData.filter(i => !starredIds.has(i.id));
         const starred = feedData.filter(i => starredIds.has(i.id));
-        const sep = starred.length && unstarred.length ? '<div class="sep"><span>&#9829; Saved</span></div>' : '';
+        const sep = starred.length && unstarred.length ? '<div class="sep"><span class="sep-heart">&#9829;</span></div>' : '';
         feedEl.innerHTML = unstarred.map(itemHtml).join('') + sep + starred.map(itemHtml).join('');
     }
 

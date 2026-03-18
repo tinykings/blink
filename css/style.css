@@ -147,6 +147,7 @@ img { max-width: 100%; height: auto; display: block; }
   color: var(--muted);
 }
 .sep::before, .sep::after { content: ''; flex: 1; border-block-end: 1px solid var(--border); }
+.sep-heart { color: #e4626f; font-size: 1rem; }
 
 /* === Footer Bar === */
 .bar {
