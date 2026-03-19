@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let feedData = [];
     let feedById = new Map();
     let showingNew = true;
-    let showingDesc = localStorage.getItem('SHOW_DESC') === 'true';
+    let showingDesc = false;
     let currentIdx = -1;
     let pendingChanges = false;
 

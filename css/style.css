@@ -52,6 +52,15 @@ img { max-width: 100%; height: auto; display: block; }
   padding-block-start: calc(env(safe-area-inset-top, 0) + 20px);
 }
 
+@media (display-mode: standalone) {
+  body {
+    padding-block-start: calc(env(safe-area-inset-top, 0px));
+  }
+  #feed {
+    padding-block-start: 0;
+  }
+}
+
 /* === Feed Items === */
 .item {
   background: var(--surface);
@@ -76,16 +85,7 @@ img { max-width: 100%; height: auto; display: block; }
   font-size: 1.15rem;
   font-weight: 500;
   margin-block-end: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.item h2 a { text-decoration: none; }
-.item h2 a:hover { text-decoration: underline; }
-.item.show-desc h2 {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
+  word-break: break-word;
 }
 
 .meta {
