@@ -84,7 +84,7 @@ img { max-width: 100%; height: auto; display: block; }
 .item h2 {
   font-size: 1.15rem;
   font-weight: 500;
-  margin-block-end: 4px;
+  margin-block-end: 12px;
   word-break: break-word;
 }
 
@@ -97,11 +97,16 @@ img { max-width: 100%; height: auto; display: block; }
   color: var(--muted);
   display: flex;
   gap: 8px;
-  flex-wrap: wrap;
   align-items: center;
+  overflow: hidden;
 }
-.meta-sep { opacity: .5; }
-.time { opacity: .75; }
+.source {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.meta-sep { opacity: .5; flex-shrink: 0; }
+.time { opacity: .75; flex-shrink: 0; }
 
 /* === Description Text === */
 .desc {

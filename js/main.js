@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const actions = star ? `<div class="item-actions">${star}</div>` : '';
         const source = item.feed_title || '';
         const time = relTime(item.published);
-        const meta = (source || time || expandBtn) ? `<div class="meta">${expandBtn}${source ? `<span>${source}</span>` : ''}${source && time ? '<span class="meta-sep">&middot;</span>' : ''}${time ? `<span class="time">${time}</span>` : ''}</div>` : '';
+        const meta = (source || time || expandBtn) ? `<div class="meta">${expandBtn}${source ? `<span class="source">${source}</span>` : ''}${source && time ? '<span class="meta-sep">&middot;</span>' : ''}${time ? `<span class="time">${time}</span>` : ''}</div>` : '';
         return `<div class="item${showingDesc ? ' show-desc' : ''}" data-id="${item.id}">${media}<h2><a href="${item.link}" target="_blank">${item.title}</a></h2>${meta}${desc}${actions}</div>`;
     }
 
