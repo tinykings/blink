@@ -16,6 +16,7 @@ https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
 https://www.reddit.com/r/pcgaming/top.rss?t=week
 https://www.reddit.com/r/games/top.rss?t=week
+https://www.reddit.com/r/linux_gaming/top.rss?t=week
 https://gg.deals/us/news/feed
 
 #youtube
