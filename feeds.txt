@@ -19,6 +19,7 @@ https://www.reddit.com/r/games/top.rss?t=week
 https://gg.deals/us/news/feed
 
 #youtube
+https://www.youtube.com/@zenvanriel
 # David Hartley
 https://www.youtube.com/feeds/videos.xml?channel_id=UCydX8ueOwv5_bvd7Uj0HBHw
 # Rogan 🎮 gaming nonsense
