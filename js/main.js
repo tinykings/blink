@@ -1,6 +1,8 @@
 import { createYouTubePlayer, stopVideoByItemId, videoPlayers } from './youtube.js';
-import { getStarredItems } from './storage.js';
+import { getStarredItems, getItemMeta } from './storage.js';
 import { gistSync, upload } from './sync.js';
+
+let meta = { items: [] };
 
 function relTime(dateStr) {
     if (!dateStr) return '';
@@ -112,7 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (setupForm) setupForm.style.display = 'none';
             if (loadingEl) loadingEl.style.display = 'block';
             setStatus('Syncing from Gist...', 'info');
-            localStorage.removeItem('blinkMeta');
             if (await gistSync.pull()) {
                 renderAll();
             }
@@ -161,13 +162,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const desc = item.description ? `<div class="desc">${makeLinksClickable(item.description)}</div>` : '';
         const expandBtn = item.description ? `<button class="expand-btn" title="Toggle description" aria-label="Toggle description">_</button>` : '';
-        const starred = getStarredItems().includes(item.id);
+        const starred = getStarredItems(meta).includes(item.id);
         const star = `<span class="star${starred ? ' starred' : ''}" data-id="${item.id}">&#9829;</span>`;
         const actions = star ? `<div class="item-actions">${star}</div>` : '';
         const source = item.feed_title || '';
         const time = relTime(item.published);
-        const meta = (source || time || expandBtn) ? `<div class="meta">${expandBtn}${source ? `<span class="source">${source}</span>` : ''}${source && time ? '<span class="meta-sep">&middot;</span>' : ''}${time ? `<span class="time">${time}</span>` : ''}</div>` : '';
-        return `<div class="item${showingDesc ? ' show-desc' : ''}" data-id="${item.id}">${media}<h2><a href="${item.link}" target="_blank">${item.title}</a></h2>${meta}${desc}${actions}</div>`;
+        const itemMeta = (source || time || expandBtn) ? `<div class="meta">${expandBtn}${source ? `<span class="source">${source}</span>` : ''}${source && time ? '<span class="meta-sep">&middot;</span>' : ''}${time ? `<span class="time">${time}</span>` : ''}</div>` : '';
+        return `<div class="item${showingDesc ? ' show-desc' : ''}" data-id="${item.id}">${media}<h2><a href="${item.link}" target="_blank">${item.title}</a></h2>${itemMeta}${desc}${actions}</div>`;
     }
 
     function renderArchived(metaItems = []) {
@@ -197,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderFeed() {
         if (!feedEl) return;
-        const starredIds = new Set(getStarredItems());
+        const starredIds = new Set(getStarredItems(meta));
         const unstarred = feedData.filter(i => !starredIds.has(i.id));
         const starred = feedData.filter(i => starredIds.has(i.id));
         const sep = starred.length && unstarred.length ? '<div class="sep"><span class="sep-heart">&#9829;</span></div>' : '';
@@ -261,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderAll() {
-        const meta = gistSync.getLocal();
+        meta = gistSync.getLocal();
         meta.items = meta.items || [];
         renderFeed();
         renderArchived(meta.items);
@@ -321,7 +322,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const star = e.target.closest('.star');
         if (star) {
             const id = star.dataset.id;
-            let meta = gistSync.getLocal();
             let items = meta.items || [];
             const now = new Date().toISOString();
             let item = items.find(i => i.id === id);
@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     markReadBtn?.addEventListener('click', async () => {
         if (markReadBtn.disabled) return;
-        const meta = gistSync.getLocal();
+        meta = gistSync.getLocal();
         meta.items = meta.items || [];
         const now = new Date().toISOString();
         let changed = false;
@@ -436,7 +436,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     (async () => {
         if (loadingEl) loadingEl.style.display = '';
-        await gistSync.syncOnStartup();
+        const success = await gistSync.syncOnStartup();
+        if (!success) {
+            if (statusEl) {
+                statusEl.textContent = 'Gist unreachable - check connection';
+                statusEl.className = 'status error';
+            }
+            if (loadingEl) loadingEl.style.display = 'none';
+            return;
+        }
         renderAll();
         if (loadingEl) loadingEl.style.display = 'none';
         if (feedEl) feedEl.style.display = '';

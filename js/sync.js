@@ -9,7 +9,8 @@ const DEBOUNCE_MS = 1000;
 let pendingPush = false;
 let lastETag = null;
 let lastKnownRemoteUpdatedAt = null;
-let lastSyncedAt = 0;
+
+let meta = null;
 
 /**
  * Get Gist sync configuration from localStorage
@@ -23,53 +24,27 @@ function getConfig() {
 }
 
 /**
- * Get local metadata from localStorage
- * @returns {Object} The local metadata object
+ * Get current metadata (in-memory only)
+ * @returns {Object} The metadata object
  */
 export function getLocal() {
-    let raw = localStorage.getItem('blinkMeta');
-    if (!raw) {
-        const starred = JSON.parse(localStorage.getItem('starredItems') || '[]');
-        const now = new Date().toISOString();
-        return {
-            items: starred.map(id => ({ id, date: now, starred: true, seen: true, starred_changed_at: now })),
-            updated_at: null
-        };
-    }
-    try {
-        const data = JSON.parse(raw);
-        if (!data.items) data.items = [];
-        // Migration: ensure all items have the 'seen' field
-        data.items.forEach(item => {
-            if (item && item.seen === undefined) {
-                item.seen = true;
-            }
-            if (item && !item.starred_changed_at && item.starredChangedAt) {
-                item.starred_changed_at = item.starredChangedAt;
-            }
-            if (item && !item.starred_changed_at) {
-                item.starred_changed_at = data.updated_at || item.date || new Date().toISOString();
-            }
-        });
-        localStorage.setItem('starredItems', JSON.stringify((data.items || []).filter(item => item.starred).map(item => item.id)));
-        return data;
-    } catch {
-        const starred = JSON.parse(localStorage.getItem('starredItems') || '[]');
-        const now = new Date().toISOString();
-        return {
-            items: starred.map(id => ({ id, date: now, starred: true, seen: true, starred_changed_at: now })),
-            updated_at: null
-        };
-    }
+    return meta || { items: [], updated_at: null };
 }
 
 /**
- * Save metadata to localStorage
- * @param {Object} obj - The metadata object to save
+ * Update metadata in memory
+ * @param {Object} obj - The metadata object to store
  */
 export function setLocal(obj) {
-    localStorage.setItem('blinkMeta', JSON.stringify(obj));
-    localStorage.setItem('starredItems', JSON.stringify((obj.items || []).filter(item => item.starred).map(item => item.id)));
+    meta = obj;
+}
+
+/**
+ * Get metadata for UI to use
+ * @returns {Object} Metadata for UI display
+ */
+export function getMeta() {
+    return meta || { items: [], updated_at: null };
 }
 
 /**
@@ -214,14 +189,10 @@ function merge(localObj, remoteObj) {
             if (item.starred) {
                 mergedById.set(item.id, { ...item });
             } else {
-                // For non-starred, check if it should be kept
                 const localChangeTime = getTimeOrZero(item.starred_changed_at || item.starredChangedAt || item.date || item.published);
-                const isOld = (now - localChangeTime) > (retentionMs * 1.5); // Grace period
+                const isOld = (now - localChangeTime) > (retentionMs * 1.5);
 
                 if (!isOld) {
-                    // If remote is newer, but this item isn't in it, it MIGHT have been deleted.
-                    // However, it's safer to keep "seen" status locally for current feed items
-                    // than to aggressively delete them and have them reappear as new.
                     mergedById.set(item.id, { ...item });
                 }
             }
@@ -243,13 +214,11 @@ function schedulePush() {
     pushTimeout = setTimeout(async () => {
         try {
             const local = getLocal();
-            // Optimistic concurrency: check for remote changes before pushing
             const remote = await fetchRemote();
             if (remote && lastKnownRemoteUpdatedAt) {
                 const remoteTime = getTimeOrZero(remote.updated_at);
                 const knownTime = getTimeOrZero(lastKnownRemoteUpdatedAt);
                 if (remoteTime > knownTime) {
-                    // Remote changed since we last saw it — merge first
                     const merged = merge(local, remote);
                     setLocal(merged);
                     await pushRemote(merged);
@@ -283,31 +252,34 @@ function retryPendingPush() {
     schedulePush();
 }
 
-// Retry on reconnect and when tab becomes visible
 window.addEventListener('online', retryPendingPush);
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') retryPendingPush();
 });
 
 /**
- * Sync on application startup
+ * Sync on application startup - fetch from gist as source of truth
+ * @returns {Promise<boolean>} Whether sync was successful
  */
 export async function syncOnStartup() {
     const cfg = getConfig();
-    if (!cfg.gistId || !cfg.token) return;
+    if (!cfg.gistId || !cfg.token) return false;
     try {
         lastETag = null;
         const remote = await fetchRemote();
         if (remote) {
-            const local = getLocal();
-            const resolved = merge(local, remote);
-            setLocal(resolved);
-            lastSyncedAt = Date.now();
+            meta = remote;
             dispatchSyncEvent('success', 'Synced');
+            return true;
+        } else {
+            meta = { items: [], updated_at: null };
+            dispatchSyncEvent('success', 'Up to date');
+            return true;
         }
     } catch (e) {
         console.warn('Sync on startup failed:', e);
-        dispatchSyncEvent('error', 'Sync failed');
+        dispatchSyncEvent('error', 'Gist unreachable');
+        return false;
     }
 }
 
@@ -319,17 +291,15 @@ export function pushSoon() {
 }
 
 /**
- * Pull from remote and merge with local
- * @returns {Promise<boolean>} Whether the pull was successful
+ * Pull from remote and update in-memory
+ * @returns {Promise<boolean>} Whether pull was successful
  */
 export async function pull() {
     const cfg = getConfig();
     if (!cfg.gistId || !cfg.token) return false;
     const remote = await fetchRemote();
     if (remote) {
-        const local = getLocal();
-        const resolved = merge(local, remote);
-        setLocal(resolved);
+        meta = remote;
         return true;
     }
     return false;
@@ -339,6 +309,7 @@ export async function pull() {
 export const gistSync = {
     getLocal,
     setLocal,
+    getMeta,
     syncOnStartup,
     pushSoon,
     pull

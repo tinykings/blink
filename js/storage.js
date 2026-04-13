@@ -23,11 +23,26 @@ export function getRetentionDays() {
 }
 
 /**
- * Get starred items from localStorage
+ * Get starred items from metadata
+ * @param {Object} meta - The metadata object (optional, for backward compatibility)
  * @returns {string[]} Array of starred item IDs
  */
-export function getStarredItems() {
+export function getStarredItems(meta) {
+    if (meta && meta.items) {
+        return meta.items.filter(item => item && item.starred).map(item => item.id);
+    }
     return JSON.parse(localStorage.getItem('starredItems') || '[]');
+}
+
+/**
+ * Get item metadata by ID
+ * @param {string} id - The item ID
+ * @param {Object} meta - The metadata object
+ * @returns {Object|null} The item metadata or null
+ */
+export function getItemMeta(id, meta) {
+    if (!meta || !meta.items) return null;
+    return meta.items.find(item => item && item.id === id) || null;
 }
 
 /**
