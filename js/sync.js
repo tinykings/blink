@@ -9,6 +9,7 @@ const DEBOUNCE_MS = 1000;
 let pendingPush = false;
 let lastETag = null;
 let lastKnownRemoteUpdatedAt = null;
+let lastSyncedAt = 0;
 
 /**
  * Get Gist sync configuration from localStorage
@@ -184,17 +185,8 @@ function merge(localObj, remoteObj) {
             const itemStarTime = getTimeOrZero(itemStarChangedAt);
 
             if (existingStarTime === 0 && itemStarTime === 0) {
-                const localTime = getTimeOrZero(localObj.updated_at);
-                const remoteTime = getTimeOrZero(remoteObj.updated_at);
-                const localWins = localTime >= remoteTime;
-                if (localWins) {
-                    existing.starred = !!item.starred;
-                } else {
-                    existing.starred = !!existing.starred;
-                }
-                existing.starred_changed_at = localWins
-                    ? (localObj.updated_at || item.date || new Date().toISOString())
-                    : (remoteObj.updated_at || existing.date || new Date().toISOString());
+                existing.starred = !!existing.starred;
+                existing.starred_changed_at = existing.date || new Date().toISOString();
             } else if (itemStarTime >= existingStarTime) {
                 existing.starred = !!item.starred;
                 existing.starred_changed_at = itemStarChangedAt || item.date || new Date().toISOString();
@@ -304,11 +296,13 @@ export async function syncOnStartup() {
     const cfg = getConfig();
     if (!cfg.gistId || !cfg.token) return;
     try {
+        lastETag = null;
         const remote = await fetchRemote();
         if (remote) {
             const local = getLocal();
             const resolved = merge(local, remote);
             setLocal(resolved);
+            lastSyncedAt = Date.now();
             dispatchSyncEvent('success', 'Synced');
         }
     } catch (e) {
