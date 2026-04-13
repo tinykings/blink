@@ -409,6 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let scrollTick = false;
     let lastScrollY = 0;
+    let revealedAt = 0;
     window.addEventListener('scroll', () => {
         if (!scrollTick) {
             requestAnimationFrame(() => {
@@ -417,8 +418,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 scrollTopRightBtn?.classList.toggle('show', showBtn);
                 if (window.scrollY < lastScrollY) {
                     floatingBtns?.classList.remove('hidden');
+                    revealedAt = Date.now();
                 } else if (window.scrollY > lastScrollY && window.scrollY > 100) {
-                    floatingBtns?.classList.add('hidden');
+                    if (Date.now() - revealedAt > 3000) {
+                        floatingBtns?.classList.add('hidden');
+                    }
                 }
                 lastScrollY = window.scrollY;
                 scrollTick = false;
