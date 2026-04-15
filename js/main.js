@@ -156,9 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let media = '';
         if (item.video_id) {
             const thumb = `https://img.youtube.com/vi/${item.video_id}/sddefault.jpg`;
-            media = `<div class="video" data-video="${item.video_id}"><img src="${thumb}" alt="" loading="lazy"><div class="play"></div></div>`;
+            media = `<div class="video" data-video="${item.video_id}"><img src="${thumb}" alt=""><div class="play"></div></div>`;
         } else if (item.thumbnail) {
-            media = `<a href="${item.link}" target="_blank"><img src="${item.thumbnail}" alt="" class="thumb" loading="lazy"></a>`;
+            media = `<a href="${item.link}" target="_blank"><img src="${item.thumbnail}" alt="" class="thumb"></a>`;
         }
         const desc = item.description ? `<div class="desc">${makeLinksClickable(item.description)}</div>` : '';
         const expandBtn = item.description ? `<button class="expand-btn" title="Toggle description" aria-label="Toggle description">_</button>` : '';
