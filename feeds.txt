@@ -16,6 +16,7 @@ https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
 
 #youtube
+https://www.youtube.com/@webdot3
 # Zen van Riel
 https://www.youtube.com/feeds/videos.xml?channel_id=UC7TUInmEJ4NmYb-krFz-SuA
 # MacStories
