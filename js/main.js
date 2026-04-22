@@ -171,6 +171,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<div class="item${showingDesc ? ' show-desc' : ''}" data-id="${item.id}">${media}<h2><a href="${item.link}" target="_blank">${item.title}</a></h2>${itemMeta}${desc}${actions}</div>`;
     }
 
+    function syncThumbAspect(root = feedEl) {
+        root?.querySelectorAll('img.thumb').forEach(img => {
+            const apply = () => img.classList.toggle('portrait', img.naturalHeight > img.naturalWidth);
+            if (img.complete && img.naturalWidth) {
+                apply();
+            } else {
+                img.addEventListener('load', apply, { once: true });
+            }
+        });
+    }
+
     function renderArchived(metaItems = []) {
         if (!feedEl) return;
         feedEl.querySelectorAll('.item[data-archived]').forEach(el => el.remove());
@@ -267,6 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFeed();
         renderArchived(meta.items);
         applyView(meta.items);
+        syncThumbAspect();
     }
 
     viewBtn?.addEventListener('click', () => {
