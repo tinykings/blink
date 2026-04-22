@@ -34,8 +34,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCE_M8A5yxnLfW0KghEeajjw
 https://www.youtube.com/feeds/videos.xml?channel_id=UC1Myj674wRVXB9I4c6Hm5zA
 # MacRumors
 https://www.youtube.com/feeds/videos.xml?channel_id=UCaFGDBmGK_jw66u3av2Ysjw
-# laustoic
-https://www.youtube.com/feeds/videos.xml?channel_id=UChHOzUIfKqtAeUGjqR7_whQ
 # jakkuh
 https://www.youtube.com/feeds/videos.xml?channel_id=UCJa14zeVf8p6clixTOIOVyQ
 # PewDiePie
