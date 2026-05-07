@@ -349,8 +349,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UChEEbdoy5ZVtmfr1AqYgA2A
 https://www.youtube.com/feeds/videos.xml?channel_id=UCP0f9FXZ4g-MxAqSUreHpCw
 # TechLinked
 https://www.youtube.com/feeds/videos.xml?channel_id=UCeeFfhMcJa1kjtfZAGskOCA
-# Techquickie
-https://www.youtube.com/feeds/videos.xml?channel_id=UC0vBXGSyV14uvJ4hECDOl0Q
 # The AI Advantage
 https://www.youtube.com/feeds/videos.xml?channel_id=UCHhYXsLBEVVnbvsq57n1MTQ
 # The Art of Interiors
