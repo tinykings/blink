@@ -331,8 +331,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCAbAsEZ-0LccTNbl8r-3EaQ
 https://www.youtube.com/feeds/videos.xml?channel_id=UCkD3TEIgUtOhN4EOvQDGrTA
 # Shannon Morse
 https://www.youtube.com/feeds/videos.xml?channel_id=UCNofX8wmSJh7NTklvMqueOA
-# ShortCircuit
-https://www.youtube.com/feeds/videos.xml?channel_id=UCdBK94H6oZT2Q7l0-b0xmMg
 # Simone Giertz
 https://www.youtube.com/feeds/videos.xml?channel_id=UC3KEoMzNz8eYnwBC34RaKCQ
 # Simple Dwelling
