@@ -18,6 +18,25 @@ function relTime(dateStr) {
     return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
+function formatUpdatedAt(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (!isFinite(date.getTime())) return '';
+    const datePart = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Los_Angeles',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    }).format(date);
+    const timePart = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Los_Angeles',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    }).format(date);
+    return `${datePart}, ${timePart} PST`;
+}
+
 function makeLinksClickable(html) {
     // Only linkify URLs that aren't already inside anchor tags
     const urlRegex = /(?:^|[^">])((https?:\/\/[^\s<]+))/g;
@@ -50,8 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewBtn = $('view-btn');
     const markReadBtn = $('mark-read-btn');
     const emptyEl = $('empty');
-    const scrollTopBtn = $('scroll-top');
-    const scrollTopRightBtn = $('scroll-top-right');
+    const repoLink = $('repo-link');
     const loadingEl = $('loading');
     const keyboardHelp = $('keyboard-help');
     const setupForm = $('setup-form');
@@ -93,6 +111,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function clearStatus() { statusEl.textContent = ''; statusEl.className = 'status'; }
 
     function saveButton() { saveBtn.disabled = !pendingChanges; }
+
+    function setUpdatedAtText() {
+        const text = formatUpdatedAt(meta?.updated_at) || updateHeader?.textContent.trim() || '';
+        if (text) {
+            if (updateHeader) updateHeader.textContent = text;
+            if (repoLink) repoLink.textContent = text;
+            const label = `Blink on GitHub, last updated ${text}`;
+            if (repoLink) repoLink.setAttribute('aria-label', label);
+            if (repoLink) repoLink.title = label;
+        }
+    }
 
     function openSettings() {
         settingsModal.style.display = 'flex';
@@ -275,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderAll() {
         meta = gistSync.getLocal();
         meta.items = meta.items || [];
+        setUpdatedAtText();
         renderFeed();
         renderArchived(meta.items);
         applyView(meta.items);
@@ -418,33 +448,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.reload();
         }
     });
-
-    let scrollTick = false;
-    let lastScrollY = 0;
-    let revealedAt = 0;
-    window.addEventListener('scroll', () => {
-        if (!scrollTick) {
-            requestAnimationFrame(() => {
-                const showBtn = window.scrollY > 600;
-                scrollTopBtn?.classList.toggle('show', showBtn);
-                scrollTopRightBtn?.classList.toggle('show', showBtn);
-                if (window.scrollY < lastScrollY) {
-                    floatingBtns?.classList.remove('hidden');
-                    revealedAt = Date.now();
-                } else if (window.scrollY > lastScrollY && window.scrollY > 100) {
-                    if (Date.now() - revealedAt > 3000) {
-                        floatingBtns?.classList.add('hidden');
-                    }
-                }
-                lastScrollY = window.scrollY;
-                scrollTick = false;
-            });
-            scrollTick = true;
-        }
-    }, { passive: true });
-
-    scrollTopBtn?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    scrollTopRightBtn?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
     (async () => {
         if (loadingEl) loadingEl.style.display = '';
