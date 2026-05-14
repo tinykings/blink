@@ -17,6 +17,8 @@ https://www.macstories.net/feed/
 
 
 #youtube
+https://www.youtube.com/@OttiIie
+
 # David Hartley
 https://www.youtube.com/feeds/videos.xml?channel_id=UCydX8ueOwv5_bvd7Uj0HBHw
 # The Back Focus
