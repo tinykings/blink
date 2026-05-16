@@ -80,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let showingDesc = false;
     let currentIdx = -1;
     let pendingChanges = false;
+    let syncReady = false;
+
+    if (markReadBtn) markReadBtn.disabled = true;
 
     const dataEl = $('feed-data');
     if (dataEl) {
@@ -144,6 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (loadingEl) loadingEl.style.display = 'block';
             setStatus('Syncing from Gist...', 'info');
             if (await gistSync.pull()) {
+                syncReady = true;
+                if (markReadBtn) markReadBtn.disabled = false;
                 renderAll();
             }
             if (loadingEl) loadingEl.style.display = 'none';
@@ -427,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     markReadBtn?.addEventListener('click', async () => {
-        if (markReadBtn.disabled) return;
+        if (markReadBtn.disabled || !syncReady) return;
         meta = gistSync.getLocal();
         meta.items = meta.items || [];
         const now = new Date().toISOString();
@@ -460,6 +465,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (loadingEl) loadingEl.style.display = 'none';
             return;
         }
+        syncReady = true;
+        if (markReadBtn) markReadBtn.disabled = false;
         renderAll();
         if (loadingEl) loadingEl.style.display = 'none';
         if (feedEl) feedEl.style.display = '';

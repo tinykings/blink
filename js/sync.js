@@ -58,7 +58,7 @@ async function fetchRemote() {
     if (lastETag) headers['If-None-Match'] = lastETag;
     const res = await fetch(`${API_BASE}/${gistId}`, { headers });
     if (res.status === 304) return null;
-    if (!res.ok) return null;
+    if (!res.ok) throw new Error(`Gist fetch failed: ${res.status}`);
     const etag = res.headers.get('ETag');
     if (etag) lastETag = etag;
     const data = await res.json();
