@@ -17,7 +17,8 @@ https://www.macstories.net/feed/
 
 
 #youtube
-https://www.youtube.com/@aisamsonreal
+# AI Samson
+https://www.youtube.com/feeds/videos.xml?channel_id=UCED3hlYdD0SlCff7jJ8tF3Q
 # Ottilie
 https://www.youtube.com/feeds/videos.xml?channel_id=UCAuEjBW8MgKN9DyCvjEPFew
 # David Hartley
