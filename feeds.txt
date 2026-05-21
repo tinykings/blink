@@ -17,6 +17,8 @@ https://4sysops.com/feed/
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
+https://gg.deals/us/news/feed
+
 
 #youtube
 # Rogan 🎮 gaming nonsense
