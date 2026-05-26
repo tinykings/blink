@@ -1,5 +1,5 @@
 import { createYouTubePlayer, stopVideoByItemId, videoPlayers } from './youtube.js';
-import { getStarredItems, getItemMeta } from './storage.js';
+import { getStarredItems } from './storage.js';
 import { gistSync, upload } from './sync.js';
 
 let meta = { items: [] };
@@ -273,9 +273,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let media = '';
         if (item.video_id) {
             const thumb = `https://img.youtube.com/vi/${item.video_id}/sddefault.jpg`;
-            media = `<div class="video" data-video="${item.video_id}"><img src="${thumb}" alt=""><div class="play"></div></div>`;
+            media = `<div class="video" data-video="${item.video_id}"><img src="${thumb}" alt="" loading="lazy" decoding="async"><div class="play"></div></div>`;
         } else if (item.thumbnail) {
-            media = `<a href="${item.link}" target="_blank"><img src="${item.thumbnail}" alt="" class="thumb"></a>`;
+            media = `<a href="${item.link}" target="_blank"><img src="${item.thumbnail}" alt="" class="thumb" loading="lazy" decoding="async"></a>`;
         }
         const desc = item.description ? `<div class="desc">${makeLinksClickable(item.description)}</div>` : '';
         const expandBtn = item.description ? `<button class="expand-btn" title="Toggle description" aria-label="Toggle description"><svg viewBox="0 0 24 24" width="16" height="16"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : '';
@@ -401,7 +401,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     viewBtn?.addEventListener('click', () => {
         showingNew = !showingNew;
-        renderAll();
+        if (feedEl && feedEl.querySelector('.item')) {
+            meta = gistSync.getLocal();
+            meta.items = meta.items || [];
+            setUpdatedAtText();
+            applyView(meta.items);
+            syncThumbAspect();
+        } else {
+            renderAll();
+        }
     });
 
     document.addEventListener('keydown', e => {

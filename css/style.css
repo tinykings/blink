@@ -173,6 +173,7 @@ img { max-width: 100%; height: auto; display: block; }
   font-family: inherit;
   transition: transform .12s var(--ease-out-quart), color .12s var(--ease-out-quart);
 }
+.expand-btn:focus-visible, .star:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .expand-btn:hover, .star:hover { color: var(--accent); }
 .expand-btn:active, .star:active { transform: scale(.95); }
 
@@ -210,12 +211,6 @@ img { max-width: 100%; height: auto; display: block; }
   color: var(--muted);
   padding: 12px 0 20px;
   pointer-events: none;
-}
-
-/* === Layout === */
-#feed {
-  max-width: 800px;
-  margin-inline: auto;
 }
 
 /* === Floating Buttons === */
@@ -297,6 +292,7 @@ img { max-width: 100%; height: auto; display: block; }
   font-size: .82rem; font-weight: 600; letter-spacing: .02em;
   cursor: pointer; font-family: inherit;
 }
+.bottom-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .bottom-link:hover { color: var(--text); text-decoration: underline; }
 
 /* === Icon Buttons === */
