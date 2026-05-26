@@ -4,8 +4,8 @@
   "description": "A simple RSS feed reader.",
   "start_url": "/blink/index.html",
   "display": "standalone",
-  "background_color": "#121212",
-  "theme_color": "#bb86fc",
+  "background_color": "#1c2122",
+  "theme_color": "#a2faa3",
   "orientation": "portrait-primary",
   "icons": [
     {

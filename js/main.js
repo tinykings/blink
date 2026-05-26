@@ -58,6 +58,47 @@ function toast(msg, type = 'info', ms = 3000) {
 
 function $(id) { return document.getElementById(id); }
 
+let prevFocus = null;
+let focusTrapEl = null;
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function trapKeydown(e) {
+    if (e.key !== 'Tab' || !focusTrapEl || focusTrapEl.style.display === 'none') return;
+    const focusable = focusTrapEl.querySelectorAll(FOCUSABLE);
+    if (!focusable.length) return;
+    const current = document.activeElement;
+    if (e.shiftKey) {
+        if (current === focusable[0]) {
+            e.preventDefault();
+            focusable[focusable.length - 1].focus();
+        }
+    } else {
+        if (current === focusable[focusable.length - 1]) {
+            e.preventDefault();
+            focusable[0].focus();
+        }
+    }
+}
+
+function openModal(modal) {
+    prevFocus = document.activeElement;
+    focusTrapEl = modal;
+    modal.style.display = 'flex';
+    const first = modal.querySelector(FOCUSABLE);
+    if (first) first.focus();
+}
+
+function closeModal(modal) {
+    modal.style.display = 'none';
+    if (focusTrapEl === modal) focusTrapEl = null;
+    if (prevFocus) {
+        prevFocus.focus();
+        prevFocus = null;
+    }
+}
+
+document.addEventListener('keydown', trapKeydown);
+
 document.addEventListener('DOMContentLoaded', () => {
     const settingsModal = $('settings-modal');
     const gistInput = $('gist-id');
@@ -127,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openSettings() {
-        settingsModal.style.display = 'flex';
+        openModal(settingsModal);
         if (gistInput) gistInput.value = localStorage.getItem('GIST_ID') || '';
         if (tokenInput) tokenInput.value = localStorage.getItem('GITHUB_TOKEN') || '';
         clearStatus();
@@ -135,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveButton();
     }
 
-    function closeSettings() { settingsModal.style.display = 'none'; }
+    function closeSettings() { closeModal(settingsModal); }
 
     async function doSave() {
         const gistId = gistInput?.value.trim() || '';
@@ -168,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    keyboardHelp?.addEventListener('click', e => { if (e.target === keyboardHelp) keyboardHelp.style.display = 'none'; });
+    keyboardHelp?.addEventListener('click', e => { if (e.target === keyboardHelp) closeModal(keyboardHelp); });
 
     function getMeta(id) {
         const item = feedById.get(id);
@@ -198,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const desc = item.description ? `<div class="desc">${makeLinksClickable(item.description)}</div>` : '';
         const expandBtn = item.description ? `<button class="expand-btn" title="Toggle description" aria-label="Toggle description">_</button>` : '';
         const starred = getStarredItems(meta).includes(item.id);
-        const star = `<span class="star${starred ? ' starred' : ''}" data-id="${item.id}">&#9829;</span>`;
+        const star = `<button class="star${starred ? ' starred' : ''}" data-id="${item.id}" aria-pressed="${starred}">&#9829;</button>`;
         const actions = star ? `<div class="item-actions">${star}</div>` : '';
         const source = item.feed_title || '';
         const time = relTime(item.published);
@@ -361,7 +402,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case '?':
                 e.preventDefault();
-                if (keyboardHelp) keyboardHelp.style.display = keyboardHelp.style.display === 'none' ? 'flex' : 'none';
+                if (keyboardHelp) {
+                    if (keyboardHelp.style.display === 'none' || !keyboardHelp.style.display) {
+                        openModal(keyboardHelp);
+                    } else {
+                        closeModal(keyboardHelp);
+                    }
+                }
                 break;
         }
     });
@@ -389,6 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!item.description && m.description) item.description = m.description;
                 }
                 star.classList.toggle('starred', item.starred);
+                star.setAttribute('aria-pressed', item.starred);
             } else {
                 items.push({
                     id, date: now, starred: true, starred_changed_at: now, seen: true,
@@ -398,6 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     description: m.description || ''
                 });
                 star.classList.add('starred');
+                star.setAttribute('aria-pressed', 'true');
             }
             meta.items = items;
             meta.updated_at = now;

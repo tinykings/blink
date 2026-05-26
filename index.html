@@ -68,9 +68,9 @@
 
     <div id="toast-container"></div>
 
-    <div id="keyboard-help">
+    <div id="keyboard-help" role="dialog" aria-modal="true" aria-labelledby="keyboard-help-title">
         <div class="modal-content">
-            <h2>Keyboard Shortcuts</h2>
+            <h2 id="keyboard-help-title">Keyboard Shortcuts</h2>
             <ul>
                 <li><kbd>j</kbd> <span class="desc">Next item</span></li>
                 <li><kbd>k</kbd> <span class="desc">Previous item</span></li>
@@ -82,9 +82,9 @@
         </div>
     </div>
 
-    <div id="settings-modal" class="modal" style="display:none;">
+    <div id="settings-modal" class="modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
         <div class="modal-content">
-            <h2>Settings</h2>
+            <h2 id="settings-modal-title">Settings</h2>
             <div id="status" class="status"></div>
             <p style="font-size:.85rem;color:var(--muted);margin-block-end:12px;">Connect to GitHub to sync starred items across devices.</p>
             <label for="gist-id">Gist ID</label>
