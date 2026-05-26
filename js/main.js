@@ -340,6 +340,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function highlight(idx) {
         visibleItems().forEach((i, n) => i.classList.toggle('focused', n === idx));
+    }
+    function scrollToItem(idx) {
         const items = visibleItems();
         if (idx >= 0 && idx < items.length) items[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -421,11 +423,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 currentIdx = Math.min(currentIdx + 1, items.length - 1);
                 highlight(currentIdx);
+                scrollToItem(currentIdx);
                 break;
             case 'k':
                 e.preventDefault();
                 currentIdx = Math.max(currentIdx - 1, 0);
                 highlight(currentIdx);
+                scrollToItem(currentIdx);
                 break;
             case 's':
                 e.preventDefault();
