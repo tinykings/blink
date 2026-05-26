@@ -259,6 +259,15 @@ img { max-width: 100%; height: auto; display: block; }
 .floating-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .floating-btn svg { width: 30px; height: 30px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
+#mark-read-btn.drawing svg polyline {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: draw-check 400ms var(--ease-out-expo) forwards;
+}
+@keyframes draw-check {
+  to { stroke-dashoffset: 0; }
+}
+
 .floating-link {
   display: inline-flex;
   align-items: center;

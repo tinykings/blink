@@ -142,6 +142,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (markReadBtn) markReadBtn.disabled = true;
 
+    const emptyVariants = [
+        ['All clear', 'Nothing new since last check'],
+        ["You're all caught up", 'No new items right now'],
+        ['Up to date', 'Check back whenever you like']
+    ];
+    const pick = emptyVariants[Math.floor(Math.random() * emptyVariants.length)];
+    const emptyTitle = emptyEl?.querySelector('.title');
+    const emptySub = emptyEl?.querySelector('.sub');
+    if (emptyTitle && emptySub) { emptyTitle.textContent = pick[0]; emptySub.textContent = pick[1]; }
+
     const dataEl = $('feed-data');
     if (dataEl) {
         try {
@@ -176,9 +186,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function setUpdatedAtText() {
         const text = formatUpdatedAt(meta?.updated_at) || updateHeader?.textContent.trim() || '';
         if (text) {
-            if (updateHeader) updateHeader.textContent = text;
-            if (repoLink) repoLink.textContent = text;
-            const label = `Blink on GitHub, last updated ${text}`;
+            const starredCount = (meta.items || []).filter(i => i.starred).length;
+            const display = starredCount > 0 ? `${text} · ★ ${starredCount}` : text;
+            if (updateHeader) updateHeader.textContent = display;
+            if (repoLink) repoLink.textContent = display;
+            const label = `Blink on GitHub, last updated ${text}${starredCount > 0 ? `, ${starredCount} starred` : ''}`;
             if (repoLink) repoLink.setAttribute('aria-label', label);
             if (repoLink) repoLink.title = label;
         }
@@ -561,7 +573,8 @@ document.addEventListener('DOMContentLoaded', () => {
             toast('Marking all read...', 'info', 1000);
             meta.updated_at = now;
             gistSync.setLocal(meta);
-            try { await upload(); toast('Marked all read', 'success', 2000); } catch { toast('Sync failed', 'error', 2000); }
+            try { await upload(); toast('Marked all read', 'success', 2000); markReadBtn.classList.add('drawing'); setTimeout(() => markReadBtn.classList.remove('drawing'), 600); } catch { toast('Sync failed', 'error', 2000); }
+            markReadBtn.disabled = false;
             renderAll();
         }
     });
