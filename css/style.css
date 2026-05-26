@@ -18,6 +18,8 @@
   --error: #bf616a;
   --success: #a3be8c;
   --video-bg: oklch(0.14 0.006 190);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   color-scheme: dark light;
 }
 
@@ -81,7 +83,7 @@ img { max-width: 100%; height: auto; display: block; }
   content-visibility: auto;
   contain-intrinsic-size: 200px;
   position: relative;
-  transition: border-color .15s, box-shadow .15s;
+  transition: border-color .15s var(--ease-out-quart), box-shadow .15s var(--ease-out-quart);
 }
 .item:focus { outline: none; }
 .item.focused {
@@ -153,7 +155,7 @@ img { max-width: 100%; height: auto; display: block; }
   font-size: 1.1rem;
   color: var(--muted);
   cursor: pointer;
-  transition: transform .12s, color .12s;
+  transition: transform .12s var(--ease-out-quart), color .12s var(--ease-out-quart);
 }
 
 .star {
@@ -169,16 +171,21 @@ img { max-width: 100%; height: auto; display: block; }
   color: var(--muted);
   cursor: pointer;
   font-family: inherit;
-  transition: transform .12s, color .12s;
+  transition: transform .12s var(--ease-out-quart), color .12s var(--ease-out-quart);
 }
 .expand-btn:hover, .star:hover { color: var(--accent); }
 .expand-btn:active, .star:active { transform: scale(.95); }
 
-.star.starred { color: var(--star); animation: pop .3s ease; }
+.star.starred { color: var(--star); animation: pop .3s var(--ease-out-quart); }
+.star.unstarred { animation: pop-out .25s var(--ease-out-quart); }
 @keyframes pop {
   0% { transform: scale(1); }
   40% { transform: scale(1.35); }
   100% { transform: scale(1); }
+}
+@keyframes pop-out {
+  0% { transform: scale(1); color: var(--star); }
+  100% { transform: scale(0.8); }
 }
 
 /* === Separator === */
@@ -244,7 +251,7 @@ img { max-width: 100%; height: auto; display: block; }
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: background .12s, transform .12s;
+  transition: background .12s var(--ease-out-quart), transform .12s var(--ease-out-quart);
   box-shadow: 0 4px 12px var(--shadow);
 }
 .floating-btn:hover { background: color-mix(in oklab, var(--surface) 92%, var(--accent) 8%); }
@@ -294,7 +301,7 @@ img { max-width: 100%; height: auto; display: block; }
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: background .12s, transform .12s;
+  transition: background .12s var(--ease-out-quart), transform .12s var(--ease-out-quart);
 }
 .btn:hover { background: color-mix(in oklab, var(--surface) 92%, var(--accent) 8%); }
 .btn:active { transform: scale(.97); }
@@ -349,14 +356,22 @@ img { max-width: 100%; height: auto; display: block; }
 .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
 
 /* === Modals === */
-.modal {
+.modal, #keyboard-help {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.45);
   z-index: 200;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out-quart), transform 200ms var(--ease-out-quart);
+  transform: translateY(8px);
+}
+.modal.open, #keyboard-help.open {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
 }
 .modal-content {
   background: var(--surface);
@@ -498,25 +513,16 @@ input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   font-size: .8rem;
   box-shadow: 0 4px 16px var(--shadow);
   pointer-events: auto;
-  animation: toastIn .3s ease;
+  animation: toastIn .3s var(--ease-out-quart);
   max-width: 90vw;
 }
-.toast.out { animation: toastOut .25s ease forwards; }
+.toast.out { animation: toastOut .2s var(--ease-out-quart) forwards; }
 .toast.success { border-color: var(--success); color: var(--success); }
 .toast.error { border-color: var(--error); color: var(--error); }
 @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } }
 @keyframes toastOut { to { opacity: 0; transform: translateY(12px); } }
 
 /* === Keyboard Help === */
-#keyboard-help {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.45);
-  z-index: 200;
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
 #keyboard-help kbd {
   display: inline-flex;
   align-items: center;

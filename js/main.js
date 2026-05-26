@@ -71,7 +71,7 @@ let focusTrapEl = null;
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 function trapKeydown(e) {
-    if (e.key !== 'Tab' || !focusTrapEl || focusTrapEl.style.display === 'none') return;
+    if (e.key !== 'Tab' || !focusTrapEl || !focusTrapEl.classList.contains('open')) return;
     const focusable = focusTrapEl.querySelectorAll(FOCUSABLE);
     if (!focusable.length) return;
     const current = document.activeElement;
@@ -89,15 +89,23 @@ function trapKeydown(e) {
 }
 
 function openModal(modal) {
+    if (modal.classList.contains('open')) return;
     prevFocus = document.activeElement;
     focusTrapEl = modal;
     modal.style.display = 'flex';
+    modal.offsetHeight;
+    modal.classList.add('open');
     const first = modal.querySelector(FOCUSABLE);
     if (first) first.focus();
 }
 
 function closeModal(modal) {
-    modal.style.display = 'none';
+    if (!modal.classList.contains('open')) return;
+    modal.classList.remove('open');
+    const onEnd = () => {
+        if (!modal.classList.contains('open')) modal.style.display = 'none';
+    };
+    modal.addEventListener('transitionend', onEnd, { once: true });
     if (focusTrapEl === modal) focusTrapEl = null;
     if (prevFocus) {
         prevFocus.focus();
@@ -424,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case '?':
                 e.preventDefault();
                 if (keyboardHelp) {
-                    if (keyboardHelp.style.display === 'none' || !keyboardHelp.style.display) {
+                    if (!keyboardHelp.classList.contains('open')) {
                         openModal(keyboardHelp);
                     } else {
                         closeModal(keyboardHelp);
@@ -432,9 +440,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 break;
             case 'Escape':
-                if (settingsModal && settingsModal.style.display !== 'none') {
+                if (settingsModal && settingsModal.classList.contains('open')) {
                     closeSettings();
-                } else if (keyboardHelp && keyboardHelp.style.display !== 'none') {
+                } else if (keyboardHelp && keyboardHelp.classList.contains('open')) {
                     closeModal(keyboardHelp);
                 }
                 break;
@@ -475,7 +483,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!item.feed_title && m.feed_title) item.feed_title = m.feed_title;
                     if (!item.description && m.description) item.description = m.description;
                 }
-                star.classList.toggle('starred', item.starred);
+                if (item.starred) {
+                    star.classList.add('starred');
+                    star.classList.remove('unstarred');
+                } else {
+                    star.classList.remove('starred');
+                    star.classList.add('unstarred');
+                    star.addEventListener('animationend', () => star.classList.remove('unstarred'), { once: true });
+                }
                 star.setAttribute('aria-pressed', item.starred);
             } else {
                 items.push({
