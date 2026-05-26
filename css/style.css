@@ -255,6 +255,15 @@ img { max-width: 100%; height: auto; display: block; }
 .floating-link:hover { color: var(--text); text-decoration: underline; }
 .floating-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
+/* === Bottom Settings Link === */
+#bottom-settings { text-align: center; padding: 24px 0 12px; }
+.bottom-link {
+  background: none; border: none; color: var(--muted);
+  font-size: .82rem; font-weight: 600; letter-spacing: .02em;
+  cursor: pointer; font-family: inherit;
+}
+.bottom-link:hover { color: var(--text); text-decoration: underline; }
+
 /* === Footer Bar (hidden, kept for reference) === */
 .bar {
   display: none;

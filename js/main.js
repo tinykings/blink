@@ -157,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveButton();
     }
 
+    $('settings-link')?.addEventListener('click', openSettings);
     closeBtn?.addEventListener('click', closeSettings);
     saveBtn?.addEventListener('click', doSave);
     settingsModal?.addEventListener('click', e => { if (e.target === settingsModal) closeSettings(); });
