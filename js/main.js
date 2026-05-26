@@ -58,6 +58,14 @@ function toast(msg, type = 'info', ms = 3000) {
 
 function $(id) { return document.getElementById(id); }
 
+function feedColor(name) {
+    if (!name) return '';
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    const hue = Math.abs(hash) % 360;
+    return `oklch(65% 0.08 ${hue})`;
+}
+
 let prevFocus = null;
 let focusTrapEl = null;
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -101,10 +109,11 @@ document.addEventListener('keydown', trapKeydown);
 
 document.addEventListener('DOMContentLoaded', () => {
     const settingsModal = $('settings-modal');
-    const gistInput = $('gist-id');
-    const tokenInput = $('github-token');
+    const setupGistInput = $('setup-gist-id');
+    const setupTokenInput = $('setup-github-token');
     const statusEl = $('status');
     const saveBtn = $('save-btn');
+    const setupSaveBtn = $('setup-save-btn');
     const closeBtn = $('close-btn');
     const feedEl = $('feed');
     const viewBtn = $('view-btn');
@@ -169,8 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openSettings() {
         openModal(settingsModal);
-        if (gistInput) gistInput.value = localStorage.getItem('GIST_ID') || '';
-        if (tokenInput) tokenInput.value = localStorage.getItem('GITHUB_TOKEN') || '';
+        const gistEl = $('gist-id');
+        const tokenEl = $('github-token');
+        if (gistEl) gistEl.value = localStorage.getItem('GIST_ID') || '';
+        if (tokenEl) tokenEl.value = localStorage.getItem('GITHUB_TOKEN') || '';
         clearStatus();
         pendingChanges = false;
         saveButton();
@@ -179,8 +190,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeSettings() { closeModal(settingsModal); }
 
     async function doSave() {
-        const gistId = gistInput?.value.trim() || '';
-        const token = tokenInput?.value.trim() || '';
+        const isSetup = setupForm && setupForm.style.display !== 'none';
+        const gistEl = isSetup ? setupGistInput : $('gist-id');
+        const tokenEl = isSetup ? setupTokenInput : $('github-token');
+        const gistId = gistEl?.value.trim() || '';
+        const token = tokenEl?.value.trim() || '';
         localStorage.setItem('GIST_ID', gistId);
         localStorage.setItem('GITHUB_TOKEN', token);
         if (gistId && token) {
@@ -201,8 +215,15 @@ document.addEventListener('DOMContentLoaded', () => {
     $('settings-link')?.addEventListener('click', openSettings);
     closeBtn?.addEventListener('click', closeSettings);
     saveBtn?.addEventListener('click', doSave);
+    setupSaveBtn?.addEventListener('click', doSave);
     settingsModal?.addEventListener('click', e => { if (e.target === settingsModal) closeSettings(); });
-    [gistInput, tokenInput].forEach(inp => {
+    [$('gist-id'), $('github-token')].forEach(inp => {
+        inp?.addEventListener('input', () => {
+            pendingChanges = true;
+            saveButton();
+        });
+    });
+    [setupGistInput, setupTokenInput].forEach(inp => {
         inp?.addEventListener('input', () => {
             pendingChanges = true;
             saveButton();
@@ -237,14 +258,14 @@ document.addEventListener('DOMContentLoaded', () => {
             media = `<a href="${item.link}" target="_blank"><img src="${item.thumbnail}" alt="" class="thumb"></a>`;
         }
         const desc = item.description ? `<div class="desc">${makeLinksClickable(item.description)}</div>` : '';
-        const expandBtn = item.description ? `<button class="expand-btn" title="Toggle description" aria-label="Toggle description">_</button>` : '';
+        const expandBtn = item.description ? `<button class="expand-btn" title="Toggle description" aria-label="Toggle description"><svg viewBox="0 0 24 24" width="16" height="16"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : '';
         const starred = getStarredItems(meta).includes(item.id);
         const star = `<button class="star${starred ? ' starred' : ''}" data-id="${item.id}" aria-pressed="${starred}">&#9829;</button>`;
         const actions = star ? `<div class="item-actions">${star}</div>` : '';
         const source = item.feed_title || '';
         const time = relTime(item.published);
-        const itemMeta = (source || time || expandBtn) ? `<div class="meta">${expandBtn}${source ? `<span class="source">${source}</span>` : ''}${source && time ? '<span class="meta-sep">&middot;</span>' : ''}${time ? `<span class="time">${time}</span>` : ''}</div>` : '';
-        return `<div class="item${showingDesc ? ' show-desc' : ''}" data-id="${item.id}">${media}<h2><a href="${item.link}" target="_blank">${item.title}</a></h2>${itemMeta}${desc}${actions}</div>`;
+        const itemMeta = (source || time || expandBtn) ? `<div class="meta">${expandBtn}${source ? `<span class="source-dot" style="color:${feedColor(source)}">&#9679;</span><span class="source">${source}</span>` : ''}${source && time ? '<span class="meta-sep">&middot;</span>' : ''}${time ? `<span class="time">${time}</span>` : ''}</div>` : '';
+        return `<div class="item${showingDesc ? ' show-desc' : ''}" data-id="${item.id}" tabindex="0">${media}<h2><a href="${item.link}" target="_blank">${item.title}</a></h2>${itemMeta}${desc}${actions}</div>`;
     }
 
     function syncThumbAspect(root = feedEl) {
@@ -410,6 +431,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 break;
+            case 'Escape':
+                if (settingsModal && settingsModal.style.display !== 'none') {
+                    closeSettings();
+                } else if (keyboardHelp && keyboardHelp.style.display !== 'none') {
+                    closeModal(keyboardHelp);
+                }
+                break;
+        }
+    });
+
+    feedEl?.addEventListener('focusin', e => {
+        const item = e.target.closest('.item');
+        if (item) {
+            const items = visibleItems();
+            const idx = items.indexOf(item);
+            if (idx >= 0) {
+                currentIdx = idx;
+                highlight(idx);
+            }
         }
     });
 
@@ -483,6 +523,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     markReadBtn?.addEventListener('click', async () => {
         if (markReadBtn.disabled || !syncReady) return;
+        const unreadCount = feedData.filter(item => {
+            const m = (gistSync.getLocal().items || []).find(i => i.id === item.id);
+            return !m || !m.seen;
+        }).length;
+        if (unreadCount === 0) {
+            window.location.reload();
+            return;
+        }
+        if (!confirm(`Mark all ${unreadCount} unread items as read?`)) return;
         meta = gistSync.getLocal();
         meta.items = meta.items || [];
         const now = new Date().toISOString();
@@ -494,25 +543,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         if (changed) {
             markReadBtn.disabled = true;
-            toast('Syncing...', 'info', 1000);
+            toast('Marking all read...', 'info', 1000);
             meta.updated_at = now;
             gistSync.setLocal(meta);
-            try { await upload(); } catch { toast('Sync failed', 'error', 2000); }
-            setTimeout(() => window.location.reload(), 500);
-        } else {
-            window.location.reload();
+            try { await upload(); toast('Marked all read', 'success', 2000); } catch { toast('Sync failed', 'error', 2000); }
+            renderAll();
         }
     });
 
-    (async () => {
+    async function initSync() {
         if (loadingEl) loadingEl.style.display = '';
         const success = await gistSync.syncOnStartup();
         if (!success) {
-            if (statusEl) {
-                statusEl.textContent = 'Gist unreachable - check connection';
-                statusEl.className = 'status error';
-            }
             if (loadingEl) loadingEl.style.display = 'none';
+            if (feedEl) feedEl.innerHTML = '<div style="text-align:center;padding:60px 24px;color:var(--muted)"><p style="font-size:1.1rem;margin-block-end:8px">Could not sync</p><p style="font-size:.9rem;margin-block-end:16px;opacity:.65">GitHub Gist is unreachable. Check your connection and credentials.</p><button class="btn" style="margin:0 auto;padding:10px 24px;font-size:.9rem;color:var(--accent)" id="retry-sync-btn">Retry</button></div>';
+            const retryBtn = $('retry-sync-btn');
+            if (retryBtn) retryBtn.addEventListener('click', () => { if (feedEl) feedEl.innerHTML = ''; initSync(); });
             return;
         }
         syncReady = true;
@@ -520,5 +566,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAll();
         if (loadingEl) loadingEl.style.display = 'none';
         if (feedEl) feedEl.style.display = '';
-    })();
+    }
+    initSync();
 });

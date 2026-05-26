@@ -2,11 +2,11 @@
 
 /* === CSS Custom Properties === */
 :root {
-  --bg: #1c2122;
+  --bg: oklch(22% 0.008 137);
   --text: #e8e8e8;
   --muted: #a8a8a8;
-  --accent: #a2faa3;
-  --surface: #252c2d;
+  --accent: oklch(87% 0.16 137);
+  --surface: oklch(27% 0.008 137);
   --border: #2d3637;
   --shadow: rgba(0,0,0,.3);
   --visited: #8fd883;
@@ -23,11 +23,11 @@
 
 @media (prefers-color-scheme: light) {
   :root {
-    --bg: #f7f7f8;
+    --bg: oklch(97% 0.003 137);
     --text: #1c1f24;
     --muted: #3c434d;
-    --accent: #166a8a;
-    --surface: #fff;
+    --accent: oklch(48% 0.1 137);
+    --surface: oklch(100% 0.002 137);
     --border: #e3e5e8;
     --shadow: rgba(0,0,0,.06);
     --visited: #6c3fa4;
@@ -113,6 +113,12 @@ img { max-width: 100%; height: auto; display: block; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.source-dot {
+  font-size: .5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  opacity: .7;
+}
 .meta-sep { opacity: .5; flex-shrink: 0; }
 .time { opacity: .75; flex-shrink: 0; }
 
@@ -180,9 +186,12 @@ img { max-width: 100%; height: auto; display: block; }
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-block: 24px;
+  margin-block: 32px 24px;
   font-size: .8rem;
   color: var(--muted);
+}
+.sep:first-of-type {
+  margin-block-start: 8px;
 }
 .sep::before, .sep::after { content: ''; flex: 1; border-block-end: 1px solid var(--border); }
 .sep-heart { color: var(--star); font-size: 1rem; }
@@ -193,6 +202,7 @@ img { max-width: 100%; height: auto; display: block; }
   font-size: .9rem;
   color: var(--muted);
   padding: 12px 0 20px;
+  pointer-events: none;
 }
 
 /* === Layout === */
@@ -272,15 +282,6 @@ img { max-width: 100%; height: auto; display: block; }
   cursor: pointer; font-family: inherit;
 }
 .bottom-link:hover { color: var(--text); text-decoration: underline; }
-
-/* === Footer Bar (hidden, kept for reference) === */
-.bar {
-  display: none;
-}
-.bar-left, .bar-right { display: none; }
-.bar-center { display: none; }
-.bar-left, .bar-right { display: flex; gap: 8px; align-items: center; }
-.bar-center { font-size: .8rem; color: var(--muted); }
 
 /* === Icon Buttons === */
 .btn {
@@ -575,3 +576,12 @@ input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   animation: shimmer 1.5s infinite;
 }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
