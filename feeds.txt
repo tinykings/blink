@@ -10,7 +10,6 @@ https://www.bleepingcomputer.com/feed/
 https://www.thelazyadministrator.com/feed/
 https://feeds.feedburner.com/StudyHacks
 https://www.404media.co/rss
-https://4sysops.com/feed/
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
