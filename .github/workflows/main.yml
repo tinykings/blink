@@ -1,6 +1,11 @@
 name: Fetch RSS Feeds
 
 on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - feeds.txt
   workflow_dispatch:
   schedule:
     - cron: '0 * * * *'
