@@ -16,6 +16,8 @@ https://www.macstories.net/feed/
 https://www.reddit.com/r/iosgaming/top.rss?t=week
 
 #youtube
+https://www.youtube.com/@tobalog_toba
+https://www.youtube.com/@TinaHuang1
 # AI Samson
 https://www.youtube.com/feeds/videos.xml?channel_id=UCED3hlYdD0SlCff7jJ8tF3Q
 # Ottilie
