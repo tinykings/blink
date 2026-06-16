@@ -7,8 +7,8 @@ on:
     paths-ignore:
       - feeds.txt
   workflow_dispatch:
-  #schedule:
-  #  - cron: '0 * * * *'
+  schedule:
+    - cron: '0 * * * *'
 
 permissions:
   contents: write
