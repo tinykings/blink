@@ -16,6 +16,7 @@ https://www.macstories.net/feed/
 https://www.reddit.com/r/iosgaming/top.rss?t=week
 
 #youtube
+https://www.youtube.com/@OpenAI
 # AI Search
 https://www.youtube.com/feeds/videos.xml?channel_id=UCIgnGlGkVRhd4qNFcEwLL4A
 # Tobalog_tokyo | トバログ
