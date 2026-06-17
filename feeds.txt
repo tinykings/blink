@@ -13,7 +13,7 @@ https://www.404media.co/rss
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
-https://www.reddit.com/r/iosgaming/top.rss?t=week
+https://www.reddit.com/r/EmulationOnAndroid/
 
 #youtube
 https://www.youtube.com/@RetroGameCorps
