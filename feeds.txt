@@ -16,8 +16,10 @@ https://www.macstories.net/feed/
 https://www.reddit.com/r/EmulationOnAndroid/
 
 #youtube
-https://www.youtube.com/@RetroGameCorps
-https://www.youtube.com/@TechDweeb
+# Retro Game Corps
+https://www.youtube.com/feeds/videos.xml?channel_id=UCoZQiN0o7f36H7PaW4fVhFw
+# TechDweeb
+https://www.youtube.com/feeds/videos.xml?channel_id=UCgRaK4A7yi4ZELCLUjdP_pg
 # OpenAI
 https://www.youtube.com/feeds/videos.xml?channel_id=UCXZCJLdBC09xxGZ6gcdrc6A
 # AI Search
