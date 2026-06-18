@@ -16,7 +16,8 @@ https://www.macstories.net/feed/
 https://www.reddit.com/r/EmulationOnAndroid/
 
 #youtube
-https://www.youtube.com/@WulffDen
+# WULFF DEN
+https://www.youtube.com/feeds/videos.xml?channel_id=UCr613nJgA50o8DUUT00qHvw
 # nocaps
 https://www.youtube.com/feeds/videos.xml?channel_id=UCCghUBYXUjmJWBO5GlWcxCw
 # Gaming In The Wild
