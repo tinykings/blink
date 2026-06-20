@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'blink-v11.10';
+const CACHE_VERSION = 'blink-v11.11';
 const PRECACHE_ASSETS = [
   './',
   'index.html',
@@ -25,6 +25,17 @@ function recoverNavigation(fallbackResponse) {
   return cacheAppShell().then((cached) => cached || fallbackResponse || Response.error());
 }
 
+function isHtmlRequest(request) {
+  return request.mode === 'navigate'
+    || request.destination === 'document'
+    || (request.headers.get('accept') || '').includes('text/html');
+}
+
+function isStaticAssetRequest(request, url) {
+  return ['font', 'image', 'manifest', 'script', 'style', 'worker'].includes(request.destination)
+    || PRECACHE_ASSETS.some((asset) => new URL(asset, location.href).pathname === url.pathname);
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_VERSION)
@@ -48,10 +59,11 @@ self.addEventListener('fetch', (event) => {
 
   // Only handle same-origin requests
   if (url.origin !== location.origin) return;
+  if (event.request.method !== 'GET') return;
 
-  // Network-first for navigation (HTML pages) so reloads get fresh content.
+  // Network-first for navigations/documents/HTML so reloads get fresh content.
   // Fall back to the app shell for installed/offline launches.
-  if (event.request.mode === 'navigate') {
+  if (isHtmlRequest(event.request)) {
     event.respondWith(
       fetch(event.request).then((response) => {
         if (response.ok) {
@@ -64,7 +76,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Stale-while-revalidate for all other same-origin assets
+  if (!isStaticAssetRequest(event.request, url)) return;
+
+  // Stale-while-revalidate for same-origin static assets.
   event.respondWith(
     caches.open(CACHE_VERSION).then((cache) =>
       cache.match(event.request).then((cached) => {
