@@ -17,7 +17,8 @@ https://www.reddit.com/r/EmulationOnAndroid/
 https://www.gamerpower.com/rss/pc
 
 #youtube
-https://m.youtube.com/@SkillUp
+# Skill Up
+https://www.youtube.com/feeds/videos.xml?channel_id=UCZ7AeeVbyslLM_8-nVy2B8Q
 # WULFF DEN
 https://www.youtube.com/feeds/videos.xml?channel_id=UCr613nJgA50o8DUUT00qHvw
 # nocaps
