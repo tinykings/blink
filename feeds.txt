@@ -45,8 +45,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCAuEjBW8MgKN9DyCvjEPFew
 https://www.youtube.com/feeds/videos.xml?channel_id=UCydX8ueOwv5_bvd7Uj0HBHw
 # The Back Focus
 https://www.youtube.com/feeds/videos.xml?channel_id=UC7sg9FpMWMamzWE2lJPY-Dg
-# smallzero
-https://www.youtube.com/feeds/videos.xml?channel_id=UCaaSFMpvfls6kVC0TaEaCcg
 # Zen van Riel
 https://www.youtube.com/feeds/videos.xml?channel_id=UC7TUInmEJ4NmYb-krFz-SuA
 # MacStories
