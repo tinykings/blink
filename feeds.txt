@@ -4,7 +4,6 @@ https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
 https://www.reddit.com/r/apple/top.rss?t=week
-https://www.reddit.com/r/anime/top.rss?t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.bleepingcomputer.com/feed/
 https://www.thelazyadministrator.com/feed/
@@ -187,8 +186,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCPD_bxCRGpmmeQcbe2kpPaA
 https://www.youtube.com/feeds/videos.xml?channel_id=UCIDJH27tBTlA7jjMI5wnibA
 # gala studio
 https://www.youtube.com/feeds/videos.xml?channel_id=UCOvSKvTn6dlJEW0iVmB262w
-# Garnt
-https://www.youtube.com/feeds/videos.xml?channel_id=UCOv3Z7230GFKHdACf7zJleg
 # Gawx Art
 https://www.youtube.com/feeds/videos.xml?channel_id=UCFDxyA1H3VEN0VQwfMe2VMQ
 # gazi
