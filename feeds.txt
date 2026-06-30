@@ -4,7 +4,6 @@ https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
 https://www.reddit.com/r/apple/top.rss?t=week
-https://www.reddit.com/r/EmulationOnAndroid/top.rss?t=week
 https://www.reddit.com/r/retroid/top.rss?t=week
 https://www.reddit.com/r/GameNative/top.rss?t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
