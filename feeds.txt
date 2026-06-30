@@ -4,6 +4,9 @@ https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
 https://www.reddit.com/r/apple/top.rss?t=week
+https://www.reddit.com/r/EmulationOnAndroid/top.rss?t=week
+https://www.reddit.com/r/retroid/top.rss?t=week
+https://www.reddit.com/r/GameNative/top.rss?t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.bleepingcomputer.com/feed/
 https://www.thelazyadministrator.com/feed/
@@ -12,13 +15,11 @@ https://www.404media.co/rss
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
-https://www.reddit.com/r/EmulationOnAndroid/
 https://www.gamerpower.com/rss/pc
 
 #youtube
 # IsaacOS
 https://www.youtube.com/feeds/videos.xml?channel_id=UCAoR_3qko1kng4dI3AgqWyg
-
 # Skill Up
 https://www.youtube.com/feeds/videos.xml?channel_id=UCZ7AeeVbyslLM_8-nVy2B8Q
 # WULFF DEN
