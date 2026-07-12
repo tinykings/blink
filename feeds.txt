@@ -14,6 +14,11 @@ https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
 
 #youtube
+https://www.youtube.com/@krissyonYT
+https://www.youtube.com/@JoshuaChang
+https://www.youtube.com/@nikkijustgames
+https://www.youtube.com/@GMTK
+https://www.youtube.com/@BBKDRAGOON
 # IsaacOS
 https://www.youtube.com/feeds/videos.xml?channel_id=UCAoR_3qko1kng4dI3AgqWyg
 # Skill Up
