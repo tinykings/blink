@@ -4,6 +4,7 @@ https://www.reddit.com/r/technology/top.rss?t=week
 https://www.reddit.com/r/worldnews/top.rss?t=week
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp;restrict_sr=1&amp;t=week
 https://www.reddit.com/r/apple/top.rss?t=week
+https://www.reddit.com/r/chatgpt/top.rss?t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.bleepingcomputer.com/feed/
 https://www.thelazyadministrator.com/feed/
@@ -14,6 +15,10 @@ https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
 
 #youtube
+# Game Makers Toolkit
+https://www.youtube.com/feeds/videos.xml?channel_id=UCqJ-Xo29CKyLTjn6z2XwYAw
+# ETA Prime
+https://www.youtube.com/feeds/videos.xml?channel_id=UC_0CVCfC_3iuHqmyClu59Uw
 # Krissy Plays
 https://www.youtube.com/feeds/videos.xml?channel_id=UCClc972nxK3t9y9J14XjNaw
 # Joshua Chang
