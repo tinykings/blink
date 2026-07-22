@@ -14,6 +14,7 @@ https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
 
 #youtube
+https://www.youtube.com/@demonflyingfox
 # ETA Prime
 https://www.youtube.com/feeds/videos.xml?channel_id=UC_0CVCfC_3iuHqmyClu59Uw
 # Krissy Plays
