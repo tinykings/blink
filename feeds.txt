@@ -14,7 +14,8 @@ https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
 
 #youtube
-https://www.youtube.com/@NPCNextPortableConsole
+# NPC: Next Portable Console
+https://www.youtube.com/feeds/videos.xml?channel_id=UCKleaoOcZm2kw0aONmpHg1A
 # demonflyingfox
 https://www.youtube.com/feeds/videos.xml?channel_id=UCvdUBO1nKje-SqOqBQm1Rmw
 # ETA Prime
