@@ -13,6 +13,8 @@ https://feeds.feedburner.com/StudyHacks
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
+https://github.com/utkarshdalal/GameNative/releases.atom
+https://git.eden-emu.dev/eden-emu/eden.rss
 
 #youtube
 # NPC: Next Portable Console
