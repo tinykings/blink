@@ -6,6 +6,7 @@ https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&amp
 https://www.reddit.com/r/apple/top.rss?t=week
 https://www.reddit.com/r/chatgpt/top.rss?t=week
 https://www.reddit.com/r/retroid/top.rss?t=week
+https://www.reddit.com/r/gamenative/top.rss?t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.bleepingcomputer.com/feed/
 https://www.thelazyadministrator.com/feed/
@@ -13,7 +14,6 @@ https://feeds.feedburner.com/StudyHacks
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
-https://github.com/utkarshdalal/GameNative/releases.atom
 
 #youtube
 # NPC: Next Portable Console
