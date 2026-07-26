@@ -16,6 +16,60 @@ https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
 
 #youtube
+# Rogan 🎮 gaming nonsense
+https://www.youtube.com/feeds/videos.xml?channel_id=UCXaNjez7JyJ_JDFEKrC8JmQ
+# Charalanahzard
+https://www.youtube.com/feeds/videos.xml?channel_id=UCKpBmnEfSy20al-Fk_2YzVA
+# Razbuten
+https://www.youtube.com/feeds/videos.xml?channel_id=UCfHmyqCntYHQ81ZukNu66rg
+# itsTedBrooks
+https://www.youtube.com/feeds/videos.xml?channel_id=UCoAlewNQrVj1jSoye5QFMcQ
+# TheBackgroundNPC
+https://www.youtube.com/feeds/videos.xml?channel_id=UCuEAyHQajqJrWeVrJKgIS_Q
+# Cadaea
+https://www.youtube.com/feeds/videos.xml?channel_id=UCNw8oK_m3j5W9ATu3AhsnAg
+# Chucklefish
+https://www.youtube.com/feeds/videos.xml?channel_id=UClwlgXslmWtaDR4sYGWxX0w
+# Lost In Cult
+https://www.youtube.com/feeds/videos.xml?channel_id=UCsrNdK16FYekze3gIiOAvhw
+# Damien Wilde
+https://www.youtube.com/feeds/videos.xml?channel_id=UC9OGCVgbfKXsWAlpbo6TuNA
+# Gamespot
+https://www.youtube.com/feeds/videos.xml?channel_id=UCbu2SsF-Or3Rsn3NxqODImw
+# noclip_2
+https://www.youtube.com/feeds/videos.xml?channel_id=UCdievj3szPeYJzqqOjsLnfQ
+# gameranx
+https://www.youtube.com/feeds/videos.xml?channel_id=UCNvzD7Z-g64bPXxGzaQaa4g
+# Digital Foundry
+https://www.youtube.com/feeds/videos.xml?channel_id=UC9PBzalIcEQCsiIkq36PyUA
+# EmWins
+https://www.youtube.com/feeds/videos.xml?channel_id=UCq4CfirfepI5tN5tQme_9rQ
+# Destin
+https://www.youtube.com/feeds/videos.xml?channel_id=UCgUOWrjLEhmHE9tqYtoeS_g
+# DF Clips
+https://www.youtube.com/feeds/videos.xml?channel_id=UCLdBr5f6RcP6l_TAP4GkhDQ
+# IGN Games
+https://www.youtube.com/feeds/videos.xml?channel_id=UCdVrPfq-B9N5v01axUoDfLA
+# Daryl Talks Games
+https://www.youtube.com/feeds/videos.xml?channel_id=UCJfJWct8jN1RpCuVWk3zHTA
+# mossbag
+https://www.youtube.com/feeds/videos.xml?channel_id=UCTvH45HvnOzqXvfNJqdc3xg
+# Noisy Pixel
+https://www.youtube.com/feeds/videos.xml?channel_id=UCYtuVAsWV5wTITaLgEGqqZg
+# /noclip
+https://www.youtube.com/feeds/videos.xml?channel_id=UC0fDG3byEcMtbOqPMymDNbw
+# Team Cherry
+https://www.youtube.com/feeds/videos.xml?channel_id=UCZS2K8ZsUmujTuj3cNMyBSA
+# Raz
+https://www.youtube.com/feeds/videos.xml?channel_id=UCivETRAS-l1zO3RaR9f8PjA
+# Gingy
+https://www.youtube.com/feeds/videos.xml?channel_id=UC9bORzxOWiewqMXxkmhAwAg
+# Polygon
+https://www.youtube.com/feeds/videos.xml?channel_id=UCuVxaQDraOja6xKidcmoufA
+# CantPause
+https://www.youtube.com/feeds/videos.xml?channel_id=UC-2OWg_yYnoU_IAYHwJKeDw
+# Raycevick
+https://www.youtube.com/feeds/videos.xml?channel_id=UC1JTQBa5QxZCpXrFSkMxmPw
 # NPC: Next Portable Console
 https://www.youtube.com/feeds/videos.xml?channel_id=UCKleaoOcZm2kw0aONmpHg1A
 # demonflyingfox
