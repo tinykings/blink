@@ -1,6 +1,7 @@
 // GitHub Gist synchronization module
 
 import { getRetentionDays, getTimeOrZero, sanitizeItemForStorage } from './storage.js';
+import { GIST_FILENAME, getGitHubConfig } from './github-auth.js';
 
 const API_BASE = 'https://api.github.com/gists';
 let pushTimeout = null;
@@ -17,10 +18,7 @@ let meta = null;
  * @returns {{gistId: string|null, token: string|null}}
  */
 function getConfig() {
-    return {
-        gistId: localStorage.getItem('GIST_ID'),
-        token: localStorage.getItem('GITHUB_TOKEN')
-    };
+    return getGitHubConfig();
 }
 
 /**
@@ -62,7 +60,7 @@ async function fetchRemote() {
     const etag = res.headers.get('ETag');
     if (etag) lastETag = etag;
     const data = await res.json();
-    const file = data.files && data.files['starred.json'];
+    const file = data.files && data.files[GIST_FILENAME];
     if (!file || !file.content) return null;
     try {
         const remoteData = JSON.parse(file.content);
@@ -99,7 +97,7 @@ async function pushRemote(obj) {
     delete payloadData.updated_at;
     delete payloadData.seenItems;
 
-    const payload = { files: { 'starred.json': { content: JSON.stringify(payloadData, null, 2) } } };
+    const payload = { files: { [GIST_FILENAME]: { content: JSON.stringify(payloadData, null, 2) } } };
     const res = await fetch(`${API_BASE}/${gistId}`, {
         method: 'PATCH',
         headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
@@ -297,6 +295,7 @@ export function pushSoon() {
 export async function pull() {
     const cfg = getConfig();
     if (!cfg.gistId || !cfg.token) return false;
+    lastETag = null;
     const remote = await fetchRemote();
     if (remote) {
         meta = remote;

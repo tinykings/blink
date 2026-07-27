@@ -1,6 +1,7 @@
 import { createYouTubePlayer, stopVideoByItemId, videoPlayers } from './youtube.js';
 import { getStarredItems } from './storage.js';
 import { gistSync, upload } from './sync.js';
+import { connectGitHub, disconnectGitHub, getGitHubConfig, getGitHubLogin } from './github-auth.js';
 
 let meta = { items: [] };
 
@@ -117,11 +118,11 @@ document.addEventListener('keydown', trapKeydown);
 
 document.addEventListener('DOMContentLoaded', () => {
     const settingsModal = $('settings-modal');
-    const setupGistInput = $('setup-gist-id');
-    const setupTokenInput = $('setup-github-token');
     const statusEl = $('status');
-    const saveBtn = $('save-btn');
-    const setupSaveBtn = $('setup-save-btn');
+    const setupStatusEl = $('setup-status');
+    const connectBtn = $('connect-github-btn');
+    const setupConnectBtn = $('setup-connect-github-btn');
+    const disconnectBtn = $('disconnect-github-btn');
     const closeBtn = $('close-btn');
     const feedEl = $('feed');
     const viewBtn = $('view-btn');
@@ -137,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let showingNew = true;
     let showingDesc = false;
     let currentIdx = -1;
-    let pendingChanges = false;
     let syncReady = false;
 
     if (markReadBtn) markReadBtn.disabled = true;
@@ -162,8 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const hasGist = localStorage.getItem('GIST_ID');
-    const hasToken = localStorage.getItem('GITHUB_TOKEN');
+    const { gistId: hasGist, token: hasToken } = getGitHubConfig();
     const floatingBtns = $('floating-buttons');
     const updateHeader = document.querySelector('.update-header');
     if (!hasGist || !hasToken) {
@@ -175,13 +174,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (updateHeader) updateHeader.style.display = 'none';
     }
 
-    function setStatus(msg, type = 'info') {
-        statusEl.textContent = msg;
-        statusEl.className = `status${type !== 'info' ? ` ${type}` : ''}`;
+    function setStatus(msg, type = 'info', target = statusEl) {
+        if (!target) return;
+        target.textContent = msg;
+        target.className = `status${type !== 'info' ? ` ${type}` : ''}`;
     }
-    function clearStatus() { statusEl.textContent = ''; statusEl.className = 'status'; }
-
-    function saveButton() { saveBtn.disabled = !pendingChanges; }
+    function clearStatus(target = statusEl) {
+        if (!target) return;
+        target.textContent = '';
+        target.className = 'status';
+    }
 
     function setUpdatedAtText() {
         const text = formatUpdatedAt(meta?.updated_at) || updateHeader?.textContent.trim() || '';
@@ -198,57 +200,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openSettings() {
         openModal(settingsModal);
-        const gistEl = $('gist-id');
-        const tokenEl = $('github-token');
-        if (gistEl) gistEl.value = localStorage.getItem('GIST_ID') || '';
-        if (tokenEl) tokenEl.value = localStorage.getItem('GITHUB_TOKEN') || '';
         clearStatus();
-        pendingChanges = false;
-        saveButton();
+        const login = getGitHubLogin();
+        const { token, gistId } = getGitHubConfig();
+        const connected = token && gistId;
+        const connectionEl = $('github-connection');
+        if (connectionEl) connectionEl.textContent = connected
+            ? `Connected${login ? ` as @${login}` : ' to GitHub'}`
+            : 'Not connected';
+        if (connectBtn) connectBtn.textContent = connected ? 'Reconnect GitHub' : 'Connect GitHub';
+        if (disconnectBtn) disconnectBtn.hidden = !connected;
     }
 
     function closeSettings() { closeModal(settingsModal); }
 
-    async function doSave() {
-        const isSetup = setupForm && setupForm.style.display !== 'none';
-        const gistEl = isSetup ? setupGistInput : $('gist-id');
-        const tokenEl = isSetup ? setupTokenInput : $('github-token');
-        const gistId = gistEl?.value.trim() || '';
-        const token = tokenEl?.value.trim() || '';
-        localStorage.setItem('GIST_ID', gistId);
-        localStorage.setItem('GITHUB_TOKEN', token);
-        if (gistId && token) {
-            if (setupForm) setupForm.style.display = 'none';
+    async function doConnect(isSetup) {
+        const targetStatus = isSetup ? setupStatusEl : statusEl;
+        const buttons = [connectBtn, setupConnectBtn].filter(Boolean);
+        buttons.forEach(button => { button.disabled = true; });
+        setStatus('Waiting for GitHub...', 'info', targetStatus);
+        try {
+            const { login } = await connectGitHub();
+            setStatus(`Connected${login ? ` as @${login}` : ''}. Syncing...`, 'success', targetStatus);
             if (loadingEl) loadingEl.style.display = 'block';
-            setStatus('Syncing from Gist...', 'info');
-            if (await gistSync.pull()) {
-                syncReady = true;
-                if (markReadBtn) markReadBtn.disabled = false;
-                renderAll();
-            }
+            if (!await gistSync.pull()) throw new Error('Could not read sync Gist');
+            syncReady = true;
+            if (setupForm) setupForm.style.display = 'none';
+            if (floatingBtns) floatingBtns.style.display = '';
+            if (updateHeader) updateHeader.style.display = '';
+            if (feedEl) feedEl.style.display = '';
+            if (markReadBtn) markReadBtn.disabled = false;
+            renderAll();
+            if (!isSetup) openSettings();
+        } catch (error) {
+            setStatus(error.message || 'GitHub connection failed', 'error', targetStatus);
+        } finally {
             if (loadingEl) loadingEl.style.display = 'none';
+            buttons.forEach(button => { button.disabled = false; });
         }
-        pendingChanges = false;
-        saveButton();
     }
 
     $('settings-link')?.addEventListener('click', openSettings);
     closeBtn?.addEventListener('click', closeSettings);
-    saveBtn?.addEventListener('click', doSave);
-    setupSaveBtn?.addEventListener('click', doSave);
+    connectBtn?.addEventListener('click', () => doConnect(false));
+    setupConnectBtn?.addEventListener('click', () => doConnect(true));
+    disconnectBtn?.addEventListener('click', () => {
+        disconnectGitHub();
+        window.location.reload();
+    });
     settingsModal?.addEventListener('click', e => { if (e.target === settingsModal) closeSettings(); });
-    [$('gist-id'), $('github-token')].forEach(inp => {
-        inp?.addEventListener('input', () => {
-            pendingChanges = true;
-            saveButton();
-        });
-    });
-    [setupGistInput, setupTokenInput].forEach(inp => {
-        inp?.addEventListener('input', () => {
-            pendingChanges = true;
-            saveButton();
-        });
-    });
 
     keyboardHelp?.addEventListener('click', e => { if (e.target === keyboardHelp) closeModal(keyboardHelp); });
 
@@ -607,5 +607,5 @@ document.addEventListener('DOMContentLoaded', () => {
         if (loadingEl) loadingEl.style.display = 'none';
         if (feedEl) feedEl.style.display = '';
     }
-    initSync();
+    if (hasGist && hasToken) initSync();
 });

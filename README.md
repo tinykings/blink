@@ -27,20 +27,16 @@ Blink is a client-side RSS reader that runs entirely in the browser. Fork it, ad
 1. **Fork** this repository.
 2. Edit `feeds.txt` to add your RSS feeds and YouTube channels (see [Configuration](#configuration) below).
 3. Go to **Settings → Pages** in your fork and set the source to **GitHub Actions**.
-4. GitHub Actions will fetch your feeds hourly and deploy the updated site automatically.
-5. **Create a GitHub Gist** — This is required to use Blink. See [Setup](#setup) below.
+4. Add repository variable `GIST_AUTH_URL` with shared OAuth Worker URL.
+5. GitHub Actions will fetch your feeds hourly and deploy updated site.
 
 Your reader will be live at `https://<your-username>.github.io/blink/`.
 
 ## Setup
 
-On first visit, you will be prompted to enter your GitHub Gist credentials:
+On first visit, select **Connect GitHub** and authorize Gist access. Blink finds your app Gist or creates private Gist automatically.
 
-1. **Create a GitHub Gist** at [gist.github.com](https://gist.github.com) (can be private — the content doesn't matter).
-2. **Create a Personal Access Token** at [github.com/settings/tokens](https://github.com/settings/tokens) with the `gist` scope.
-3. Enter your **Gist ID** (the long alphanumeric string in your Gist's URL) and **GitHub Token** in the setup form.
-
-Blink will sync automatically on startup, on tab focus, and after reconnecting to the network.
+Blink syncs automatically on startup, on tab focus, and after reconnecting to network.
 
 ## Configuration
 

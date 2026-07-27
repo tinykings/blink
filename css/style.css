@@ -311,6 +311,8 @@ img { max-width: 100%; height: auto; display: block; }
 .btn:hover { background: color-mix(in oklab, var(--surface) 92%, var(--accent) 8%); }
 .btn:active { transform: scale(.97); }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn:disabled { cursor: wait; opacity: .6; }
+.btn.danger { color: var(--error); }
 .btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* === Video Placeholder === */
@@ -390,6 +392,8 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .modal h2 { margin-block-end: 16px; font-size: 1.2rem; color: var(--accent); }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-block-start: 16px; }
+.connection-state { color: var(--muted); font-size: .9rem; margin-block-end: 12px; }
+.connect-btn { width: 100%; padding: 12px; }
 
 /* === Form Elements === */
 label { display: block; margin-block-start: 12px; margin-block-end: 4px; font-size: .9rem; color: var(--muted); }

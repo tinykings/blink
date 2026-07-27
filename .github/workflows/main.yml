@@ -49,12 +49,22 @@ jobs:
           }
 
       - name: Prepare site
+        env:
+          GIST_AUTH_URL: ${{ vars.GIST_AUTH_URL }}
         run: |
+          test -n "$GIST_AUTH_URL" || { echo "GIST_AUTH_URL repository variable is required"; exit 1; }
           mkdir -p _site
           cp index.html _site/
           cp -r css js images _site/
           cp manifest.json sw.js _site/
           cp -r blink _site/
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          config = Path('_site/js/config.js')
+          config.write_text(config.read_text().replace('__GIST_AUTH_URL__', os.environ['GIST_AUTH_URL']))
+          PY
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
