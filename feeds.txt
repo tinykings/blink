@@ -21,6 +21,7 @@ https://www.macstories.net/feed/
 https://gg.deals/news/freebies/feed/
 
 #youtube
+https://www.youtube.com/@DammitJeff
 # Rogan 🎮 gaming nonsense
 https://www.youtube.com/feeds/videos.xml?channel_id=UCXaNjez7JyJ_JDFEKrC8JmQ
 # Charalanahzard
