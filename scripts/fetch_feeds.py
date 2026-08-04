@@ -69,6 +69,7 @@ class FeedProcessor:
         self.utc_now = datetime.now(pytz.utc)
         self.session = requests.Session()
         self.session.headers.update({'User-Agent': USER_AGENT})
+        self.feed_title_overrides: Dict[str, str] = {}
         
     def get_youtube_channel_info(self, url: str) -> Tuple[Optional[str], Optional[str]]:
         """Extract YouTube channel ID and name from URL."""
@@ -146,6 +147,7 @@ class FeedProcessor:
     def process_urls_file(self, file_path: str) -> List[str]:
         """Process URLs file and convert YouTube channels to RSS feeds."""
         logger.info(f"Processing URLs from {file_path}")
+        self.feed_title_overrides = {}
         
         try:
             with open(file_path, 'r') as f:
@@ -237,13 +239,17 @@ class FeedProcessor:
         self._update_feeds_file(file_path, converted_entries)
 
         # Return all RSS URLs, using YouTube's long-form uploads playlist when Shorts are disabled
-        youtube_feed_urls = [entry[0] for entry in converted_entries
-                             if entry[0].startswith("https://www.youtube.com/feeds/videos.xml")]
+        youtube_feed_urls = []
+        for url, _, channel_name in converted_entries:
+            if not url.startswith("https://www.youtube.com/feeds/videos.xml"):
+                continue
+            if not INCLUDE_YOUTUBE_SHORTS:
+                url = url.replace('channel_id=UC', 'playlist_id=UULF', 1)
+            youtube_feed_urls.append(url)
+            if channel_name:
+                self.feed_title_overrides[url] = channel_name
+
         if not INCLUDE_YOUTUBE_SHORTS:
-            youtube_feed_urls = [
-                url.replace('channel_id=UC', 'playlist_id=UULF', 1)
-                for url in youtube_feed_urls
-            ]
             logger.info("YouTube Shorts disabled; using long-form uploads playlists")
 
         all_rss_urls = rss_urls + youtube_feed_urls
@@ -384,7 +390,7 @@ class FeedProcessor:
                     'link': link,
                     'published': published_time,
                     'thumbnail': thumbnail_url,
-                    'feed_title': getattr(feed.feed, 'title', ''),
+                    'feed_title': self.feed_title_overrides.get(url) or getattr(feed.feed, 'title', ''),
                     'video_id': video_id,
                     'description': description,
                 })
