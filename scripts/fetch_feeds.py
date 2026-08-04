@@ -22,7 +22,7 @@ warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 
 # Configuration
 TIMEZONE = 'America/Los_Angeles'
-ITEMS_RETENTION_DAYS = 2
+ITEMS_RETENTION_DAYS = 5
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
 REQUEST_TIMEOUT = 30
 MAX_WORKERS = 10
@@ -298,9 +298,10 @@ class FeedProcessor:
                             stats.record_failure(url, f"Parse error: {feed.bozo_exception}")
                         return []
 
+                items = self._process_feed_entries(feed, url)
                 if stats:
                     stats.record_success(url)
-                return self._process_feed_entries(feed, url)
+                return items
 
             except requests.RequestException as e:
                 last_error = str(e)
@@ -347,34 +348,40 @@ class FeedProcessor:
         cutoff_time = self.utc_now - timedelta(days=ITEMS_RETENTION_DAYS)
 
         for entry in feed.entries:
-            item_id = entry.get('id') or entry.get('link')
-            if not item_id:
-                continue
+            try:
+                item_id = entry.get('id') or entry.get('link')
+                link = entry.get('link')
+                if not item_id or not link:
+                    logger.warning(f"Skipping entry without ID or link from {url}")
+                    continue
 
-            # Parse published time
-            published_time = self._get_entry_time(entry)
-            if published_time < cutoff_time:
-                continue
+                # Parse published time
+                published_time = self._get_entry_time(entry)
+                if published_time < cutoff_time:
+                    continue
 
-            # Convert to local timezone
-            published_time = published_time.astimezone(self.local_tz)
+                # Convert to local timezone
+                published_time = published_time.astimezone(self.local_tz)
 
-            # Extract thumbnail, video info, and YouTube description
-            thumbnail_url, video_id, yt_desc = self._extract_media_info(entry, is_youtube_feed)
+                # Extract thumbnail, video info, and YouTube description
+                thumbnail_url, video_id, yt_desc = self._extract_media_info(entry, is_youtube_feed)
 
-            # Clean description text (prefer YouTube description if available)
-            description = yt_desc if yt_desc else self._clean_description(entry)
+                # Clean description text (prefer YouTube description if available)
+                description = yt_desc if yt_desc else self._clean_description(entry)
 
-            items.append({
-                'id': item_id,
-                'title': entry.title,
-                'link': entry.link,
-                'published': published_time,
-                'thumbnail': thumbnail_url,
-                'feed_title': getattr(feed.feed, 'title', ''),
-                'video_id': video_id,
-                'description': description,
-            })
+                items.append({
+                    'id': item_id,
+                    'title': entry.get('title') or 'Untitled',
+                    'link': link,
+                    'published': published_time,
+                    'thumbnail': thumbnail_url,
+                    'feed_title': getattr(feed.feed, 'title', ''),
+                    'video_id': video_id,
+                    'description': description,
+                })
+            except Exception as e:
+                entry_ref = entry.get('id') or entry.get('link') or 'unknown entry'
+                logger.warning(f"Skipping malformed entry {entry_ref} from {url}: {e}")
         
         return items
     
