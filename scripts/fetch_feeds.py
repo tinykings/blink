@@ -23,6 +23,7 @@ warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 # Configuration
 TIMEZONE = 'America/Los_Angeles'
 ITEMS_RETENTION_DAYS = 5
+INCLUDE_YOUTUBE_SHORTS = False
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
 REQUEST_TIMEOUT = 30
 MAX_WORKERS = 10
@@ -235,9 +236,17 @@ class FeedProcessor:
         # Write back converted YouTube URLs to feeds.txt
         self._update_feeds_file(file_path, converted_entries)
 
-        # Return all RSS URLs
-        all_rss_urls = rss_urls + [entry[0] for entry in converted_entries
-                                   if entry[0].startswith("https://www.youtube.com/feeds/videos.xml")]
+        # Return all RSS URLs, using YouTube's long-form uploads playlist when Shorts are disabled
+        youtube_feed_urls = [entry[0] for entry in converted_entries
+                             if entry[0].startswith("https://www.youtube.com/feeds/videos.xml")]
+        if not INCLUDE_YOUTUBE_SHORTS:
+            youtube_feed_urls = [
+                url.replace('channel_id=UC', 'playlist_id=UULF', 1)
+                for url in youtube_feed_urls
+            ]
+            logger.info("YouTube Shorts disabled; using long-form uploads playlists")
+
+        all_rss_urls = rss_urls + youtube_feed_urls
 
         logger.info(f"Found {len(all_rss_urls)} RSS feeds to process")
         return all_rss_urls
