@@ -18,8 +18,6 @@ https://www.macstories.net/feed/
 
 
 #youtube
-# Digital Foundry
-https://www.youtube.com/feeds/videos.xml?channel_id=UC9PBzalIcEQCsiIkq36PyUA
 # Dammit Jeff
 https://www.youtube.com/feeds/videos.xml?channel_id=UCXOSur_wiS9TK0WUhJrYrlA
 # Rogan 🎮 gaming nonsense
