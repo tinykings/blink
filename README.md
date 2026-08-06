@@ -60,7 +60,7 @@ YouTube channel URLs (`@handle` format) are automatically resolved to their RSS 
 
 ### Retention
 
-Items are kept for 2 days by default. To change this, set `ITEMS_RETENTION_DAYS` in `scripts/fetch_feeds.py`. Starred items are kept indefinitely.
+Items are kept for 5 days by default. To change this, set `ITEMS_RETENTION_DAYS` in `scripts/fetch_feeds.py`. Starred items are kept indefinitely.
 
 ## Keyboard Shortcuts
 

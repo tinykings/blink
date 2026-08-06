@@ -10,15 +10,15 @@ export function getRetentionDays() {
     if (cachedRetentionDays !== null) {
         return cachedRetentionDays;
     }
-    const footerBar = document.querySelector('.footer-bar');
-    if (footerBar) {
-        const parsed = parseInt(footerBar.dataset.retentionDays, 10);
+    const retentionEl = document.querySelector('[data-retention-days]');
+    if (retentionEl) {
+        const parsed = parseInt(retentionEl.dataset.retentionDays, 10);
         if (!Number.isNaN(parsed)) {
             cachedRetentionDays = parsed;
             return cachedRetentionDays;
         }
     }
-    cachedRetentionDays = 2;
+    cachedRetentionDays = 5;
     return cachedRetentionDays;
 }
 

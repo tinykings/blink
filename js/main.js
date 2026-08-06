@@ -140,6 +140,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentIdx = -1;
     let syncReady = false;
 
+    function isSeenVersion(item, itemMeta) {
+        if (!itemMeta?.seen) return false;
+        if (!item?.published) return true;
+        const seenVersion = itemMeta.published || itemMeta.starred_changed_at || itemMeta.starredChangedAt || itemMeta.date;
+        if (!seenVersion) return true;
+        const currentPublished = new Date(item.published).getTime();
+        const seenPublished = new Date(seenVersion).getTime();
+        if (!Number.isFinite(currentPublished) || !Number.isFinite(seenPublished)) return true;
+        return currentPublished <= seenPublished;
+    }
+
     if (markReadBtn) markReadBtn.disabled = true;
 
     const emptyVariants = [
@@ -358,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let count = 0;
             all.forEach(item => {
                 const m = byId.get(item.dataset.id);
-                const hide = m?.seen && !m?.starred;
+                const hide = isSeenVersion(feedById.get(item.dataset.id), m) && !m?.starred;
                 if (hide && videoPlayers.has(item.dataset.id)) stopVideoByItemId(item.dataset.id);
                 item.style.display = hide ? 'none' : '';
                 if (!hide) count++;
@@ -498,6 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.starred = !item.starred;
                 item.starred_changed_at = now;
                 item.seen = true;
+                if (m.published) item.published = m.published;
                 if (item.starred) {
                     if (!item.title && m.title) item.title = m.title;
                     if ((!item.url && m.url) || (!item.link && m.url)) { item.url = m.url; item.link = m.url; }
@@ -562,10 +574,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     markReadBtn?.addEventListener('click', async () => {
         if (markReadBtn.disabled || !syncReady) return;
-        const unreadCount = feedData.filter(item => {
-            const m = (gistSync.getLocal().items || []).find(i => i.id === item.id);
-            return !m || !m.seen;
-        }).length;
+        const currentMetaById = new Map((gistSync.getLocal().items || []).map(item => [item.id, item]));
+        const unreadCount = feedData.filter(item => !isSeenVersion(item, currentMetaById.get(item.id))).length;
         if (unreadCount === 0) {
             window.location.reload();
             return;
@@ -575,10 +585,20 @@ document.addEventListener('DOMContentLoaded', () => {
         meta.items = meta.items || [];
         const now = new Date().toISOString();
         let changed = false;
+        const metaById = new Map(meta.items.map(item => [item.id, item]));
         feedData.forEach(item => {
-            let m = meta.items.find(i => i.id === item.id);
-            if (!m) { meta.items.push({ id: item.id, date: now, starred: false, seen: true, starred_changed_at: now }); changed = true; }
-            else if (!m.seen) { m.seen = true; m.starred_changed_at = now; changed = true; }
+            const m = metaById.get(item.id);
+            if (!m) {
+                const newMeta = { id: item.id, date: now, starred: false, seen: true, starred_changed_at: now, published: item.published };
+                meta.items.push(newMeta);
+                metaById.set(item.id, newMeta);
+                changed = true;
+            } else if (!isSeenVersion(item, m)) {
+                m.seen = true;
+                m.published = item.published;
+                m.starred_changed_at = now;
+                changed = true;
+            }
         });
         if (changed) {
             markReadBtn.disabled = true;

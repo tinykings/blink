@@ -545,7 +545,7 @@ class FeedProcessor:
         serializable_items = []
         for item in items:
             item_copy = item.copy()
-            item_copy['published'] = item['published'].strftime("%Y-%m-%d %H:%M:%S")
+            item_copy['published'] = item['published'].isoformat()
             serializable_items.append(item_copy)
         return json.dumps(serializable_items, indent=2)
     
@@ -568,6 +568,7 @@ class FeedProcessor:
         now = self.utc_now.astimezone(self.local_tz)
         last_updated_text = now.strftime("%I:%M")
         template = template.replace('<!-- last_updated_placeholder -->', last_updated_text)
+        template = template.replace('<!-- items_retention_days_placeholder -->', str(ITEMS_RETENTION_DAYS))
         
         try:
             with open(output_path, 'w', encoding='utf-8') as f:
