@@ -18,7 +18,8 @@ https://www.macstories.net/feed/
 
 
 #youtube
-https://www.youtube.com/@boilerroom
+# Boiler Room
+https://www.youtube.com/feeds/videos.xml?channel_id=UCGBpxWJr9FNOcFYA5GkKrMg
 # Dammit Jeff
 https://www.youtube.com/feeds/videos.xml?channel_id=UCXOSur_wiS9TK0WUhJrYrlA
 # Rogan 🎮 gaming nonsense
