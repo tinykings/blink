@@ -305,8 +305,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCpXLm3fQI7H-xgMwGkqZpRg
 https://www.youtube.com/feeds/videos.xml?channel_id=UC6QQXHTWzhjlLJQpRPoJ4IA
 # prestongoes
 https://www.youtube.com/feeds/videos.xml?channel_id=UCI3yTtc0kShZ-S_Qsd5VTSQ
-# Resident Advisor
-https://www.youtube.com/feeds/videos.xml?channel_id=UCDHvlud7Hf86FxFsogrBcMg
 # Reynard Lowell
 https://www.youtube.com/feeds/videos.xml?channel_id=UC7dR3zb454qbmuzTR2_ABhQ
 # Reysu
