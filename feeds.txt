@@ -15,8 +15,10 @@ https://www.macstories.net/feed/
 
 
 #youtube
-https://www.youtube.com/@BlackHatOfficialYT
-https://www.youtube.com/@DEFCONConference
+# Black Hat
+https://www.youtube.com/feeds/videos.xml?channel_id=UCJ6q9Ie29ajGqKApbLqfBOg
+# DEFCONConference
+https://www.youtube.com/feeds/videos.xml?channel_id=UC6Om9kAkl32dWlDSNlDS9Iw
 # demonflyingfox
 https://www.youtube.com/feeds/videos.xml?channel_id=UCvdUBO1nKje-SqOqBQm1Rmw
 # OpenAI
