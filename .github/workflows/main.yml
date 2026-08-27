@@ -1,4 +1,4 @@
-name: Fetch RSS Feeds
+name: Fetch RSS Feed
 
 on:
   push:
