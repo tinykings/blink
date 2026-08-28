@@ -7,8 +7,9 @@ on:
     paths-ignore:
       - feeds.txt
   workflow_dispatch:
+  # Avoid GitHub Actions' overloaded start-of-hour scheduling window.
   schedule:
-    - cron: '0 * * * *'
+    - cron: '17 * * * *'
 
 permissions:
   contents: write
