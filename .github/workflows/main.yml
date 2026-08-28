@@ -8,8 +8,8 @@ on:
       - feeds.txt
   workflow_dispatch:
   # Avoid GitHub Actions' overloaded start-of-hour scheduling window.
-  schedule:
-    - cron: '17 * * * *'
+  #schedule:
+  #  - cron: '17 * * * *'
 
 permissions:
   contents: write
