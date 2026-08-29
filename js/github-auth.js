@@ -1,6 +1,6 @@
 import { GIST_AUTH_URL } from './config.js';
 
-const OAUTH_APP = 'juice';
+const OAUTH_APP = 'blink';
 const GIST_FILENAME = 'blink-data.json';
 const GIST_DESCRIPTION = 'Blink Sync Data';
 const API_BASE = 'https://api.github.com';
