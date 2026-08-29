@@ -8,6 +8,10 @@ const OAUTH_TIMEOUT_MS = 5 * 60 * 1000;
 const TOKEN_KEY = `${OAUTH_APP}:github-token`;
 const GIST_KEY = `${OAUTH_APP}:gist-id`;
 const LOGIN_KEY = `${OAUTH_APP}:github-login`;
+const FEED_REPOSITORY = 'tinykings/blink';
+const FEED_WORKFLOW = 'main.yml';
+const WORKFLOW_TIMEOUT_MS = 10 * 60 * 1000;
+const WORKFLOW_POLL_MS = 3000;
 
 function workerUrl() {
     if (!GIST_AUTH_URL || GIST_AUTH_URL === '__GIST_AUTH_URL__') {
@@ -150,6 +154,87 @@ export function getGitHubConfig() {
 
 export function getGitHubLogin() {
     return getGitHubConfig().login;
+}
+
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function actionsRequest(path, token, options = {}) {
+    const response = await fetch(`${API_BASE}/repos/${FEED_REPOSITORY}${path}`, {
+        ...options,
+        headers: {
+            ...githubHeaders(token),
+            ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+            ...options.headers
+        }
+    });
+    if (!response.ok) {
+        let message = `GitHub Actions request failed: ${response.status}`;
+        try {
+            const body = await response.json();
+            if (body.message) message = body.message;
+        } catch { /* Keep status message. */ }
+        if (response.status === 401 || response.status === 403 || response.status === 404) {
+            message = 'GitHub connection lacks Actions access. Update OAuth permissions, then reconnect.';
+        }
+        throw new Error(message);
+    }
+    if (response.status === 204) return null;
+    return response.json();
+}
+
+export async function refreshFeeds(onProgress = () => {}) {
+    const { token } = getGitHubConfig();
+    if (!token) throw new Error('Connect GitHub before refreshing feeds.');
+
+    const dispatchedAt = Date.now();
+    onProgress('Starting feed refresh...');
+    await actionsRequest(`/actions/workflows/${FEED_WORKFLOW}/dispatches`, token, {
+        method: 'POST',
+        body: JSON.stringify({ ref: 'main' })
+    });
+
+    const deadline = dispatchedAt + WORKFLOW_TIMEOUT_MS;
+    let runId = null;
+    let lastState = '';
+    let requestFailures = 0;
+
+    while (Date.now() < deadline) {
+        await wait(WORKFLOW_POLL_MS);
+        try {
+            const data = await actionsRequest(`/actions/workflows/${FEED_WORKFLOW}/runs?event=workflow_dispatch&branch=main&per_page=10`, token);
+            requestFailures = 0;
+            const run = runId
+                ? data.workflow_runs.find(candidate => candidate.id === runId)
+                : data.workflow_runs.find(candidate => new Date(candidate.created_at).getTime() >= dispatchedAt - 5000);
+            if (!run) {
+                if (lastState !== 'waiting') {
+                    onProgress('Waiting for GitHub Actions...');
+                    lastState = 'waiting';
+                }
+                continue;
+            }
+            runId = run.id;
+            if (run.status === 'completed') {
+                if (run.conclusion !== 'success') {
+                    throw new Error(`Feed refresh ${run.conclusion || 'failed'}. Open GitHub Actions for details.`);
+                }
+                onProgress('Feeds refreshed. Reloading...');
+                return run;
+            }
+            const state = run.status === 'queued' ? 'queued' : 'running';
+            if (state !== lastState) {
+                onProgress(state === 'queued' ? 'Feed refresh queued...' : 'Fetching RSS feeds...');
+                lastState = state;
+            }
+        } catch (error) {
+            if (error.message.startsWith('Feed refresh ')) throw error;
+            requestFailures += 1;
+            if (requestFailures >= 3) throw error;
+        }
+    }
+    throw new Error('Feed refresh timed out. Check GitHub Actions for status.');
 }
 
 export { GIST_FILENAME };

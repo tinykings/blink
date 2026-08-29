@@ -213,6 +213,44 @@ img { max-width: 100%; height: auto; display: block; }
   pointer-events: none;
 }
 
+/* === Feed Refresh Status === */
+.feed-sync-status {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0) + 82px);
+  transform: translateX(-50%);
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  min-height: 44px;
+  padding: 9px 14px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px var(--shadow);
+  font-size: .85rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.feed-sync-status[hidden] { display: none; }
+.feed-sync-status.error { color: var(--error); border-color: var(--error); }
+.feed-sync-status.error .sync-spinner { display: none; }
+.sync-spinner {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border: 2px solid color-mix(in oklab, var(--accent) 35%, transparent);
+  border-block-start-color: var(--accent);
+  border-radius: 50%;
+  animation: sync-spin .8s linear infinite;
+}
+@keyframes sync-spin { to { transform: rotate(360deg); } }
+
 /* === Floating Buttons === */
 #floating-buttons {
   position: fixed;

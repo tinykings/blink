@@ -50,12 +50,17 @@
         </div>
     </div>
 
+    <div id="feed-sync-status" class="feed-sync-status" role="status" aria-live="polite" aria-atomic="true" hidden>
+        <span class="sync-spinner" aria-hidden="true"></span>
+        <span id="feed-sync-text">Refreshing feeds...</span>
+    </div>
+
     <div id="floating-buttons">
         <button id="view-btn" class="btn floating-btn floating-left" title="Toggle view" aria-label="Toggle view">
             <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
         <a id="repo-link" class="floating-link floating-center" href="https://github.com/tinykings/blink" title="Blink on GitHub" aria-label="Blink on GitHub">02:41</a>
-        <button id="mark-read-btn" class="btn floating-btn floating-right" title="Mark all read" aria-label="Mark all read" disabled>
+        <button id="mark-read-btn" class="btn floating-btn floating-right" title="Mark all read and refresh feeds" aria-label="Mark all read and refresh feeds" disabled>
             <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
         </button>
     </div>

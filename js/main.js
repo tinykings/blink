@@ -1,7 +1,7 @@
 import { createYouTubePlayer, stopVideoByItemId, videoPlayers } from './youtube.js';
 import { getStarredItems } from './storage.js';
 import { gistSync, upload } from './sync.js';
-import { connectGitHub, disconnectGitHub, getGitHubConfig, getGitHubLogin } from './github-auth.js';
+import { connectGitHub, disconnectGitHub, getGitHubConfig, getGitHubLogin, refreshFeeds } from './github-auth.js';
 
 let meta = { items: [] };
 
@@ -127,6 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedEl = $('feed');
     const viewBtn = $('view-btn');
     const markReadBtn = $('mark-read-btn');
+    const feedSyncStatus = $('feed-sync-status');
+    const feedSyncText = $('feed-sync-text');
     const emptyEl = $('empty');
     const repoLink = $('repo-link');
     const loadingEl = $('loading');
@@ -194,6 +196,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!target) return;
         target.textContent = '';
         target.className = 'status';
+    }
+
+    function setFeedSyncStatus(message, type = 'progress') {
+        if (!feedSyncStatus || !feedSyncText) return;
+        feedSyncText.textContent = message;
+        feedSyncStatus.className = `feed-sync-status ${type}`;
+        feedSyncStatus.hidden = false;
     }
 
     function setUpdatedAtText() {
@@ -576,38 +585,47 @@ document.addEventListener('DOMContentLoaded', () => {
         if (markReadBtn.disabled || !syncReady) return;
         const currentMetaById = new Map((gistSync.getLocal().items || []).map(item => [item.id, item]));
         const unreadCount = feedData.filter(item => !isSeenVersion(item, currentMetaById.get(item.id))).length;
-        if (unreadCount === 0) {
-            window.location.reload();
-            return;
-        }
-        if (!confirm(`Mark all ${unreadCount} unread items as read?`)) return;
-        meta = gistSync.getLocal();
-        meta.items = meta.items || [];
-        const now = new Date().toISOString();
-        let changed = false;
-        const metaById = new Map(meta.items.map(item => [item.id, item]));
-        feedData.forEach(item => {
-            const m = metaById.get(item.id);
-            if (!m) {
-                const newMeta = { id: item.id, date: now, starred: false, seen: true, starred_changed_at: now, published: item.published };
-                meta.items.push(newMeta);
-                metaById.set(item.id, newMeta);
-                changed = true;
-            } else if (!isSeenVersion(item, m)) {
-                m.seen = true;
-                m.published = item.published;
-                m.starred_changed_at = now;
-                changed = true;
+        if (unreadCount > 0 && !confirm(`Mark all ${unreadCount} unread items as read and refresh feeds?`)) return;
+
+        markReadBtn.disabled = true;
+        document.body.setAttribute('aria-busy', 'true');
+        try {
+            if (unreadCount > 0) {
+                setFeedSyncStatus('Saving read state...');
+                meta = gistSync.getLocal();
+                meta.items = meta.items || [];
+                const now = new Date().toISOString();
+                const metaById = new Map(meta.items.map(item => [item.id, item]));
+                feedData.forEach(item => {
+                    const m = metaById.get(item.id);
+                    if (!m) {
+                        const newMeta = { id: item.id, date: now, starred: false, seen: true, starred_changed_at: now, published: item.published };
+                        meta.items.push(newMeta);
+                        metaById.set(item.id, newMeta);
+                    } else if (!isSeenVersion(item, m)) {
+                        m.seen = true;
+                        m.published = item.published;
+                        m.starred_changed_at = now;
+                    }
+                });
+                meta.updated_at = now;
+                gistSync.setLocal(meta);
+                await upload();
+                toast('Marked all read', 'success', 2000);
+                markReadBtn.classList.add('drawing');
+                setTimeout(() => markReadBtn.classList.remove('drawing'), 600);
+                renderAll();
             }
-        });
-        if (changed) {
-            markReadBtn.disabled = true;
-            toast('Marking all read...', 'info', 1000);
-            meta.updated_at = now;
-            gistSync.setLocal(meta);
-            try { await upload(); toast('Marked all read', 'success', 2000); markReadBtn.classList.add('drawing'); setTimeout(() => markReadBtn.classList.remove('drawing'), 600); } catch { toast('Sync failed', 'error', 2000); }
+
+            await refreshFeeds(message => setFeedSyncStatus(message));
+            window.location.reload();
+        } catch (error) {
+            const message = error.message || 'Feed refresh failed. Try again.';
+            setFeedSyncStatus(message, 'error');
+            toast(message, 'error', 5000);
+        } finally {
             markReadBtn.disabled = false;
-            renderAll();
+            document.body.removeAttribute('aria-busy');
         }
     });
 
