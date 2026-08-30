@@ -15,7 +15,8 @@ https://www.macstories.net/feed/
 
 
 #youtube
-https://m.youtube.com/@SkillUp?ra=m
+# Skill Up
+https://www.youtube.com/feeds/videos.xml?channel_id=UCZ7AeeVbyslLM_8-nVy2B8Q
 # Black Hat
 https://www.youtube.com/feeds/videos.xml?channel_id=UCJ6q9Ie29ajGqKApbLqfBOg
 # DEFCONConference
