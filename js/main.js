@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = $('close-btn');
     const feedEl = $('feed');
     const viewBtn = $('view-btn');
-    const markReadBtn = $('mark-read-btn');
+    const refreshFeedsBtn = $('refresh-feeds-btn');
     const feedSyncStatus = $('feed-sync-status');
     const feedSyncText = $('feed-sync-text');
     const emptyEl = $('empty');
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return currentPublished <= seenPublished;
     }
 
-    if (markReadBtn) markReadBtn.disabled = true;
+    if (refreshFeedsBtn) refreshFeedsBtn.disabled = true;
 
     const emptyVariants = [
         ['All clear', 'Nothing new since last check'],
@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (floatingBtns) floatingBtns.style.display = '';
             if (updateHeader) updateHeader.style.display = '';
             if (feedEl) feedEl.style.display = '';
-            if (markReadBtn) markReadBtn.disabled = false;
+            if (refreshFeedsBtn) refreshFeedsBtn.disabled = false;
             renderAll();
             if (!isSetup) openSettings();
         } catch (error) {
@@ -349,8 +349,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const starredIds = new Set(getStarredItems(meta));
         const unstarred = feedData.filter(i => !starredIds.has(i.id));
         const starred = feedData.filter(i => starredIds.has(i.id));
+        const markReadAction = unstarred.length ? `
+            <div class="mark-read-action">
+                <button id="mark-read-btn" class="btn mark-read-btn" type="button"${syncReady ? '' : ' disabled'}>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Mark all as read</span>
+                </button>
+            </div>` : '';
         const sep = starred.length && unstarred.length ? '<div class="sep"><span class="sep-heart">&#9829;</span></div>' : '';
-        feedEl.innerHTML = unstarred.map(itemHtml).join('') + sep + starred.map(itemHtml).join('');
+        feedEl.innerHTML = unstarred.map(itemHtml).join('') + markReadAction + sep + starred.map(itemHtml).join('');
     }
 
     function visibleItems() {
@@ -388,9 +395,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const visibleStarred = all.filter(i => byId.get(i.dataset.id)?.starred && i.style.display !== 'none');
                 sep.style.display = visibleStarred.length ? '' : 'none';
             }
+            const unreadCount = feedData.filter(item => !isSeenVersion(item, byId.get(item.id))).length;
+            const markReadAction = feedEl.querySelector('.mark-read-action');
+            if (markReadAction) markReadAction.style.display = unreadCount ? '' : 'none';
             if (emptyEl) emptyEl.style.display = count ? 'none' : '';
         } else {
             all.forEach(i => i.style.display = '');
+            const markReadAction = feedEl.querySelector('.mark-read-action');
+            if (markReadAction) markReadAction.style.display = 'none';
             if (emptyEl) emptyEl.style.display = 'none';
         }
 
@@ -581,50 +593,72 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    markReadBtn?.addEventListener('click', async () => {
-        if (markReadBtn.disabled || !syncReady) return;
+    async function markAllRead(button) {
+        if (button.disabled || !syncReady) return;
         const currentMetaById = new Map((gistSync.getLocal().items || []).map(item => [item.id, item]));
         const unreadCount = feedData.filter(item => !isSeenVersion(item, currentMetaById.get(item.id))).length;
-        if (unreadCount > 0 && !confirm(`Mark all ${unreadCount} unread items as read and refresh feeds?`)) return;
+        if (!unreadCount || !confirm(`Mark all ${unreadCount} unread items as read?`)) return;
 
-        markReadBtn.disabled = true;
+        button.disabled = true;
+        if (refreshFeedsBtn) refreshFeedsBtn.disabled = true;
         document.body.setAttribute('aria-busy', 'true');
         try {
-            if (unreadCount > 0) {
-                setFeedSyncStatus('Saving read state...');
-                meta = gistSync.getLocal();
-                meta.items = meta.items || [];
-                const now = new Date().toISOString();
-                const metaById = new Map(meta.items.map(item => [item.id, item]));
-                feedData.forEach(item => {
-                    const m = metaById.get(item.id);
-                    if (!m) {
-                        const newMeta = { id: item.id, date: now, starred: false, seen: true, starred_changed_at: now, published: item.published };
-                        meta.items.push(newMeta);
-                        metaById.set(item.id, newMeta);
-                    } else if (!isSeenVersion(item, m)) {
-                        m.seen = true;
-                        m.published = item.published;
-                        m.starred_changed_at = now;
-                    }
-                });
-                meta.updated_at = now;
-                gistSync.setLocal(meta);
-                await upload();
-                toast('Marked all read', 'success', 2000);
-                markReadBtn.classList.add('drawing');
-                setTimeout(() => markReadBtn.classList.remove('drawing'), 600);
-                renderAll();
-            }
+            setFeedSyncStatus('Saving read state...');
+            meta = gistSync.getLocal();
+            meta.items = meta.items || [];
+            const now = new Date().toISOString();
+            const metaById = new Map(meta.items.map(item => [item.id, item]));
+            feedData.forEach(item => {
+                const m = metaById.get(item.id);
+                if (!m) {
+                    const newMeta = { id: item.id, date: now, starred: false, seen: true, starred_changed_at: now, published: item.published };
+                    meta.items.push(newMeta);
+                    metaById.set(item.id, newMeta);
+                } else if (!isSeenVersion(item, m)) {
+                    m.seen = true;
+                    m.published = item.published;
+                    m.starred_changed_at = now;
+                }
+            });
+            meta.updated_at = now;
+            gistSync.setLocal(meta);
+            await upload();
+            toast('Marked all read', 'success', 2000);
+            if (feedSyncStatus) feedSyncStatus.hidden = true;
+            renderAll();
+        } catch (error) {
+            const message = error.message || 'Could not mark items read. Try again.';
+            setFeedSyncStatus(message, 'error');
+            toast(message, 'error', 5000);
+            button.disabled = false;
+        } finally {
+            if (refreshFeedsBtn) refreshFeedsBtn.disabled = !syncReady;
+            document.body.removeAttribute('aria-busy');
+        }
+    }
 
+    feedEl?.addEventListener('click', event => {
+        const button = event.target.closest('#mark-read-btn');
+        if (button) markAllRead(button);
+    });
+
+    refreshFeedsBtn?.addEventListener('click', async () => {
+        if (refreshFeedsBtn.disabled || !syncReady) return;
+        refreshFeedsBtn.disabled = true;
+        refreshFeedsBtn.classList.add('refreshing');
+        const markReadButton = $('mark-read-btn');
+        if (markReadButton) markReadButton.disabled = true;
+        document.body.setAttribute('aria-busy', 'true');
+        try {
             await refreshFeeds(message => setFeedSyncStatus(message));
             window.location.reload();
         } catch (error) {
             const message = error.message || 'Feed refresh failed. Try again.';
             setFeedSyncStatus(message, 'error');
             toast(message, 'error', 5000);
-        } finally {
-            markReadBtn.disabled = false;
+            refreshFeedsBtn.disabled = false;
+            refreshFeedsBtn.classList.remove('refreshing');
+            if (markReadButton) markReadButton.disabled = false;
             document.body.removeAttribute('aria-busy');
         }
     });
@@ -640,7 +674,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         syncReady = true;
-        if (markReadBtn) markReadBtn.disabled = false;
+        if (refreshFeedsBtn) refreshFeedsBtn.disabled = false;
         renderAll();
         if (loadingEl) loadingEl.style.display = 'none';
         if (feedEl) feedEl.style.display = '';

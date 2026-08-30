@@ -18,7 +18,7 @@ Blink is a client-side RSS reader that runs entirely in the browser. Fork it, ad
 - **RSS & YouTube** — Subscribe to any RSS/Atom feed or YouTube channel. YouTube channel URLs are automatically converted to RSS feeds.
 - **Starred items** — Star items to save them permanently. Recent unstarred items are pruned after a configurable number of days.
 - **Gist sync** — Sync starred items across devices using a private GitHub Gist.
-- **On-demand refresh** — Mark items read and run the feed fetch workflow from the reader.
+- **Read-state controls** — Mark all new items read from the feed, or refresh feeds independently from the footer.
 - **Keyboard navigation** — Browse and interact without leaving the keyboard.
 - **PWA** — Installable as a Progressive Web App with offline support via Service Worker.
 - **Dark/light mode** — Follows system preference.
@@ -29,7 +29,7 @@ Blink is a client-side RSS reader that runs entirely in the browser. Fork it, ad
 2. Edit `feeds.txt` to add your RSS feeds and YouTube channels (see [Configuration](#configuration) below).
 3. Go to **Settings → Pages** in your fork and set the source to **GitHub Actions**.
 4. Add repository variable `GIST_AUTH_URL` with shared OAuth Worker URL.
-5. Use the checkmark button in Blink to mark items read, fetch your feeds, and deploy the updated site.
+5. Use the refresh button in Blink to fetch your feeds and deploy the updated site.
 
 Your reader will be live at `https://<your-username>.github.io/blink/`.
 
@@ -87,4 +87,4 @@ python -m http.server            # serve at http://localhost:8000
 
 `scripts/fetch_feeds.py` reads `feeds.txt`, fetches all feeds in parallel, and embeds the results as JSON in `index.html`. The browser-side JavaScript reads this data and renders the UI. There is no backend — everything runs at build time via GitHub Actions and then client-side in the browser.
 
-The GitHub Actions workflow (`.github/workflows/main.yml`) runs on demand from the checkmark button, generates the updated `index.html`, and deploys it to Pages.
+The GitHub Actions workflow (`.github/workflows/main.yml`) runs on demand from the footer refresh button, generates the updated `index.html`, and deploys it to Pages.

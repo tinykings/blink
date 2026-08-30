@@ -123,8 +123,13 @@ Blink is a single-page RSS reader built for keyboard-first power users who want 
 
 ### Mark All Read
 - Confirm dialog shows unread count; in-place re-render (no page reload)
-- Triggered from checkmark button in bottom bar
+- Triggered from labeled button after new unstarred items, immediately above starred-item separator
+- Hidden outside New view and when no unread items remain
 - Disabled until Gist sync is ready
+
+### Feed Refresh
+- Triggered independently from refresh button in bottom bar
+- Runs feed workflow and reloads after completion without changing read state
 
 ## Theme System
 
