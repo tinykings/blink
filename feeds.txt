@@ -12,6 +12,7 @@ https://feeds.feedburner.com/StudyHacks
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
+https://feedpress.me/512pixels
 
 
 #youtube
