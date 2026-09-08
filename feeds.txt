@@ -1,21 +1,30 @@
 #rss
+# Reddit Sysadmin
 https://www.reddit.com/r/sysadmin/top.rss?t=week
+# Reddit Technology
 https://www.reddit.com/r/technology/top.rss?t=week
+# Reddit Worldnews
 https://www.reddit.com/r/worldnews/top.rss?t=week
+# Reddit New Shows
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&restrict_sr=1&t=week
+# Reddit Apple
 https://www.reddit.com/r/apple/top.rss?t=week
+# Reddit ChatGPT
 https://www.reddit.com/r/chatgpt/top.rss?t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
 https://www.bleepingcomputer.com/feed/
 https://www.thelazyadministrator.com/feed/
+# Study Hacks
 https://feeds.feedburner.com/StudyHacks
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
+# 512pixels
 https://feedpress.me/512pixels
 
-
 #youtube
+https://www.youtube.com/@FrontPageTech
+https://www.youtube.com/@juliaturc1
 # Pete Peppers
 https://www.youtube.com/feeds/videos.xml?channel_id=UC8zAiZUuUXe-touFVopBbZw
 # Black Hat

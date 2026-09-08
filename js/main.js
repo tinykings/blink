@@ -469,7 +469,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const query = feedSearch?.value.trim().toLowerCase() || '';
         const visible = managedFeeds
             .map((feed, index) => ({ feed, index }))
-            .filter(({ feed }) => !query || `${feed.type} ${feedDisplayName(feed)} ${feed.url}`.toLowerCase().includes(query));
+            .filter(({ feed }) => !query || `${feed.type} ${feedDisplayName(feed)} ${feed.url}`.toLowerCase().includes(query))
+            .sort((a, b) => feedDisplayName(a.feed).localeCompare(feedDisplayName(b.feed), undefined, {
+                sensitivity: 'base',
+                numeric: true
+            }));
         if (!visible.length) {
             const empty = document.createElement('p');
             empty.className = 'feed-empty';
