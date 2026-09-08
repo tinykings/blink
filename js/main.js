@@ -486,8 +486,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const name = document.createElement('span');
             name.className = 'feed-list-name';
             name.textContent = feedDisplayName(feed);
-            row.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
-            row.prepend(name);
+            const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            chevron.setAttribute('viewBox', '0 0 24 24');
+            chevron.setAttribute('aria-hidden', 'true');
+            chevron.innerHTML = '<path d="m9 18 6-6-6-6"/>';
+            row.appendChild(name);
+            if (feed.isNew) {
+                const badge = document.createElement('span');
+                badge.className = 'feed-new-badge';
+                badge.textContent = 'New';
+                row.appendChild(badge);
+            }
+            row.appendChild(chevron);
             row.addEventListener('click', () => {
                 selectedFeedIndex = index;
                 renderManagedFeeds();
@@ -541,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setStatus('This feed is already in your list.', 'error', feedsStatus);
             return;
         }
-        managedFeeds.unshift({ type: inferFeedType(url), url, name: '' });
+        managedFeeds.unshift({ type: inferFeedType(url), url, name: '', isNew: true });
         if (feedUrl) feedUrl.value = '';
         if (feedSearch) feedSearch.value = '';
         clearStatus(feedsStatus);
@@ -562,19 +572,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         saveFeedsBtn.disabled = true;
         if (closeFeedsBtn) closeFeedsBtn.disabled = true;
-        setStatus('Saving feeds to GitHub...', 'info', feedsStatus);
+        setStatus('Saving feeds...', 'info', feedsStatus);
         try {
             const result = await updateFeedsFile(serializeFeedsFile(managedFeeds), feedsSha);
             feedsSha = result.content?.sha || feedsSha;
-            setFeedsDirty(false);
-            setStatus('Saved. Starting feed refresh...', 'success', feedsStatus);
-            await refreshFeeds(message => setStatus(message, 'info', feedsStatus));
-            window.location.reload();
         } catch (error) {
             setStatus(error.message || 'Could not save feeds. Try again.', 'error', feedsStatus);
             saveFeedsBtn.disabled = false;
             if (closeFeedsBtn) closeFeedsBtn.disabled = false;
+            return;
         }
+        managedFeeds.forEach(feed => { delete feed.isNew; });
+        setFeedsDirty(false);
+        if (closeFeedsBtn) closeFeedsBtn.disabled = false;
+        closeModal(feedsModal);
+        toast('Feeds saved', 'success', 2200);
     });
 
     if (repoLink) repoLink.href = `https://github.com/${getFeedRepository()}`;
@@ -952,8 +964,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (button) markAllRead(button);
     });
 
-    refreshFeedsBtn?.addEventListener('click', async () => {
-        if (refreshFeedsBtn.disabled || !syncReady) return;
+    async function performFeedRefresh() {
+        if (!syncReady) return false;
         refreshFeedsBtn.disabled = true;
         refreshFeedsBtn.classList.add('refreshing');
         const markReadButton = $('mark-read-btn');
@@ -962,6 +974,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await refreshFeeds(message => setFeedSyncStatus(message));
             window.location.reload();
+            return true;
         } catch (error) {
             const message = error.message || 'Feed refresh failed. Try again.';
             setFeedSyncStatus(message, 'error');
@@ -970,7 +983,13 @@ document.addEventListener('DOMContentLoaded', () => {
             refreshFeedsBtn.classList.remove('refreshing');
             if (markReadButton) markReadButton.disabled = false;
             document.body.removeAttribute('aria-busy');
+            return false;
         }
+    }
+
+    refreshFeedsBtn?.addEventListener('click', () => {
+        if (refreshFeedsBtn.disabled || !syncReady) return;
+        performFeedRefresh();
     });
 
     async function initSync() {

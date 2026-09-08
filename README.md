@@ -43,7 +43,7 @@ Blink syncs automatically on startup, on tab focus, and after reconnecting to ne
 
 ### feeds.txt
 
-Use the Feeds button beside the seen/unseen control to manage subscriptions in Blink. Saving commits `feeds.txt` through GitHub, runs the feed refresh workflow, and reloads the updated reader. You can also edit `feeds.txt` directly. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
+Use the Feeds button beside the seen/unseen control to manage subscriptions in Blink. Saving commits `feeds.txt` through GitHub. Use the footer refresh button when you want to fetch subscriptions and reload the reader. You can also edit `feeds.txt` directly. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
 
 ```
 #rss
@@ -85,7 +85,7 @@ python scripts/fetch_feeds.py   # initial index.html
 python scripts/dev_server.py    # http://127.0.0.1:8000
 ```
 
-Use `scripts/dev_server.py`, not `python -m http.server`, when testing feed management. **Save & refresh** writes `feeds.txt`, runs `scripts/fetch_feeds.py`, then reloads Blink.
+Use `scripts/dev_server.py`, not `python -m http.server`, when testing feed management. **Save** writes `feeds.txt`; the footer refresh button runs `scripts/fetch_feeds.py` and reloads Blink.
 
 `js/config.local.js` is not needed. Localhost always uses local development mode; deployed Pages builds inject GitHub configuration during deployment.
 
