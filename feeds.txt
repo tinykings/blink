@@ -16,6 +16,7 @@ https://feedpress.me/512pixels
 
 
 #youtube
+https://m.youtube.com/@PetePeppers1?ra=m
 # Black Hat
 https://www.youtube.com/feeds/videos.xml?channel_id=UCJ6q9Ie29ajGqKApbLqfBOg
 # DEFCONConference
