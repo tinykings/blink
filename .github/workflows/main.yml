@@ -64,7 +64,10 @@ jobs:
           from pathlib import Path
 
           config = Path('_site/js/config.js')
-          config.write_text(config.read_text().replace('__GIST_AUTH_URL__', os.environ['GIST_AUTH_URL']))
+          content = config.read_text()
+          content = content.replace('__GIST_AUTH_URL__', os.environ['GIST_AUTH_URL'])
+          content = content.replace('__FEED_REPOSITORY__', os.environ['GITHUB_REPOSITORY'])
+          config.write_text(content)
           PY
 
       - name: Upload Pages artifact

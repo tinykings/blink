@@ -1,11 +1,12 @@
 // GitHub Gist synchronization module
 
 import { getRetentionDays, getTimeOrZero, sanitizeItemForStorage } from './storage.js';
-import { GIST_FILENAME, getGitHubConfig } from './github-auth.js';
+import { GIST_FILENAME, getGitHubConfig, isLocalDevelopment } from './github-auth.js';
 
 const API_BASE = 'https://api.github.com/gists';
 let pushTimeout = null;
 const DEBOUNCE_MS = 1000;
+const LOCAL_META_KEY = 'blink:local-meta';
 
 let pendingPush = false;
 let lastETag = null;
@@ -50,6 +51,13 @@ export function getMeta() {
  * @returns {Promise<Object|null>} The remote metadata or null (null also on 304)
  */
 async function fetchRemote() {
+    if (isLocalDevelopment()) {
+        try {
+            return JSON.parse(localStorage.getItem(LOCAL_META_KEY)) || { items: [], updated_at: null };
+        } catch {
+            return { items: [], updated_at: null };
+        }
+    }
     const { gistId, token } = getConfig();
     if (!gistId || !token) return null;
     const headers = { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' };
@@ -75,6 +83,10 @@ async function fetchRemote() {
  * @param {Object} obj - The metadata to push
  */
 async function pushRemote(obj) {
+    if (isLocalDevelopment()) {
+        localStorage.setItem(LOCAL_META_KEY, JSON.stringify(obj));
+        return;
+    }
     const { gistId, token } = getConfig();
     if (!gistId || !token) return;
 
@@ -260,6 +272,11 @@ document.addEventListener('visibilitychange', () => {
  * @returns {Promise<boolean>} Whether sync was successful
  */
 export async function syncOnStartup() {
+    if (isLocalDevelopment()) {
+        meta = await fetchRemote();
+        dispatchSyncEvent('success', 'Local');
+        return true;
+    }
     const cfg = getConfig();
     if (!cfg.gistId || !cfg.token) return false;
     try {
@@ -293,6 +310,10 @@ export function pushSoon() {
  * @returns {Promise<boolean>} Whether pull was successful
  */
 export async function pull() {
+    if (isLocalDevelopment()) {
+        meta = await fetchRemote();
+        return true;
+    }
     const cfg = getConfig();
     if (!cfg.gistId || !cfg.token) return false;
     lastETag = null;

@@ -15,7 +15,7 @@ Blink is a client-side RSS reader that runs entirely in the browser. Fork it, ad
 
 ## Features
 
-- **RSS & YouTube** — Subscribe to any RSS/Atom feed or YouTube channel. YouTube channel URLs are automatically converted to RSS feeds.
+- **RSS & YouTube** — Add, edit, copy, and remove subscriptions from Blink. YouTube channel URLs are automatically converted to RSS feeds.
 - **Starred items** — Star items to save them permanently. Recent unstarred items are pruned after a configurable number of days.
 - **Gist sync** — Sync starred items across devices using a private GitHub Gist.
 - **Read-state controls** — Mark all new items read from the feed, or refresh feeds independently from the footer.
@@ -26,7 +26,7 @@ Blink is a client-side RSS reader that runs entirely in the browser. Fork it, ad
 ## Quick Start
 
 1. **Fork** this repository.
-2. Edit `feeds.txt` to add your RSS feeds and YouTube channels (see [Configuration](#configuration) below).
+2. Edit `feeds.txt` to add initial RSS feeds and YouTube channels (see [Configuration](#configuration) below).
 3. Go to **Settings → Pages** in your fork and set the source to **GitHub Actions**.
 4. Add repository variable `GIST_AUTH_URL` with shared OAuth Worker URL.
 5. Use the refresh button in Blink to fetch your feeds and deploy the updated site.
@@ -43,7 +43,7 @@ Blink syncs automatically on startup, on tab focus, and after reconnecting to ne
 
 ### feeds.txt
 
-`feeds.txt` is the only file you need to edit. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
+Use the Feeds button beside the seen/unseen control to manage subscriptions in Blink. Saving commits `feeds.txt` through GitHub, runs the feed refresh workflow, and reloads the updated reader. You can also edit `feeds.txt` directly. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
 
 ```
 #rss
@@ -75,13 +75,19 @@ Items are kept for 5 days by default. To change this, set `ITEMS_RETENTION_DAYS`
 
 ## Local Development
 
+Local development bypasses GitHub OAuth and Gist sync. Read state stays in browser storage; feed changes write directly to local `feeds.txt`.
+
 ```bash
 git clone https://github.com/<your-username>/blink.git
 cd blink
 pip install -r requirements.txt
-python scripts/fetch_feeds.py   # fetches feeds and writes index.html
-python -m http.server            # serve at http://localhost:8000
+python scripts/fetch_feeds.py   # initial index.html
+python scripts/dev_server.py    # http://127.0.0.1:8000
 ```
+
+Use `scripts/dev_server.py`, not `python -m http.server`, when testing feed management. **Save & refresh** writes `feeds.txt`, runs `scripts/fetch_feeds.py`, then reloads Blink.
+
+`js/config.local.js` is not needed. Localhost always uses local development mode; deployed Pages builds inject GitHub configuration during deployment.
 
 ## How It Works
 

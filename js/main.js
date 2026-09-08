@@ -1,7 +1,17 @@
 import { createYouTubePlayer, stopVideoByItemId, videoPlayers } from './youtube.js';
 import { getStarredItems } from './storage.js';
 import { gistSync, upload } from './sync.js';
-import { connectGitHub, disconnectGitHub, getGitHubConfig, getGitHubLogin, refreshFeeds } from './github-auth.js';
+import {
+    connectGitHub,
+    disconnectGitHub,
+    getFeedRepository,
+    getFeedsFile,
+    getGitHubConfig,
+    getGitHubLogin,
+    isLocalDevelopment,
+    refreshFeeds,
+    updateFeedsFile
+} from './github-auth.js';
 
 let meta = { items: [] };
 
@@ -58,6 +68,60 @@ function toast(msg, type = 'info', ms = 3000) {
 }
 
 function $(id) { return document.getElementById(id); }
+
+function parseFeedsFile(content) {
+    const feeds = [];
+    let type = 'rss';
+    let pendingName = '';
+    content.split(/\r?\n/).forEach(rawLine => {
+        const line = rawLine.trim();
+        if (!line) return;
+        if (line.toLowerCase() === '#rss') {
+            type = 'rss';
+            pendingName = '';
+        } else if (line.toLowerCase() === '#youtube') {
+            type = 'youtube';
+            pendingName = '';
+        } else if (line.startsWith('#')) {
+            if (type === 'youtube') pendingName = line.slice(1).trim();
+        } else {
+            feeds.push({ type, url: line, name: type === 'youtube' ? pendingName : '' });
+            pendingName = '';
+        }
+    });
+    return feeds;
+}
+
+function serializeFeedsFile(feeds) {
+    const rss = feeds.filter(feed => feed.type === 'rss');
+    const youtube = feeds.filter(feed => feed.type === 'youtube');
+    const lines = ['#rss', ...rss.map(feed => feed.url.trim()), '', '#youtube'];
+    youtube.forEach(feed => {
+        if (feed.name) lines.push(`# ${feed.name}`);
+        lines.push(feed.url.trim());
+    });
+    return `${lines.join('\n')}\n`;
+}
+
+function validFeedUrl(value) {
+    try {
+        const url = new URL(value);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+        return false;
+    }
+}
+
+function inferFeedType(value) {
+    try {
+        const hostname = new URL(value).hostname.toLowerCase().replace(/^www\./, '');
+        return hostname === 'youtu.be' || hostname === 'youtube.com' || hostname.endsWith('.youtube.com')
+            ? 'youtube'
+            : 'rss';
+    } catch {
+        return 'rss';
+    }
+}
 
 function feedColor(name) {
     if (!name) return '';
@@ -126,6 +190,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = $('close-btn');
     const feedEl = $('feed');
     const viewBtn = $('view-btn');
+    const manageFeedsBtn = $('manage-feeds-btn');
+    const feedsModal = $('feeds-modal');
+    const closeFeedsBtn = $('close-feeds-btn');
+    const discardFeedsBtn = $('discard-feeds-btn');
+    const saveFeedsBtn = $('save-feeds-btn');
+    const feedsStatus = $('feeds-status');
+    const feedsSummary = $('feeds-summary');
+    const feedList = $('feed-list');
+    const feedSearch = $('feed-search');
+    const addFeedForm = $('add-feed-form');
+    const feedUrl = $('feed-url');
     const refreshFeedsBtn = $('refresh-feeds-btn');
     const feedSyncStatus = $('feed-sync-status');
     const feedSyncText = $('feed-sync-text');
@@ -141,6 +216,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let showingDesc = false;
     let currentIdx = -1;
     let syncReady = false;
+    let managedFeeds = [];
+    let feedsSha = '';
+    let feedsDirty = false;
 
     function isSeenVersion(item, itemMeta) {
         if (!itemMeta?.seen) return false;
@@ -154,6 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (refreshFeedsBtn) refreshFeedsBtn.disabled = true;
+    if (manageFeedsBtn) manageFeedsBtn.disabled = true;
 
     const emptyVariants = [
         ['All clear', 'Nothing new since last check'],
@@ -176,9 +255,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const { gistId: hasGist, token: hasToken } = getGitHubConfig();
+    const localDev = isLocalDevelopment();
     const floatingBtns = $('floating-buttons');
     const updateHeader = document.querySelector('.update-header');
-    if (!hasGist || !hasToken) {
+    if (!localDev && (!hasGist || !hasToken)) {
         if (setupForm) setupForm.style.display = 'flex';
         if (loadingEl) loadingEl.style.display = 'none';
         if (feedEl) feedEl.style.display = 'none';
@@ -190,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function setStatus(msg, type = 'info', target = statusEl) {
         if (!target) return;
         target.textContent = msg;
-        target.className = `status${type !== 'info' ? ` ${type}` : ''}`;
+        target.className = `status ${type}`;
     }
     function clearStatus(target = statusEl) {
         if (!target) return;
@@ -225,11 +305,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const { token, gistId } = getGitHubConfig();
         const connected = token && gistId;
         const connectionEl = $('github-connection');
-        if (connectionEl) connectionEl.textContent = connected
-            ? `Connected${login ? ` as @${login}` : ' to GitHub'}`
-            : 'Not connected';
-        if (connectBtn) connectBtn.textContent = connected ? 'Reconnect GitHub' : 'Connect GitHub';
-        if (disconnectBtn) disconnectBtn.hidden = !connected;
+        if (connectionEl) connectionEl.textContent = localDev
+            ? 'Local development · GitHub disabled'
+            : connected
+                ? `Connected${login ? ` as @${login}` : ' to GitHub'}`
+                : 'Not connected';
+        if (connectBtn) {
+            connectBtn.textContent = connected ? 'Reconnect GitHub' : 'Connect GitHub';
+            connectBtn.hidden = localDev;
+        }
+        if (disconnectBtn) disconnectBtn.hidden = localDev || !connected;
     }
 
     function closeSettings() { closeModal(settingsModal); }
@@ -250,6 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (updateHeader) updateHeader.style.display = '';
             if (feedEl) feedEl.style.display = '';
             if (refreshFeedsBtn) refreshFeedsBtn.disabled = false;
+            if (manageFeedsBtn) manageFeedsBtn.disabled = false;
             renderAll();
             if (!isSetup) openSettings();
         } catch (error) {
@@ -270,6 +356,178 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     settingsModal?.addEventListener('click', e => { if (e.target === settingsModal) closeSettings(); });
 
+    function setFeedsDirty(dirty) {
+        feedsDirty = dirty;
+        if (saveFeedsBtn) saveFeedsBtn.disabled = !dirty;
+        if (feedsSummary) {
+            const suffix = dirty ? ' · Unsaved changes' : '';
+            feedsSummary.textContent = `${managedFeeds.length} subscription${managedFeeds.length === 1 ? '' : 's'}${suffix}`;
+        }
+    }
+
+    function renderManagedFeeds() {
+        if (!feedList) return;
+        feedList.innerHTML = '';
+        const query = feedSearch?.value.trim().toLowerCase() || '';
+        const visible = managedFeeds
+            .map((feed, index) => ({ feed, index }))
+            .filter(({ feed }) => !query || `${feed.type} ${feed.name} ${feed.url}`.toLowerCase().includes(query));
+        if (!visible.length) {
+            const empty = document.createElement('p');
+            empty.className = 'feed-empty';
+            empty.textContent = query ? 'No feeds match your search.' : 'No feeds yet. Add one above.';
+            feedList.appendChild(empty);
+            return;
+        }
+        visible.forEach(({ feed, index }) => {
+            const row = document.createElement('div');
+            row.className = 'feed-row';
+
+            const kind = document.createElement('span');
+            kind.className = `feed-kind${feed.type === 'youtube' ? ' youtube' : ''}`;
+            kind.textContent = feed.type === 'youtube' ? 'YouTube' : 'RSS';
+
+            const fields = document.createElement('div');
+            fields.className = 'feed-fields';
+            if (feed.type === 'youtube') {
+                const name = document.createElement('input');
+                name.className = 'feed-name-input';
+                name.type = 'text';
+                name.value = feed.name;
+                name.placeholder = 'Channel name (optional)';
+                name.setAttribute('aria-label', 'Edit YouTube channel name');
+                name.addEventListener('input', () => {
+                    managedFeeds[index].name = name.value.trim();
+                    setFeedsDirty(true);
+                });
+                fields.appendChild(name);
+            }
+            const input = document.createElement('input');
+            input.className = 'feed-url-input';
+            input.type = 'url';
+            input.value = feed.url;
+            input.setAttribute('aria-label', `Edit ${feed.name || feed.type} URL`);
+            input.addEventListener('input', () => {
+                managedFeeds[index].url = input.value.trim();
+                setFeedsDirty(true);
+            });
+            fields.appendChild(input);
+
+            const actions = document.createElement('div');
+            actions.className = 'feed-row-actions';
+            const copy = document.createElement('button');
+            copy.className = 'icon-btn';
+            copy.type = 'button';
+            copy.title = 'Copy URL';
+            copy.setAttribute('aria-label', `Copy ${feed.name || feed.type} URL`);
+            copy.innerHTML = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>';
+            copy.addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(input.value);
+                    toast('Feed URL copied', 'success', 1800);
+                } catch {
+                    input.select();
+                    document.execCommand('copy');
+                    toast('Feed URL copied', 'success', 1800);
+                }
+            });
+            const remove = document.createElement('button');
+            remove.className = 'icon-btn';
+            remove.type = 'button';
+            remove.title = 'Remove feed';
+            remove.setAttribute('aria-label', `Remove ${feed.name || feed.type} feed`);
+            remove.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"/></svg>';
+            remove.addEventListener('click', () => {
+                managedFeeds.splice(index, 1);
+                setFeedsDirty(true);
+                renderManagedFeeds();
+            });
+            actions.append(copy, remove);
+            row.append(kind, fields, actions);
+            feedList.appendChild(row);
+        });
+    }
+
+    async function openFeeds() {
+        if (!feedsModal || manageFeedsBtn?.disabled) return;
+        openModal(feedsModal);
+        clearStatus(feedsStatus);
+        if (feedList) feedList.innerHTML = '<p class="feed-empty">Loading feeds...</p>';
+        if (feedsSummary) feedsSummary.textContent = 'Loading subscriptions...';
+        if (saveFeedsBtn) saveFeedsBtn.disabled = true;
+        try {
+            const file = await getFeedsFile();
+            managedFeeds = parseFeedsFile(file.content);
+            feedsSha = file.sha;
+            if (feedSearch) feedSearch.value = '';
+            setFeedsDirty(false);
+            renderManagedFeeds();
+        } catch (error) {
+            setStatus(error.message || 'Could not load feeds. Try again.', 'error', feedsStatus);
+            if (feedList) feedList.innerHTML = '<p class="feed-empty">Feeds unavailable.</p>';
+            if (feedsSummary) feedsSummary.textContent = 'Could not load subscriptions';
+        }
+    }
+
+    function closeFeeds() {
+        if (feedsDirty && !confirm('Discard unsaved feed changes?')) return;
+        closeModal(feedsModal);
+    }
+
+    manageFeedsBtn?.addEventListener('click', openFeeds);
+    closeFeedsBtn?.addEventListener('click', closeFeeds);
+    discardFeedsBtn?.addEventListener('click', closeFeeds);
+    feedsModal?.addEventListener('click', event => { if (event.target === feedsModal) closeFeeds(); });
+    feedSearch?.addEventListener('input', renderManagedFeeds);
+    addFeedForm?.addEventListener('submit', event => {
+        event.preventDefault();
+        const url = feedUrl?.value.trim() || '';
+        if (!validFeedUrl(url)) {
+            setStatus('Enter a valid http or https URL.', 'error', feedsStatus);
+            feedUrl?.focus();
+            return;
+        }
+        if (managedFeeds.some(feed => feed.url === url)) {
+            setStatus('This feed is already in your list.', 'error', feedsStatus);
+            return;
+        }
+        managedFeeds.unshift({ type: inferFeedType(url), url, name: '' });
+        if (feedUrl) feedUrl.value = '';
+        if (feedSearch) feedSearch.value = '';
+        clearStatus(feedsStatus);
+        setFeedsDirty(true);
+        renderManagedFeeds();
+        feedUrl?.focus();
+    });
+    saveFeedsBtn?.addEventListener('click', async () => {
+        const invalid = managedFeeds.find(feed => !validFeedUrl(feed.url));
+        if (invalid) {
+            setStatus(`Invalid feed URL: ${invalid.url || 'empty URL'}`, 'error', feedsStatus);
+            return;
+        }
+        const normalized = managedFeeds.map(feed => feed.url.trim());
+        if (new Set(normalized).size !== normalized.length) {
+            setStatus('Remove duplicate feed URLs before saving.', 'error', feedsStatus);
+            return;
+        }
+        saveFeedsBtn.disabled = true;
+        if (closeFeedsBtn) closeFeedsBtn.disabled = true;
+        setStatus('Saving feeds to GitHub...', 'info', feedsStatus);
+        try {
+            const result = await updateFeedsFile(serializeFeedsFile(managedFeeds), feedsSha);
+            feedsSha = result.content?.sha || feedsSha;
+            setFeedsDirty(false);
+            setStatus('Saved. Starting feed refresh...', 'success', feedsStatus);
+            await refreshFeeds(message => setStatus(message, 'info', feedsStatus));
+            window.location.reload();
+        } catch (error) {
+            setStatus(error.message || 'Could not save feeds. Try again.', 'error', feedsStatus);
+            saveFeedsBtn.disabled = false;
+            if (closeFeedsBtn) closeFeedsBtn.disabled = false;
+        }
+    });
+
+    if (repoLink) repoLink.href = `https://github.com/${getFeedRepository()}`;
     keyboardHelp?.addEventListener('click', e => { if (e.target === keyboardHelp) closeModal(keyboardHelp); });
 
     function getMeta(id) {
@@ -496,7 +754,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 break;
             case 'Escape':
-                if (settingsModal && settingsModal.classList.contains('open')) {
+                if (feedsModal && feedsModal.classList.contains('open')) {
+                    closeFeeds();
+                } else if (settingsModal && settingsModal.classList.contains('open')) {
                     closeSettings();
                 } else if (keyboardHelp && keyboardHelp.classList.contains('open')) {
                     closeModal(keyboardHelp);
@@ -675,9 +935,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         syncReady = true;
         if (refreshFeedsBtn) refreshFeedsBtn.disabled = false;
+        if (manageFeedsBtn) manageFeedsBtn.disabled = false;
         renderAll();
         if (loadingEl) loadingEl.style.display = 'none';
         if (feedEl) feedEl.style.display = '';
     }
-    if (hasGist && hasToken) initSync();
+    if (localDev || (hasGist && hasToken)) initSync();
 });
