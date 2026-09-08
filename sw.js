@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'blink-v18';
+const CACHE_VERSION = 'blink-v20';
 const PRECACHE_ASSETS = [
   './',
   'index.html',
@@ -80,7 +80,21 @@ self.addEventListener('fetch', (event) => {
 
   if (!isStaticAssetRequest(event.request, url)) return;
 
-  // Stale-while-revalidate for same-origin static assets.
+  // Scripts and styles are network-first so installed mobile clients do not
+  // run old UI code after a deployment. Cached copies remain offline fallback.
+  if (['script', 'style'].includes(event.request.destination)) {
+    event.respondWith(
+      caches.open(CACHE_VERSION).then((cache) =>
+        fetch(event.request).then((response) => {
+          if (response.ok) cache.put(event.request, response.clone());
+          return response;
+        }).catch(() => cache.match(event.request))
+      )
+    );
+    return;
+  }
+
+  // Stale-while-revalidate for other same-origin static assets.
   event.respondWith(
     caches.open(CACHE_VERSION).then((cache) =>
       cache.match(event.request).then((cached) => {

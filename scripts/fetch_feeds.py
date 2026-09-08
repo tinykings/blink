@@ -162,7 +162,7 @@ class FeedProcessor:
         current_section = None
         pending_comment: Optional[str] = None
 
-        # Parse file sections, preserving comments for YouTube entries
+        # Parse file sections, preserving comments as display names.
         for raw_line in lines:
             line = raw_line.strip()
             if not line:
@@ -176,15 +176,17 @@ class FeedProcessor:
                     current_section = 'youtube'
                     pending_comment = None
                 else:
-                    if current_section == 'youtube':
-                        pending_comment = line
+                    pending_comment = line
                 continue
 
             if current_section == 'rss':
                 if 'youtube.com/feeds/videos.xml' in line:
-                    youtube_rss_urls.append((line, None))
+                    youtube_rss_urls.append((line, pending_comment))
                 else:
                     rss_urls.append(line)
+                    if pending_comment:
+                        self.feed_title_overrides[line] = pending_comment.lstrip('#').strip()
+                pending_comment = None
             elif current_section == 'youtube':
                 youtube_entries.append((line, pending_comment))
                 pending_comment = None
@@ -282,7 +284,12 @@ class FeedProcessor:
             stripped = line.strip()
             if stripped in replacements:
                 rss_url, channel_name = replacements[stripped]
-                if channel_name:
+                previous_is_name = bool(
+                    new_lines
+                    and new_lines[-1].lstrip().startswith('#')
+                    and new_lines[-1].strip().lower() not in ('#rss', '#youtube')
+                )
+                if channel_name and not previous_is_name:
                     new_lines.append(f"# {channel_name}\n")
                 new_lines.append(f"{rss_url}\n")
                 logger.info(f"Updated feeds.txt: {stripped} -> {rss_url}")

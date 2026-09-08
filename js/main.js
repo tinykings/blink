@@ -83,9 +83,9 @@ function parseFeedsFile(content) {
             type = 'youtube';
             pendingName = '';
         } else if (line.startsWith('#')) {
-            if (type === 'youtube') pendingName = line.slice(1).trim();
+            pendingName = line.slice(1).trim();
         } else {
-            feeds.push({ type, url: line, name: type === 'youtube' ? pendingName : '' });
+            feeds.push({ type, url: line, name: pendingName });
             pendingName = '';
         }
     });
@@ -95,7 +95,12 @@ function parseFeedsFile(content) {
 function serializeFeedsFile(feeds) {
     const rss = feeds.filter(feed => feed.type === 'rss');
     const youtube = feeds.filter(feed => feed.type === 'youtube');
-    const lines = ['#rss', ...rss.map(feed => feed.url.trim()), '', '#youtube'];
+    const lines = ['#rss'];
+    rss.forEach(feed => {
+        if (feed.name) lines.push(`# ${feed.name}`);
+        lines.push(feed.url.trim());
+    });
+    lines.push('', '#youtube');
     youtube.forEach(feed => {
         if (feed.name) lines.push(`# ${feed.name}`);
         lines.push(feed.url.trim());
@@ -120,6 +125,15 @@ function inferFeedType(value) {
             : 'rss';
     } catch {
         return 'rss';
+    }
+}
+
+function feedDisplayName(feed) {
+    if (feed.name) return feed.name;
+    try {
+        return new URL(feed.url).hostname.replace(/^www\./, '');
+    } catch {
+        return 'Unnamed feed';
     }
 }
 
@@ -219,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let managedFeeds = [];
     let feedsSha = '';
     let feedsDirty = false;
+    let selectedFeedIndex = null;
 
     function isSeenVersion(item, itemMeta) {
         if (!itemMeta?.seen) return false;
@@ -368,10 +383,93 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderManagedFeeds() {
         if (!feedList) return;
         feedList.innerHTML = '';
+        const content = feedsModal?.querySelector('.feeds-content');
+        const selectedFeed = selectedFeedIndex === null ? null : managedFeeds[selectedFeedIndex];
+        content?.classList.toggle('editing-feed', !!selectedFeed);
+
+        if (selectedFeed) {
+            const detail = document.createElement('div');
+            detail.className = 'feed-detail';
+
+            const back = document.createElement('button');
+            back.className = 'feed-detail-back';
+            back.type = 'button';
+            back.innerHTML = '<svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg><span>All feeds</span>';
+            back.addEventListener('click', () => {
+                selectedFeedIndex = null;
+                renderManagedFeeds();
+            });
+
+            const title = document.createElement('h3');
+            title.textContent = feedDisplayName(selectedFeed);
+
+            const nameLabel = document.createElement('label');
+            nameLabel.htmlFor = 'edit-feed-name';
+            nameLabel.textContent = 'Name';
+            const name = document.createElement('input');
+            name.id = 'edit-feed-name';
+            name.type = 'text';
+            name.value = selectedFeed.name;
+            name.placeholder = feedDisplayName(selectedFeed);
+            name.addEventListener('input', () => {
+                selectedFeed.name = name.value.trim();
+                title.textContent = feedDisplayName(selectedFeed);
+                setFeedsDirty(true);
+            });
+
+            const urlLabel = document.createElement('label');
+            urlLabel.htmlFor = 'edit-feed-url';
+            urlLabel.textContent = 'URL';
+            const url = document.createElement('input');
+            url.id = 'edit-feed-url';
+            url.className = 'feed-url-input';
+            url.type = 'url';
+            url.value = selectedFeed.url;
+            url.addEventListener('input', () => {
+                selectedFeed.url = url.value.trim();
+                selectedFeed.type = inferFeedType(selectedFeed.url);
+                if (!selectedFeed.name) {
+                    name.placeholder = feedDisplayName(selectedFeed);
+                    title.textContent = feedDisplayName(selectedFeed);
+                }
+                setFeedsDirty(true);
+            });
+
+            const detailActions = document.createElement('div');
+            detailActions.className = 'feed-detail-actions';
+            const copy = document.createElement('button');
+            copy.className = 'btn';
+            copy.type = 'button';
+            copy.textContent = 'Copy URL';
+            copy.addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(url.value);
+                } catch {
+                    url.select();
+                    document.execCommand('copy');
+                }
+                toast('Feed URL copied', 'success', 1800);
+            });
+            const remove = document.createElement('button');
+            remove.className = 'btn danger';
+            remove.type = 'button';
+            remove.textContent = 'Delete feed';
+            remove.addEventListener('click', () => {
+                managedFeeds.splice(selectedFeedIndex, 1);
+                selectedFeedIndex = null;
+                setFeedsDirty(true);
+                renderManagedFeeds();
+            });
+            detailActions.append(copy, remove);
+            detail.append(back, title, nameLabel, name, urlLabel, url, detailActions);
+            feedList.appendChild(detail);
+            return;
+        }
+
         const query = feedSearch?.value.trim().toLowerCase() || '';
         const visible = managedFeeds
             .map((feed, index) => ({ feed, index }))
-            .filter(({ feed }) => !query || `${feed.type} ${feed.name} ${feed.url}`.toLowerCase().includes(query));
+            .filter(({ feed }) => !query || `${feed.type} ${feedDisplayName(feed)} ${feed.url}`.toLowerCase().includes(query));
         if (!visible.length) {
             const empty = document.createElement('p');
             empty.className = 'feed-empty';
@@ -380,70 +478,21 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         visible.forEach(({ feed, index }) => {
-            const row = document.createElement('div');
+            const row = document.createElement('button');
             row.className = 'feed-row';
+            row.type = 'button';
+            row.setAttribute('aria-label', `Edit ${feedDisplayName(feed)}`);
 
-            const kind = document.createElement('span');
-            kind.className = `feed-kind${feed.type === 'youtube' ? ' youtube' : ''}`;
-            kind.textContent = feed.type === 'youtube' ? 'YouTube' : 'RSS';
-
-            const fields = document.createElement('div');
-            fields.className = 'feed-fields';
-            if (feed.type === 'youtube') {
-                const name = document.createElement('input');
-                name.className = 'feed-name-input';
-                name.type = 'text';
-                name.value = feed.name;
-                name.placeholder = 'Channel name (optional)';
-                name.setAttribute('aria-label', 'Edit YouTube channel name');
-                name.addEventListener('input', () => {
-                    managedFeeds[index].name = name.value.trim();
-                    setFeedsDirty(true);
-                });
-                fields.appendChild(name);
-            }
-            const input = document.createElement('input');
-            input.className = 'feed-url-input';
-            input.type = 'url';
-            input.value = feed.url;
-            input.setAttribute('aria-label', `Edit ${feed.name || feed.type} URL`);
-            input.addEventListener('input', () => {
-                managedFeeds[index].url = input.value.trim();
-                setFeedsDirty(true);
-            });
-            fields.appendChild(input);
-
-            const actions = document.createElement('div');
-            actions.className = 'feed-row-actions';
-            const copy = document.createElement('button');
-            copy.className = 'icon-btn';
-            copy.type = 'button';
-            copy.title = 'Copy URL';
-            copy.setAttribute('aria-label', `Copy ${feed.name || feed.type} URL`);
-            copy.innerHTML = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>';
-            copy.addEventListener('click', async () => {
-                try {
-                    await navigator.clipboard.writeText(input.value);
-                    toast('Feed URL copied', 'success', 1800);
-                } catch {
-                    input.select();
-                    document.execCommand('copy');
-                    toast('Feed URL copied', 'success', 1800);
-                }
-            });
-            const remove = document.createElement('button');
-            remove.className = 'icon-btn';
-            remove.type = 'button';
-            remove.title = 'Remove feed';
-            remove.setAttribute('aria-label', `Remove ${feed.name || feed.type} feed`);
-            remove.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"/></svg>';
-            remove.addEventListener('click', () => {
-                managedFeeds.splice(index, 1);
-                setFeedsDirty(true);
+            const name = document.createElement('span');
+            name.className = 'feed-list-name';
+            name.textContent = feedDisplayName(feed);
+            row.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+            row.prepend(name);
+            row.addEventListener('click', () => {
+                selectedFeedIndex = index;
                 renderManagedFeeds();
+                feedList.scrollTop = 0;
             });
-            actions.append(copy, remove);
-            row.append(kind, fields, actions);
             feedList.appendChild(row);
         });
     }
@@ -458,6 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const file = await getFeedsFile();
             managedFeeds = parseFeedsFile(file.content);
+            selectedFeedIndex = null;
             feedsSha = file.sha;
             if (feedSearch) feedSearch.value = '';
             setFeedsDirty(false);
