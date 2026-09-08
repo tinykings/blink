@@ -23,8 +23,10 @@ https://www.macstories.net/feed/
 https://feedpress.me/512pixels
 
 #youtube
-https://www.youtube.com/@FrontPageTech
-https://www.youtube.com/@juliaturc1
+# fpt.
+https://www.youtube.com/feeds/videos.xml?channel_id=UC8jkbVLPvztz8TuE98OYo8Q
+# Julia Turc
+https://www.youtube.com/feeds/videos.xml?channel_id=UCMUy_WsUIYbM_hKR9drb9dA
 # Pete Peppers
 https://www.youtube.com/feeds/videos.xml?channel_id=UC8zAiZUuUXe-touFVopBbZw
 # Black Hat
