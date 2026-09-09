@@ -92,7 +92,7 @@ Blink is a single-page RSS reader built for keyboard-first power users who want 
 
 ### Empty State (`.icon .title .sub`)
 - Centered column, large checkmark, two lines of text
-- Shown when all items are read in "New" view
+- Shown when no unread or starred items remain in "New" view
 
 ### Skeleton Loading
 - Three placeholder cards with shimmer gradient animation
@@ -122,9 +122,10 @@ Blink is a single-page RSS reader built for keyboard-first power users who want 
 - Unstarred items expire per retention days config
 
 ### Mark All Read
-- Confirm dialog shows unread count; in-place re-render (no page reload)
+- Confirm dialog shows unstarred unread count; in-place re-render (no page reload)
+- Starred items stay visible in New view and are excluded from read state
 - Triggered from labeled button after new unstarred items, immediately above starred-item separator
-- Hidden outside New view and when no unread items remain
+- Hidden outside New view and when no unstarred unread items remain
 - Disabled until Gist sync is ready
 
 ### Feed Refresh

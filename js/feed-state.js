@@ -10,6 +10,14 @@ export function isSeenVersion(item, itemMeta) {
     return currentPublished <= seenPublished;
 }
 
+export function isUnreadVersion(item, itemMeta) {
+    return !itemMeta?.starred && !isSeenVersion(item, itemMeta);
+}
+
+export function shouldShowInUnreadView(item, itemMeta) {
+    return !!itemMeta?.starred || isUnreadVersion(item, itemMeta);
+}
+
 export function feedSnapshot(item) {
     if (!item || typeof item.id !== 'string' || !item.id || typeof item.link !== 'string') return null;
     const snapshot = { id: item.id, link: item.link };

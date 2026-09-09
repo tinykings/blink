@@ -39,7 +39,7 @@ On first visit, select **Connect GitHub** and authorize Gist access. Blink finds
 
 Blink loads read state and stars from `blink-data.json` on startup and merges changes on tab focus and network reconnect. Every save fetches and merges remote state first. Read and star changes have separate timestamps so starring does not mark an item read.
 
-The view button switches between **Unread** and **All**, not a read-only archive. Each item shows its read status and a read/unread button. Opening a link or playing a video does not mark it read. **Mark all N unread items as read** includes items you have not scrolled to. An undo button restores those read states during the current session, without undoing later read changes or star changes.
+The icon-only view button switches between **Unread** and **All**, not a read-only archive. Opening a link or playing a video does not mark it read. **Mark all N unread items as read** includes unstarred items you have not scrolled to. Starred items stay visible in both views and are excluded from read status. An undo button restores bulk read states during the current session, without undoing later read changes or star changes.
 
 ## Configuration
 

@@ -1,6 +1,6 @@
 import { createYouTubePlayer, stopVideoByItemId, videoPlayers } from './youtube.js';
 import { getStarredItems } from './storage.js';
-import { isSeenVersion, mergeFeedItems, rememberFeedItems } from './feed-state.js';
+import { isUnreadVersion, mergeFeedItems, rememberFeedItems, shouldShowInUnreadView } from './feed-state.js';
 import { gistSync, upload } from './sync.js';
 import {
     connectGitHub,
@@ -613,8 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const expandBtn = item.description ? `<button class="expand-btn" title="Toggle description" aria-label="Toggle description"><svg viewBox="0 0 24 24" width="16" height="16"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : '';
         const starred = getStarredItems(meta).includes(item.id);
         const star = `<button class="star${starred ? ' starred' : ''}" data-id="${item.id}" aria-pressed="${starred}">&#9829;</button>`;
-        const read = isSeenVersion(item, (meta.items || []).find(m => m.id === item.id));
-        const actions = `<div class="item-actions"><span class="read-status">${read ? 'Read' : 'Unread'}</span><button class="read-toggle btn" data-id="${item.id}" type="button">Mark ${read ? 'unread' : 'read'}</button>${star}</div>`;
+        const actions = `<div class="item-actions">${star}</div>`;
         const source = item.feed_title || '';
         const time = relTime(item.published);
         const itemMeta = (source || time || expandBtn) ? `<div class="meta">${expandBtn}${source ? `<span class="source-dot" style="color:${feedColor(source)}">&#9679;</span><span class="source">${source}</span>` : ''}${source && time ? '<span class="meta-sep">&middot;</span>' : ''}${time ? `<span class="time">${time}</span>` : ''}</div>` : '';
@@ -662,11 +661,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const starredIds = new Set(getStarredItems(meta));
         const unstarred = feedData.filter(i => !starredIds.has(i.id));
         const starred = feedData.filter(i => starredIds.has(i.id));
-        const markReadAction = feedData.length ? `
+        const unreadCount = feedData.filter(item => isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id))).length;
+        const markReadAction = unreadCount ? `
             <div class="mark-read-action">
                 <button id="mark-read-btn" class="btn mark-read-btn" type="button"${syncReady ? '' : ' disabled'}>
                     <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span>Mark all ${feedData.filter(item => !isSeenVersion(item, (meta.items || []).find(m => m.id === item.id))).length} unread items as read</span>
+                    <span>Mark all ${unreadCount} unread items as read</span>
                 </button>
             </div>` : '';
         const sep = starred.length && unstarred.length ? '<div class="sep"><span class="sep-heart">&#9829;</span></div>' : '';
@@ -692,13 +692,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewBtn) {
             viewBtn.title = showingNew ? 'Show all items' : 'Show unread items';
             viewBtn.setAttribute('aria-label', viewBtn.title);
-            let label = viewBtn.querySelector('.view-label');
-            if (!label) {
-                label = document.createElement('span');
-                label.className = 'view-label';
-                viewBtn.appendChild(label);
-            }
-            label.textContent = showingNew ? 'Unread' : 'All';
         }
         const all = Array.from(feedEl.querySelectorAll('.item'));
         if (!all.length) { if (emptyEl && showingNew) emptyEl.style.display = ''; return; }
@@ -710,7 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let count = 0;
             all.forEach(item => {
                 const m = byId.get(item.dataset.id);
-                const hide = isSeenVersion(feedById.get(item.dataset.id), m);
+                const hide = !shouldShowInUnreadView(feedById.get(item.dataset.id), m);
                 if (hide && videoPlayers.has(item.dataset.id)) stopVideoByItemId(item.dataset.id);
                 item.style.display = hide ? 'none' : '';
                 if (!hide) count++;
@@ -720,7 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const visibleStarred = all.filter(i => byId.get(i.dataset.id)?.starred && i.style.display !== 'none');
                 sep.style.display = visibleStarred.length ? '' : 'none';
             }
-            const unreadCount = feedData.filter(item => !isSeenVersion(item, byId.get(item.id))).length;
+            const unreadCount = feedData.filter(item => isUnreadVersion(item, byId.get(item.id))).length;
             const markReadAction = feedEl.querySelector('.mark-read-action');
             if (markReadAction) markReadAction.style.display = unreadCount ? '' : 'none';
             if (emptyEl) emptyEl.style.display = count ? 'none' : '';
@@ -857,14 +850,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     feedEl?.addEventListener('click', e => {
-        const readButton = e.target.closest('.read-toggle');
-        if (readButton) {
-            const id = readButton.dataset.id;
-            const item = feedById.get(id) || (meta.items || []).find(m => m.id === id);
-            const current = (gistSync.getLocal().items || []).find(m => m.id === id);
-            saveReadChanges([{ id, seen: !isSeenVersion(item, current), published: item?.published }]);
-            return;
-        }
         const star = e.target.closest('.star');
         if (star) {
             const id = star.dataset.id;
@@ -968,7 +953,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function markAllRead(button) {
         if (button.disabled || !syncReady) return;
         const currentMetaById = new Map((gistSync.getLocal().items || []).map(item => [item.id, item]));
-        const unreadCount = feedData.filter(item => !isSeenVersion(item, currentMetaById.get(item.id))).length;
+        const unreadCount = feedData.filter(item => isUnreadVersion(item, currentMetaById.get(item.id))).length;
         if (!unreadCount || !confirm(`Mark all ${unreadCount} unread items as read?`)) return;
 
         button.disabled = true;
@@ -980,17 +965,18 @@ document.addEventListener('DOMContentLoaded', () => {
             meta.items = meta.items || [];
             const now = new Date().toISOString();
             const metaById = new Map(meta.items.map(item => [item.id, item]));
-            undoRead = feedData.filter(item => !isSeenVersion(item, metaById.get(item.id))).map(item => {
+            undoRead = feedData.filter(item => isUnreadVersion(item, metaById.get(item.id))).map(item => {
                 const previous = metaById.get(item.id);
                 return { id: item.id, seen: !!previous?.seen, published: previous?.published, bulkReadAt: now };
             });
             feedData.forEach(item => {
                 const m = metaById.get(item.id);
+                if (!isUnreadVersion(item, m)) return;
                 if (!m) {
                     const newMeta = { id: item.id, date: now, starred: false, seen: true, read_changed_at: now, published: item.published };
                     meta.items.push(newMeta);
                     metaById.set(item.id, newMeta);
-                } else if (!isSeenVersion(item, m)) {
+                } else {
                     m.seen = true;
                     m.published = item.published;
                     m.read_changed_at = now;
