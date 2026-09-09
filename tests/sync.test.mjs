@@ -63,10 +63,11 @@ test('explicit unread wins over legacy seen flag', async () => {
     assert.equal(app.saved().items[0].seen, false);
 });
 
-test('tab focus pulls remote changes', async () => {
+test('network reconnect pulls remote changes', async () => {
     const app = setup({ items: [{ id: 'other-device', seen: true, date: now }] });
     app.context.setLocal({ items: [] });
-    await app.events.focus();
+    assert.equal(app.events.focus, undefined);
+    await app.events.online();
     assert.equal(app.context.getLocal().items[0].id, 'other-device');
 });
 
@@ -139,23 +140,6 @@ test('backlog merges across devices without duplicate IDs or older snapshot repl
     const items = app.saved().items;
     assert.equal(items.length, 3);
     assert.equal(items.find(item => item.id === 'shared').feed_item.published, now);
-});
-
-test('undo restores backlog content and leaves stars unchanged', async () => {
-    const remote = { items: [{
-        id: 'undo', tracked: true, seen: true, published: old,
-        read_changed_at: now, starred: false, date: old
-    }] };
-    const local = { items: [{
-        ...remote.items[0], seen: false, read_changed_at: later, feed_item: feedItem('undo')
-    }] };
-    const app = setup(remote);
-    app.context.setLocal(local);
-    await app.context.upload();
-    const record = app.saved().items[0];
-    assert.equal(record.seen, false);
-    assert.equal(record.starred, false);
-    assert.deepEqual(record.feed_item, feedItem('undo'));
 });
 
 test('large truncated Gist downloads raw content without sending OAuth token', async () => {

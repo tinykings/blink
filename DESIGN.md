@@ -179,4 +179,3 @@ sw.js               Service worker
 - Inline keyboard shortcut hints (improves Recognition, current score: 3)
 - Onboarding/intro screen (improves Help, current score: 2)
 - Feed update progress indicator (improves Status Visibility, current score: 3)
-- Undo for mark-all-read (replaces confirm pattern)

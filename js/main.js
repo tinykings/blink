@@ -232,7 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let showingDesc = false;
     let currentIdx = -1;
     let syncReady = false;
-    let undoRead = null;
     let managedFeeds = [];
     let feedsSha = '';
     let feedsDirty = false;
@@ -670,8 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             </div>` : '';
         const sep = starred.length && unstarred.length ? '<div class="sep"><span class="sep-heart">&#9829;</span></div>' : '';
-        const undo = undoRead ? '<button id="undo-read-btn" class="btn" type="button">Undo mark all as read</button>' : '';
-        feedEl.innerHTML = undo + unstarred.map(itemHtml).join('') + markReadAction + sep + starred.map(itemHtml).join('');
+        feedEl.innerHTML = unstarred.map(itemHtml).join('') + markReadAction + sep + starred.map(itemHtml).join('');
     }
 
     function visibleItems() {
@@ -924,32 +922,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    async function saveReadChanges(changes) {
-        if (!syncReady) return;
-        const state = gistSync.getLocal();
-        state.items = state.items || [];
-        const now = new Date().toISOString();
-        for (const change of changes) {
-            let record = state.items.find(item => item.id === change.id);
-            if (!record) {
-                record = { id: change.id, date: now, starred: false };
-                state.items.push(record);
-            }
-            const changedAt = new Date(Math.max(Date.now(), new Date(record.read_changed_at || 0).getTime() + 1)).toISOString();
-            Object.assign(record, change, { read_changed_at: changedAt });
-        }
-        state.updated_at = now;
-        gistSync.setLocal(state);
-        renderAll();
-        try {
-            await upload();
-            return true;
-        } catch (error) {
-            toast('Read state saved in this tab only. Sync failed; keep this tab open to retry.', 'error', 6000);
-            return false;
-        }
-    }
-
     async function markAllRead(button) {
         if (button.disabled || !syncReady) return;
         const currentMetaById = new Map((gistSync.getLocal().items || []).map(item => [item.id, item]));
@@ -965,10 +937,6 @@ document.addEventListener('DOMContentLoaded', () => {
             meta.items = meta.items || [];
             const now = new Date().toISOString();
             const metaById = new Map(meta.items.map(item => [item.id, item]));
-            undoRead = feedData.filter(item => isUnreadVersion(item, metaById.get(item.id))).map(item => {
-                const previous = metaById.get(item.id);
-                return { id: item.id, seen: !!previous?.seen, published: previous?.published, bulkReadAt: now };
-            });
             feedData.forEach(item => {
                 const m = metaById.get(item.id);
                 if (!isUnreadVersion(item, m)) return;
@@ -1000,14 +968,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     feedEl?.addEventListener('click', event => {
-        if (event.target.closest('#undo-read-btn') && undoRead) {
-            const current = new Map((gistSync.getLocal().items || []).map(item => [item.id, item]));
-            const changes = undoRead.filter(item => current.get(item.id)?.read_changed_at === item.bulkReadAt)
-                .map(({ bulkReadAt, ...change }) => change);
-            undoRead = null;
-            saveReadChanges(changes);
-            return;
-        }
         const button = event.target.closest('#mark-read-btn');
         if (button) markAllRead(button);
     });

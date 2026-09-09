@@ -37,9 +37,9 @@ Your reader will be live at `https://<your-username>.github.io/blink/`.
 
 On first visit, select **Connect GitHub** and authorize Gist access. Blink finds your app Gist or creates private Gist automatically.
 
-Blink loads read state and stars from `blink-data.json` on startup and merges changes on tab focus and network reconnect. Every save fetches and merges remote state first. Read and star changes have separate timestamps so starring does not mark an item read.
+Blink loads read state and stars from `blink-data.json` on startup and merges changes after network reconnect. Every save fetches and merges remote state first. Read and star changes have separate timestamps so starring does not mark an item read.
 
-The icon-only view button switches between **Unread** and **All**, not a read-only archive. Opening a link or playing a video does not mark it read. **Mark all N unread items as read** includes unstarred items you have not scrolled to. Starred items stay visible in both views and are excluded from read status. An undo button restores bulk read states during the current session, without undoing later read changes or star changes.
+The icon-only view button switches between **Unread** and **All**, not a read-only archive. Opening a link or playing a video does not mark it read. **Mark all N unread items as read** includes unstarred items you have not scrolled to. Starred items stay visible in both views and are excluded from read status.
 
 ## Configuration
 
@@ -67,7 +67,7 @@ The feed fetcher includes items from the last 5 days by default. To change this 
 
 Once Blink loads an item, it saves unread content in `blink-data.json`. Unread items survive later refreshes even if a feed fails, removes an entry, or ages it out of the fetch window. Items merge by ID, newest publication first. Refresh saves the backlog before fetching and will not reload if saving fails.
 
-Marking an item read removes its saved content on the next save, unless it is starred. Compact read markers remain so older tabs cannot restore those items as unread. Starred content stays indefinitely. Bulk undo can restore content from the current tab.
+Marking an item read removes its saved content on the next save, unless it is starred. Compact read markers remain so older tabs cannot restore those items as unread. Starred content stays indefinitely.
 
 Backlog capture starts when this version loads successfully. It cannot recover entries already missing from both the page and Gist. Entries published and removed between visits are not captured. Local development uses browser storage instead of Gist. Unread content and read markers increase storage use over time.
 

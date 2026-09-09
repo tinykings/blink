@@ -296,10 +296,6 @@ async function refreshState() {
     }
 }
 window.addEventListener('online', refreshState);
-window.addEventListener('focus', refreshState);
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') refreshState();
-});
 
 /**
  * Sync on application startup - fetch from gist as source of truth
