@@ -677,6 +677,26 @@ document.addEventListener('DOMContentLoaded', () => {
         return Array.from(feedEl.querySelectorAll('.item')).filter(i => i.style.display !== 'none');
     }
 
+    function captureFeedPosition(excludedId) {
+        const anchor = visibleItems().find(item => item.dataset.id !== excludedId && item.getBoundingClientRect().bottom > 0);
+        return {
+            id: anchor?.dataset.id || '',
+            top: anchor?.getBoundingClientRect().top || 0,
+            scrollY: window.scrollY
+        };
+    }
+
+    function restoreFeedPosition(position) {
+        const anchor = position.id
+            ? feedEl?.querySelector(`.item[data-id="${CSS.escape(position.id)}"]`)
+            : null;
+        if (anchor && anchor.style.display !== 'none') {
+            window.scrollBy(0, anchor.getBoundingClientRect().top - position.top);
+        } else {
+            window.scrollTo(0, position.scrollY);
+        }
+    }
+
     function highlight(idx) {
         visibleItems().forEach((i, n) => i.classList.toggle('focused', n === idx));
     }
@@ -851,6 +871,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const star = e.target.closest('.star');
         if (star) {
             const id = star.dataset.id;
+            const feedPosition = captureFeedPosition(id);
             let items = meta.items || [];
             const now = new Date().toISOString();
             let item = items.find(i => i.id === id);
@@ -893,6 +914,7 @@ document.addEventListener('DOMContentLoaded', () => {
             meta.updated_at = now;
             gistSync.setLocal(meta);
             renderAll();
+            restoreFeedPosition(feedPosition);
             gistSync.pushSoon();
             return;
         }
