@@ -286,8 +286,11 @@ img { max-width: 100%; height: auto; display: block; }
 
 .floating-left { justify-self: start; }
 .floating-center { justify-self: center; }
-.floating-right { justify-self: end; }
+.floating-right { grid-column: 3; justify-self: end; }
 .floating-group { display: flex; gap: 8px; }
+
+.feeds-repo-link { display: inline-block; margin-block-start: 8px; color: var(--accent); }
+.feeds-repo-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 .floating-btn {
   width: 50px;

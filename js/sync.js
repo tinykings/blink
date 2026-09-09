@@ -1,6 +1,7 @@
 // GitHub Gist synchronization module
 
 import { getRetentionDays, getTimeOrZero, sanitizeItemForStorage } from './storage.js';
+import { mergeFeedItems } from './feed-state.js';
 import { GIST_FILENAME, getGitHubConfig, isLocalDevelopment } from './github-auth.js';
 
 const API_BASE = 'https://api.github.com/gists';
@@ -69,9 +70,21 @@ async function fetchRemote() {
     if (etag) lastETag = etag;
     const data = await res.json();
     const file = data.files && data.files[GIST_FILENAME];
-    if (!file || !file.content || file.truncated) throw new Error('Gist data missing or truncated; refusing to overwrite it.');
+    if (!file) throw new Error('Gist data missing; refusing to overwrite it.');
+    let content = file.content;
+    if (file.truncated) {
+        const rawUrl = new URL(file.raw_url);
+        if (rawUrl.protocol !== 'https:' || rawUrl.hostname !== 'gist.githubusercontent.com') {
+            throw new Error('Invalid Gist download URL');
+        }
+        // Secret Gists have public raw URLs. Do not send the OAuth token here.
+        const raw = await fetch(rawUrl.href, { cache: 'no-store', credentials: 'omit' });
+        if (!raw.ok) throw new Error(`Gist download failed: ${raw.status}`);
+        content = await raw.text();
+    }
+    if (!content) throw new Error('Gist data missing; refusing to overwrite it.');
     try {
-        const remoteData = JSON.parse(file.content);
+        const remoteData = JSON.parse(content);
         if (!Array.isArray(remoteData.items)) throw new Error('Invalid Gist items');
         remoteData.updated_at = data.updated_at;
         return remoteData;
@@ -83,19 +96,17 @@ async function fetchRemote() {
  * @param {Object} obj - The metadata to push
  */
 async function pushRemote(obj) {
-    if (isLocalDevelopment()) {
-        localStorage.setItem(LOCAL_META_KEY, JSON.stringify(obj));
-        return;
-    }
+    const localDev = isLocalDevelopment();
     const { gistId, token } = getConfig();
-    if (!gistId || !token) return;
+    if (!localDev && (!gistId || !token)) throw new Error('GitHub connection missing');
 
     const now = Date.now();
     const retentionDays = getRetentionDays();
     const retentionMs = retentionDays * 24 * 60 * 60 * 1000;
 
     const filteredItems = (obj.items || []).filter(item => {
-        if (item.starred) return true;
+        // Keep tracked read markers so an older tab cannot restore read backlog.
+        if (item.tracked || item.starred) return true;
         const readChangeTime = getTimeOrZero(item.read_changed_at);
         if (readChangeTime && (now - readChangeTime) <= retentionMs) return true;
         const starChangeTime = getTimeOrZero(item.starred_changed_at || item.starredChangedAt);
@@ -110,6 +121,11 @@ async function pushRemote(obj) {
     };
     delete payloadData.updated_at;
     delete payloadData.seenItems;
+
+    if (localDev) {
+        localStorage.setItem(LOCAL_META_KEY, JSON.stringify(payloadData));
+        return;
+    }
 
     const payload = { files: { [GIST_FILENAME]: { content: JSON.stringify(payloadData, null, 2) } } };
     const res = await fetch(`${API_BASE}/${gistId}`, {
@@ -175,6 +191,15 @@ function merge(localObj, remoteObj) {
         if (!item || !item.id) continue;
         const existing = mergedById.get(item.id);
         if (existing) {
+            existing.tracked = !!(existing.tracked || item.tracked);
+            const localSnapshot = mergeFeedItems([item.feed_item])[0];
+            const localPublished = getTimeOrZero(localSnapshot?.published);
+            const remotePublished = getTimeOrZero(existing.feed_item?.published);
+            if (localSnapshot && (!existing.feed_item || localPublished > remotePublished ||
+                (localPublished === remotePublished && getTimeOrZero(item.feed_item_updated_at) > getTimeOrZero(existing.feed_item_updated_at)))) {
+                existing.feed_item = localSnapshot;
+                existing.feed_item_updated_at = item.feed_item_updated_at;
+            }
             const localReadTime = getTimeOrZero(item.read_changed_at);
             const remoteReadTime = getTimeOrZero(existing.read_changed_at);
             if (localReadTime > remoteReadTime) {
@@ -221,7 +246,7 @@ function merge(localObj, remoteObj) {
             }
         } else {
             // Item only exists locally
-            if (item.starred) {
+            if (item.tracked || item.starred) {
                 mergedById.set(item.id, { ...item });
             } else {
                 const localChangeTime = Math.max(getTimeOrZero(item.read_changed_at), getTimeOrZero(item.starred_changed_at || item.starredChangedAt || item.date || item.published));

@@ -11,7 +11,7 @@
 
 Blink is a client-side RSS reader that runs entirely in the browser. Fork it, add your feeds, enable GitHub Pages, and you have a personal feed reader that refreshes on demand — no server required.
 
-**Note:** A GitHub Gist is required to use Blink. Your Gist stores your starred items and enables sync across devices.
+**Note:** A GitHub Gist is required to use Blink. Your Gist stores unread items, read state, and stars across devices.
 
 ## Features
 
@@ -63,7 +63,13 @@ YouTube channel URLs (`@handle` format) are automatically resolved to their RSS 
 
 ### Retention
 
-Items are kept for 5 days by default. To change this, set `ITEMS_RETENTION_DAYS` in `scripts/fetch_feeds.py`. Starred items are kept indefinitely.
+The feed fetcher includes items from the last 5 days by default. To change this window, set `ITEMS_RETENTION_DAYS` in `scripts/fetch_feeds.py`.
+
+Once Blink loads an item, it saves unread content in `blink-data.json`. Unread items survive later refreshes even if a feed fails, removes an entry, or ages it out of the fetch window. Items merge by ID, newest publication first. Refresh saves the backlog before fetching and will not reload if saving fails.
+
+Marking an item read removes its saved content on the next save, unless it is starred. Compact read markers remain so older tabs cannot restore those items as unread. Starred content stays indefinitely. Bulk undo can restore content from the current tab.
+
+Backlog capture starts when this version loads successfully. It cannot recover entries already missing from both the page and Gist. Entries published and removed between visits are not captured. Local development uses browser storage instead of Gist. Unread content and read markers increase storage use over time.
 
 ## Keyboard Shortcuts
 

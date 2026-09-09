@@ -1,5 +1,7 @@
 // Local storage utilities module
 
+import { feedSnapshot, isSeenVersion } from './feed-state.js';
+
 let cachedRetentionDays = null;
 
 /**
@@ -103,12 +105,19 @@ export function sanitizeItemForStorage(item) {
         starred: !!item.starred,
         seen: !!item.seen
     };
+    if (item.tracked) minimal.tracked = true;
+    const snapshot = feedSnapshot(item.feed_item);
+    if (snapshot?.id === item.id && (item.starred || !isSeenVersion(snapshot, item))) {
+        minimal.feed_item = snapshot;
+        if (item.feed_item_updated_at) minimal.feed_item_updated_at = item.feed_item_updated_at;
+    }
     if (item.read_changed_at) minimal.read_changed_at = item.read_changed_at;
     if (item.starred_changed_at) minimal.starred_changed_at = item.starred_changed_at;
     if (!minimal.starred_changed_at && item.starredChangedAt) minimal.starred_changed_at = item.starredChangedAt;
+    if (item.published) minimal.published = item.published;
+    if (item.tracked && !item.starred && !minimal.feed_item) return minimal;
     if (item.title) minimal.title = item.title;
     if (item.url || item.link) minimal.url = item.url || item.link;
-    if (item.published) minimal.published = item.published;
     if (item.thumbnail) minimal.thumbnail = item.thumbnail;
     if (item.video_id) minimal.video_id = item.video_id;
     if (item.feed_title) minimal.feed_title = item.feed_title;

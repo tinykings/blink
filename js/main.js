@@ -1,5 +1,6 @@
 import { createYouTubePlayer, stopVideoByItemId, videoPlayers } from './youtube.js';
 import { getStarredItems } from './storage.js';
+import { isSeenVersion, mergeFeedItems, rememberFeedItems } from './feed-state.js';
 import { gistSync, upload } from './sync.js';
 import {
     connectGitHub,
@@ -226,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let feedData = [];
     let feedById = new Map();
+    let firstFeedRender = true;
     let showingNew = true;
     let showingDesc = false;
     let currentIdx = -1;
@@ -235,17 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let feedsSha = '';
     let feedsDirty = false;
     let selectedFeedIndex = null;
-
-    function isSeenVersion(item, itemMeta) {
-        if (!itemMeta?.seen) return false;
-        if (!item?.published) return true;
-        const seenVersion = itemMeta.published || itemMeta.starred_changed_at || itemMeta.starredChangedAt || itemMeta.date;
-        if (!seenVersion) return true;
-        const currentPublished = new Date(item.published).getTime();
-        const seenPublished = new Date(seenVersion).getTime();
-        if (!Number.isFinite(currentPublished) || !Number.isFinite(seenPublished)) return true;
-        return currentPublished <= seenPublished;
-    }
 
     if (refreshFeedsBtn) refreshFeedsBtn.disabled = true;
     if (manageFeedsBtn) manageFeedsBtn.disabled = true;
@@ -307,10 +298,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const starredCount = (meta.items || []).filter(i => i.starred).length;
             const display = starredCount > 0 ? `${text} · ★ ${starredCount}` : text;
             if (updateHeader) updateHeader.textContent = display;
-            if (repoLink) repoLink.textContent = display;
-            const label = `Blink on GitHub, last updated ${text}${starredCount > 0 ? `, ${starredCount} starred` : ''}`;
-            if (repoLink) repoLink.setAttribute('aria-label', label);
-            if (repoLink) repoLink.title = label;
         }
     }
 
@@ -764,6 +751,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderAll() {
         meta = gistSync.getLocal();
         meta.items = meta.items || [];
+        const captured = firstFeedRender && rememberFeedItems(meta, feedData);
+        firstFeedRender = false;
+        feedData = mergeFeedItems(feedData, meta.items.map(item => item.feed_item));
+        feedById = new Map(feedData.map(item => [item.id, item]));
+        if (rememberFeedItems(meta, feedData) || captured) {
+            gistSync.setLocal(meta);
+            gistSync.pushSoon();
+        }
         setUpdatedAtText();
         renderFeed();
         renderArchived(meta.items);
@@ -1039,7 +1034,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (markReadButton) markReadButton.disabled = true;
         document.body.setAttribute('aria-busy', 'true');
         try {
+            setFeedSyncStatus('Saving unread items...');
+            rememberFeedItems(gistSync.getLocal(), feedData);
+            await upload();
             await refreshFeeds(message => setFeedSyncStatus(message));
+            // Save any read/star changes made while the feed fetch was running.
+            setFeedSyncStatus('Saving state before reload...');
+            await upload();
             window.location.reload();
             return true;
         } catch (error) {

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'blink-v22';
+const CACHE_VERSION = 'blink-v23';
 const PRECACHE_ASSETS = [
   './',
   'index.html',
@@ -8,6 +8,7 @@ const PRECACHE_ASSETS = [
   'js/github-auth.js',
   'js/sync.js',
   'js/storage.js',
+  'js/feed-state.js',
   'js/youtube.js',
   'manifest.json',
   'images/icon-192.png',
