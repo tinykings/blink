@@ -8,6 +8,7 @@ import warnings
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple, Any
+from urllib.parse import urlsplit
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pytz
@@ -375,6 +376,11 @@ class FeedProcessor:
                 link = entry.get('link')
                 if not item_id or not link:
                     logger.warning(f"Skipping entry without ID or link from {url}")
+                    continue
+
+                # Playlists can still contain Shorts; also check each entry's URL.
+                if (is_youtube_feed and not INCLUDE_YOUTUBE_SHORTS
+                        and urlsplit(link).path.startswith('/shorts/')):
                     continue
 
                 # Parse published time
