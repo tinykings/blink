@@ -10,7 +10,7 @@ const LOCAL_META_KEY = 'blink:local-meta';
 
 let pendingPush = false;
 let lastETag = null;
-let lastKnownRemoteUpdatedAt = null;
+let saveQueue = Promise.resolve();
 
 let meta = null;
 
@@ -69,13 +69,13 @@ async function fetchRemote() {
     if (etag) lastETag = etag;
     const data = await res.json();
     const file = data.files && data.files[GIST_FILENAME];
-    if (!file || !file.content) return null;
+    if (!file || !file.content || file.truncated) throw new Error('Gist data missing or truncated; refusing to overwrite it.');
     try {
         const remoteData = JSON.parse(file.content);
+        if (!Array.isArray(remoteData.items)) throw new Error('Invalid Gist items');
         remoteData.updated_at = data.updated_at;
-        lastKnownRemoteUpdatedAt = data.updated_at;
         return remoteData;
-    } catch { return null; }
+    } catch { throw new Error('Invalid Gist data; refusing to overwrite it.'); }
 }
 
 /**
@@ -96,6 +96,8 @@ async function pushRemote(obj) {
 
     const filteredItems = (obj.items || []).filter(item => {
         if (item.starred) return true;
+        const readChangeTime = getTimeOrZero(item.read_changed_at);
+        if (readChangeTime && (now - readChangeTime) <= retentionMs) return true;
         const starChangeTime = getTimeOrZero(item.starred_changed_at || item.starredChangedAt);
         if (starChangeTime && (now - starChangeTime) <= retentionMs) return true;
         const itemDate = getTimeOrZero(item.date);
@@ -119,7 +121,6 @@ async function pushRemote(obj) {
         throw new Error(`Gist push failed: ${res.status}`);
     }
     const data = await res.json();
-    if (data.updated_at) lastKnownRemoteUpdatedAt = data.updated_at;
     const etag = res.headers.get('ETag');
     if (etag) lastETag = etag;
 }
@@ -130,10 +131,22 @@ async function pushRemote(obj) {
  */
 export async function upload() {
     if (pushTimeout) clearTimeout(pushTimeout);
-    const local = getLocal();
-    await pushRemote(local);
-    pendingPush = false;
-    dispatchSyncEvent('success', 'Synced');
+    const save = async () => {
+        try {
+            lastETag = null;
+            const remote = await fetchRemote();
+            const merged = merge(getLocal(), remote);
+            setLocal(merged);
+            await pushRemote(merged);
+            pendingPush = false;
+            dispatchSyncEvent('success', 'Synced');
+        } catch (error) {
+            pendingPush = true;
+            throw error;
+        }
+    };
+    saveQueue = saveQueue.catch(() => {}).then(save);
+    return saveQueue;
 }
 
 /**
@@ -162,7 +175,19 @@ function merge(localObj, remoteObj) {
         if (!item || !item.id) continue;
         const existing = mergedById.get(item.id);
         if (existing) {
-            existing.seen = existing.seen || item.seen;
+            const localReadTime = getTimeOrZero(item.read_changed_at);
+            const remoteReadTime = getTimeOrZero(existing.read_changed_at);
+            if (localReadTime > remoteReadTime) {
+                existing.seen = !!item.seen;
+                existing.published = item.published;
+                existing.read_changed_at = item.read_changed_at;
+            } else if (!localReadTime && !remoteReadTime) {
+                // Legacy records have no explicit unread action.
+                if (item.seen && (!existing.seen || getTimeOrZero(item.published) > getTimeOrZero(existing.published))) {
+                    existing.published = item.published;
+                }
+                existing.seen = !!(existing.seen || item.seen);
+            }
 
             const existingStarChangedAt = existing.starred_changed_at || existing.starredChangedAt;
             const itemStarChangedAt = item.starred_changed_at || item.starredChangedAt;
@@ -183,7 +208,7 @@ function merge(localObj, remoteObj) {
             if (!existing.title && item.title) existing.title = item.title;
             if (!existing.url && item.url) existing.url = item.url;
             if (!existing.link && item.link) existing.link = item.link;
-            if (!existing.published && item.published) existing.published = item.published;
+            if (!existing.read_changed_at && !existing.published && item.published) existing.published = item.published;
             if (!existing.thumbnail && item.thumbnail) existing.thumbnail = item.thumbnail;
             if (!existing.video_id && item.video_id) existing.video_id = item.video_id;
             if (!existing.feed_title && item.feed_title) existing.feed_title = item.feed_title;
@@ -199,7 +224,7 @@ function merge(localObj, remoteObj) {
             if (item.starred) {
                 mergedById.set(item.id, { ...item });
             } else {
-                const localChangeTime = getTimeOrZero(item.starred_changed_at || item.starredChangedAt || item.date || item.published);
+                const localChangeTime = Math.max(getTimeOrZero(item.read_changed_at), getTimeOrZero(item.starred_changed_at || item.starredChangedAt || item.date || item.published));
                 const isOld = (now - localChangeTime) > (retentionMs * 1.5);
 
                 if (!isOld) {
@@ -223,23 +248,7 @@ function schedulePush() {
     if (pushTimeout) clearTimeout(pushTimeout);
     pushTimeout = setTimeout(async () => {
         try {
-            const local = getLocal();
-            const remote = await fetchRemote();
-            if (remote && lastKnownRemoteUpdatedAt) {
-                const remoteTime = getTimeOrZero(remote.updated_at);
-                const knownTime = getTimeOrZero(lastKnownRemoteUpdatedAt);
-                if (remoteTime > knownTime) {
-                    const merged = merge(local, remote);
-                    setLocal(merged);
-                    await pushRemote(merged);
-                    pendingPush = false;
-                    dispatchSyncEvent('success', 'Synced');
-                    return;
-                }
-            }
-            await pushRemote(local);
-            pendingPush = false;
-            dispatchSyncEvent('success', 'Synced');
+            await upload();
         } catch (e) {
             console.warn('Failed pushing to gist:', e);
             pendingPush = true;
@@ -252,19 +261,19 @@ function dispatchSyncEvent(type, message) {
     window.dispatchEvent(new CustomEvent('blink-sync', { detail: { type, message } }));
 }
 
-/**
- * Retry pending push if we're online
- */
-function retryPendingPush() {
-    if (!pendingPush) return;
-    const cfg = getConfig();
-    if (!cfg.gistId || !cfg.token) return;
-    schedulePush();
+async function refreshState() {
+    if (!meta) return;
+    try {
+        if (pendingPush) await upload();
+        else await pull();
+    } catch (error) {
+        dispatchSyncEvent('error', 'Sync failed');
+    }
 }
-
-window.addEventListener('online', retryPendingPush);
+window.addEventListener('online', refreshState);
+window.addEventListener('focus', refreshState);
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') retryPendingPush();
+    if (document.visibilityState === 'visible') refreshState();
 });
 
 /**
@@ -302,6 +311,7 @@ export async function syncOnStartup() {
  * Schedule a push to remote soon
  */
 export function pushSoon() {
+    pendingPush = true;
     schedulePush();
 }
 
@@ -311,7 +321,8 @@ export function pushSoon() {
  */
 export async function pull() {
     if (isLocalDevelopment()) {
-        meta = await fetchRemote();
+        meta = merge(getLocal(), await fetchRemote());
+        dispatchSyncEvent('success', 'Local');
         return true;
     }
     const cfg = getConfig();
@@ -319,7 +330,8 @@ export async function pull() {
     lastETag = null;
     const remote = await fetchRemote();
     if (remote) {
-        meta = remote;
+        meta = merge(getLocal(), remote);
+        dispatchSyncEvent('success', 'Synced');
         return true;
     }
     return false;

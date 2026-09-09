@@ -302,6 +302,12 @@ img { max-width: 100%; height: auto; display: block; }
   transition: background .12s var(--ease-out-quart), transform .12s var(--ease-out-quart);
   box-shadow: 0 4px 12px var(--shadow);
 }
+#view-btn { padding: 4px; gap: 0; }
+#view-btn svg { width: 24px; height: 24px; }
+.view-label { font-size: 10px; line-height: 1; }
+.read-status { font-size: .75rem; color: var(--muted); }
+.read-toggle { font-size: .75rem; padding: 6px 10px; }
+
 .floating-btn:hover { background: color-mix(in oklab, var(--surface) 92%, var(--accent) 8%); }
 .floating-btn:active { transform: scale(.95); }
 .floating-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

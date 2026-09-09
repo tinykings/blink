@@ -37,7 +37,9 @@ Your reader will be live at `https://<your-username>.github.io/blink/`.
 
 On first visit, select **Connect GitHub** and authorize Gist access. Blink finds your app Gist or creates private Gist automatically.
 
-Blink syncs automatically on startup, on tab focus, and after reconnecting to network.
+Blink loads read state and stars from `blink-data.json` on startup and merges changes on tab focus and network reconnect. Every save fetches and merges remote state first. Read and star changes have separate timestamps so starring does not mark an item read.
+
+The view button switches between **Unread** and **All**, not a read-only archive. Each item shows its read status and a read/unread button. Opening a link or playing a video does not mark it read. **Mark all N unread items as read** includes items you have not scrolled to. An undo button restores those read states during the current session, without undoing later read changes or star changes.
 
 ## Configuration
 

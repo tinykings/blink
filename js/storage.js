@@ -103,6 +103,7 @@ export function sanitizeItemForStorage(item) {
         starred: !!item.starred,
         seen: !!item.seen
     };
+    if (item.read_changed_at) minimal.read_changed_at = item.read_changed_at;
     if (item.starred_changed_at) minimal.starred_changed_at = item.starred_changed_at;
     if (!minimal.starred_changed_at && item.starredChangedAt) minimal.starred_changed_at = item.starredChangedAt;
     if (item.title) minimal.title = item.title;

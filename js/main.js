@@ -230,6 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let showingDesc = false;
     let currentIdx = -1;
     let syncReady = false;
+    let undoRead = null;
     let managedFeeds = [];
     let feedsSha = '';
     let feedsDirty = false;
@@ -625,7 +626,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const expandBtn = item.description ? `<button class="expand-btn" title="Toggle description" aria-label="Toggle description"><svg viewBox="0 0 24 24" width="16" height="16"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : '';
         const starred = getStarredItems(meta).includes(item.id);
         const star = `<button class="star${starred ? ' starred' : ''}" data-id="${item.id}" aria-pressed="${starred}">&#9829;</button>`;
-        const actions = star ? `<div class="item-actions">${star}</div>` : '';
+        const read = isSeenVersion(item, (meta.items || []).find(m => m.id === item.id));
+        const actions = `<div class="item-actions"><span class="read-status">${read ? 'Read' : 'Unread'}</span><button class="read-toggle btn" data-id="${item.id}" type="button">Mark ${read ? 'unread' : 'read'}</button>${star}</div>`;
         const source = item.feed_title || '';
         const time = relTime(item.published);
         const itemMeta = (source || time || expandBtn) ? `<div class="meta">${expandBtn}${source ? `<span class="source-dot" style="color:${feedColor(source)}">&#9679;</span><span class="source">${source}</span>` : ''}${source && time ? '<span class="meta-sep">&middot;</span>' : ''}${time ? `<span class="time">${time}</span>` : ''}</div>` : '';
@@ -673,15 +675,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const starredIds = new Set(getStarredItems(meta));
         const unstarred = feedData.filter(i => !starredIds.has(i.id));
         const starred = feedData.filter(i => starredIds.has(i.id));
-        const markReadAction = unstarred.length ? `
+        const markReadAction = feedData.length ? `
             <div class="mark-read-action">
                 <button id="mark-read-btn" class="btn mark-read-btn" type="button"${syncReady ? '' : ' disabled'}>
                     <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span>Mark all as read</span>
+                    <span>Mark all ${feedData.filter(item => !isSeenVersion(item, (meta.items || []).find(m => m.id === item.id))).length} unread items as read</span>
                 </button>
             </div>` : '';
         const sep = starred.length && unstarred.length ? '<div class="sep"><span class="sep-heart">&#9829;</span></div>' : '';
-        feedEl.innerHTML = unstarred.map(itemHtml).join('') + markReadAction + sep + starred.map(itemHtml).join('');
+        const undo = undoRead ? '<button id="undo-read-btn" class="btn" type="button">Undo mark all as read</button>' : '';
+        feedEl.innerHTML = undo + unstarred.map(itemHtml).join('') + markReadAction + sep + starred.map(itemHtml).join('');
     }
 
     function visibleItems() {
@@ -699,6 +702,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function applyView(metaItems) {
         if (!feedEl) return;
+        if (viewBtn) {
+            viewBtn.title = showingNew ? 'Show all items' : 'Show unread items';
+            viewBtn.setAttribute('aria-label', viewBtn.title);
+            let label = viewBtn.querySelector('.view-label');
+            if (!label) {
+                label = document.createElement('span');
+                label.className = 'view-label';
+                viewBtn.appendChild(label);
+            }
+            label.textContent = showingNew ? 'Unread' : 'All';
+        }
         const all = Array.from(feedEl.querySelectorAll('.item'));
         if (!all.length) { if (emptyEl && showingNew) emptyEl.style.display = ''; return; }
 
@@ -709,7 +723,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let count = 0;
             all.forEach(item => {
                 const m = byId.get(item.dataset.id);
-                const hide = isSeenVersion(feedById.get(item.dataset.id), m) && !m?.starred;
+                const hide = isSeenVersion(feedById.get(item.dataset.id), m);
                 if (hide && videoPlayers.has(item.dataset.id)) stopVideoByItemId(item.dataset.id);
                 item.style.display = hide ? 'none' : '';
                 if (!hide) count++;
@@ -756,6 +770,10 @@ document.addEventListener('DOMContentLoaded', () => {
         applyView(meta.items);
         syncThumbAspect();
     }
+
+    window.addEventListener('blink-sync', event => {
+        if (syncReady && event.detail.type === 'success') renderAll();
+    });
 
     viewBtn?.addEventListener('click', () => {
         showingNew = !showingNew;
@@ -844,6 +862,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     feedEl?.addEventListener('click', e => {
+        const readButton = e.target.closest('.read-toggle');
+        if (readButton) {
+            const id = readButton.dataset.id;
+            const item = feedById.get(id) || (meta.items || []).find(m => m.id === id);
+            const current = (gistSync.getLocal().items || []).find(m => m.id === id);
+            saveReadChanges([{ id, seen: !isSeenVersion(item, current), published: item?.published }]);
+            return;
+        }
         const star = e.target.closest('.star');
         if (star) {
             const id = star.dataset.id;
@@ -855,8 +881,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item) {
                 item.starred = !item.starred;
                 item.starred_changed_at = now;
-                item.seen = true;
-                if (m.published) item.published = m.published;
+
                 if (item.starred) {
                     if (!item.title && m.title) item.title = m.title;
                     if ((!item.url && m.url) || (!item.link && m.url)) { item.url = m.url; item.link = m.url; }
@@ -877,7 +902,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 star.setAttribute('aria-pressed', item.starred);
             } else {
                 items.push({
-                    id, date: now, starred: true, starred_changed_at: now, seen: true,
+                    id, date: now, starred: true, starred_changed_at: now, seen: false,
                     title: m.title || '', url: m.url || '', link: m.url || '',
                     published: m.published || now, thumbnail: m.thumbnail || '',
                     video_id: m.video_id || '', feed_title: m.feed_title || '',
@@ -889,7 +914,7 @@ document.addEventListener('DOMContentLoaded', () => {
             meta.items = items;
             meta.updated_at = now;
             gistSync.setLocal(meta);
-            renderArchived(meta.items);
+            renderAll();
             gistSync.pushSoon();
             return;
         }
@@ -919,6 +944,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    async function saveReadChanges(changes) {
+        if (!syncReady) return;
+        const state = gistSync.getLocal();
+        state.items = state.items || [];
+        const now = new Date().toISOString();
+        for (const change of changes) {
+            let record = state.items.find(item => item.id === change.id);
+            if (!record) {
+                record = { id: change.id, date: now, starred: false };
+                state.items.push(record);
+            }
+            const changedAt = new Date(Math.max(Date.now(), new Date(record.read_changed_at || 0).getTime() + 1)).toISOString();
+            Object.assign(record, change, { read_changed_at: changedAt });
+        }
+        state.updated_at = now;
+        gistSync.setLocal(state);
+        renderAll();
+        try {
+            await upload();
+            return true;
+        } catch (error) {
+            toast('Read state saved in this tab only. Sync failed; keep this tab open to retry.', 'error', 6000);
+            return false;
+        }
+    }
+
     async function markAllRead(button) {
         if (button.disabled || !syncReady) return;
         const currentMetaById = new Map((gistSync.getLocal().items || []).map(item => [item.id, item]));
@@ -934,16 +985,20 @@ document.addEventListener('DOMContentLoaded', () => {
             meta.items = meta.items || [];
             const now = new Date().toISOString();
             const metaById = new Map(meta.items.map(item => [item.id, item]));
+            undoRead = feedData.filter(item => !isSeenVersion(item, metaById.get(item.id))).map(item => {
+                const previous = metaById.get(item.id);
+                return { id: item.id, seen: !!previous?.seen, published: previous?.published, bulkReadAt: now };
+            });
             feedData.forEach(item => {
                 const m = metaById.get(item.id);
                 if (!m) {
-                    const newMeta = { id: item.id, date: now, starred: false, seen: true, starred_changed_at: now, published: item.published };
+                    const newMeta = { id: item.id, date: now, starred: false, seen: true, read_changed_at: now, published: item.published };
                     meta.items.push(newMeta);
                     metaById.set(item.id, newMeta);
                 } else if (!isSeenVersion(item, m)) {
                     m.seen = true;
                     m.published = item.published;
-                    m.starred_changed_at = now;
+                    m.read_changed_at = now;
                 }
             });
             meta.updated_at = now;
@@ -964,6 +1019,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     feedEl?.addEventListener('click', event => {
+        if (event.target.closest('#undo-read-btn') && undoRead) {
+            const current = new Map((gistSync.getLocal().items || []).map(item => [item.id, item]));
+            const changes = undoRead.filter(item => current.get(item.id)?.read_changed_at === item.bulkReadAt)
+                .map(({ bulkReadAt, ...change }) => change);
+            undoRead = null;
+            saveReadChanges(changes);
+            return;
+        }
         const button = event.target.closest('#mark-read-btn');
         if (button) markAllRead(button);
     });
