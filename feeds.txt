@@ -27,7 +27,8 @@ https://www.macstories.net/feed/
 https://feedpress.me/512pixels
 
 #youtube
-https://www.youtube.com/@joosh_king
+# Josh King
+https://www.youtube.com/feeds/videos.xml?channel_id=UCsgRdw6ocFYQldZpfk3Lgtw
 # fpt.
 https://www.youtube.com/feeds/videos.xml?channel_id=UC8jkbVLPvztz8TuE98OYo8Q
 # Julia Turc
