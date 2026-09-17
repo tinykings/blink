@@ -386,11 +386,10 @@ document.addEventListener('DOMContentLoaded', () => {
             separateShorts: !($('disable-shorts-toggle')?.checked ?? true) && ($('separate-shorts-toggle')?.checked ?? false)
         };
         try {
-            if (!managedFeeds.length) {
-                const file = await getFeedsFile();
-                managedFeeds = parseFeedsFile(file.content);
-                feedsSha = file.sha;
-            }
+            // Refresh SHA first; feed refresh workflow may have updated feeds.txt.
+            const file = await getFeedsFile();
+            managedFeeds = parseFeedsFile(file.content);
+            feedsSha = file.sha;
             const result = await updateFeedsFile(serializeFeedsFile(managedFeeds, next), feedsSha);
             feedsSha = result.content?.sha || feedsSha;
             rssSettings = next;
@@ -722,7 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!shortsStage || !shortsItems[shortsIndex]) return;
         const item = shortsItems[shortsIndex];
         const id = item.video_id || item.link.match(/[?&]v=([^&]+)/)?.[1] || item.link.split('/').pop();
-        shortsStage.innerHTML = `<iframe src="https://www.youtube.com/embed/${encodeURIComponent(id)}?autoplay=1&playsinline=1" title="${item.title.replace(/"/g, '&quot;')}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><div class="shorts-caption"><strong>${item.title}</strong><span>${item.feed_title || ''}</span></div>`;
+        shortsStage.innerHTML = `<iframe src="https://www.youtube.com/embed/${encodeURIComponent(id)}?autoplay=1&mute=1&playsinline=1" title="${item.title.replace(/"/g, '&quot;')}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><div class="shorts-caption"><strong>${item.title}</strong><span>${item.feed_title || ''}</span></div><div class="shorts-gesture-layer" aria-hidden="true"></div>`;
         shortsViewer.querySelector('.shorts-end').hidden = true;
     }
 
@@ -759,13 +758,22 @@ document.addEventListener('DOMContentLoaded', () => {
     closeShortsBtn?.addEventListener('click', closeShorts);
     markShortsDoneBtn?.addEventListener('click', markShortsDone);
     let shortsTouchY = 0;
-    shortsViewer?.addEventListener('touchstart', e => { shortsTouchY = e.touches[0].clientY; }, { passive: true });
-    shortsViewer?.addEventListener('touchend', e => { if (shortsTouchY - e.changedTouches[0].clientY > 45) nextShort(); }, { passive: true });
+    function shortsTouchStart(e) { shortsTouchY = e.touches[0].clientY; }
+    function shortsTouchEnd(e) {
+        const delta = shortsTouchY - e.changedTouches[0].clientY;
+        if (Math.abs(delta) < 45) return;
+        if (delta > 0) nextShort();
+        else if (shortsIndex > 0) { shortsIndex -= 1; renderShort(); }
+    }
+    shortsViewer?.addEventListener('touchstart', shortsTouchStart, { passive: true, capture: true });
+    shortsViewer?.addEventListener('touchend', shortsTouchEnd, { passive: true, capture: true });
     shortsViewer?.addEventListener('wheel', e => { if (e.deltaY > 30) { e.preventDefault(); nextShort(); } }, { passive: false });
 
     function renderFeed() {
         if (!feedEl) return;
-        const displayData = rssSettings.disableShorts ? feedData.filter(item => !isShort(item)) : feedData;
+        const displayData = (rssSettings.disableShorts || rssSettings.separateShorts)
+            ? feedData.filter(item => !isShort(item))
+            : feedData;
         const starredIds = new Set(getStarredItems(meta));
         const unstarred = displayData.filter(i => !starredIds.has(i.id));
         const starred = displayData.filter(i => starredIds.has(i.id));
