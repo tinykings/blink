@@ -721,7 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!shortsStage || !shortsItems[shortsIndex]) return;
         const item = shortsItems[shortsIndex];
         const id = item.video_id || item.link.match(/[?&]v=([^&]+)/)?.[1] || item.link.split('/').pop();
-        shortsStage.innerHTML = `<iframe src="https://www.youtube.com/embed/${encodeURIComponent(id)}?autoplay=1&mute=1&playsinline=1" title="${item.title.replace(/"/g, '&quot;')}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><div class="shorts-caption"><strong>${item.title}</strong><span>${item.feed_title || ''}</span></div><div class="shorts-gesture-layer" aria-hidden="true"></div>`;
+        shortsStage.innerHTML = `<iframe id="shorts-frame" src="https://www.youtube.com/embed/${encodeURIComponent(id)}?autoplay=1&mute=1&playsinline=1&enablejsapi=1" title="${item.title.replace(/"/g, '&quot;')}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><div class="shorts-caption"><strong>${item.title}</strong><span>${item.feed_title || ''}</span></div><div class="shorts-controls"><button class="shorts-control" data-short-command="unMute" type="button">🔊 Unmute</button><button class="shorts-control" data-short-command="pauseVideo" type="button">⏸ Pause</button></div><div class="shorts-gesture-layer" aria-hidden="true"></div>`;
         shortsViewer.querySelector('.shorts-end').hidden = true;
     }
 
@@ -754,6 +754,22 @@ document.addEventListener('DOMContentLoaded', () => {
         try { await upload(); closeShorts(); renderAll(); toast('Shorts marked done', 'success', 2000); }
         catch (error) { toast(error.message || 'Could not save Shorts', 'error', 4000); markShortsDone.disabled = false; }
     }
+    shortsStage?.addEventListener('click', event => {
+        const button = event.target.closest('[data-short-command]');
+        if (!button) return;
+        const frame = $('shorts-frame');
+        if (!frame) return;
+        const command = button.dataset.shortCommand;
+        frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func: command, args: [] }), 'https://www.youtube.com');
+        if (command === 'unMute') button.hidden = true;
+        if (command === 'pauseVideo') {
+            button.dataset.shortCommand = 'playVideo';
+            button.textContent = '▶ Play';
+        } else if (command === 'playVideo') {
+            button.dataset.shortCommand = 'pauseVideo';
+            button.textContent = '⏸ Pause';
+        }
+    });
     shortsBtn?.addEventListener('click', openShorts);
     closeShortsBtn?.addEventListener('click', closeShorts);
     markShortsDoneBtn?.addEventListener('click', markShortsDone);

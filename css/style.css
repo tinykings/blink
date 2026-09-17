@@ -740,6 +740,9 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
 .shorts-viewer-title { position: fixed; z-index: 2; top: max(22px, env(safe-area-inset-top)); left: 18px; color: white; font-size: 1rem; font-weight: 700; text-shadow: 0 1px 4px #000; }
 .shorts-caption { position: absolute; bottom: 28px; left: 18px; right: 18px; display: grid; gap: 4px; color: white; text-shadow: 0 1px 4px #000; pointer-events: none; }
 .shorts-caption span { color: #ccc; font-size: .85rem; }
+.shorts-controls { position: absolute; z-index: 2; right: 18px; bottom: 92px; display: flex; flex-direction: column; gap: 8px; align-items: end; }
+.shorts-control { min-height: 40px; padding: 8px 12px; border: 1px solid rgba(255,255,255,.35); border-radius: 8px; background: rgba(0,0,0,.6); color: white; font: 600 .8rem var(--ff); cursor: pointer; }
+.shorts-control:hover { background: rgba(0,0,0,.8); }
 .shorts-end { position: fixed; z-index: 3; inset: 0; display: grid; place-content: center; justify-items: center; gap: 16px; background: rgba(9,11,11,.88); color: white; font-size: 1.2rem; }
 .shorts-end[hidden] { display: none; }
 body.shorts-open { overflow: hidden; }
