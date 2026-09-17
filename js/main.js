@@ -77,7 +77,10 @@ function parseFeedsFile(content) {
     content.split(/\r?\n/).forEach(rawLine => {
         const line = rawLine.trim();
         if (!line) return;
-        if (line.toLowerCase() === '#rss') {
+        if (line.toLowerCase() === '#settings') {
+            type = 'settings';
+            pendingName = '';
+        } else if (line.toLowerCase() === '#rss') {
             type = 'rss';
             pendingName = '';
         } else if (line.toLowerCase() === '#youtube') {
@@ -85,6 +88,11 @@ function parseFeedsFile(content) {
             pendingName = '';
         } else if (line.startsWith('#')) {
             pendingName = line.slice(1).trim();
+        } else if (type === 'settings') {
+            const [key, value] = line.split('=', 2);
+            if (key === 'include_youtube_shorts') rssSettings.disableShorts = !['true', '1', 'yes', 'on'].includes((value || '').trim().toLowerCase());
+            if (key === 'disable_shorts') rssSettings.disableShorts = ['true', '1', 'yes', 'on'].includes((value || '').trim().toLowerCase());
+            if (key === 'separate_shorts') rssSettings.separateShorts = ['true', '1', 'yes', 'on'].includes((value || '').trim().toLowerCase());
         } else {
             feeds.push({ type, url: line, name: pendingName });
             pendingName = '';
@@ -93,10 +101,10 @@ function parseFeedsFile(content) {
     return feeds;
 }
 
-function serializeFeedsFile(feeds) {
+function serializeFeedsFile(feeds, settings = { disableShorts: true, separateShorts: false }) {
     const rss = feeds.filter(feed => feed.type === 'rss');
     const youtube = feeds.filter(feed => feed.type === 'youtube');
-    const lines = ['#rss'];
+    const lines = ['#settings', `include_youtube_shorts=${!settings.disableShorts}`, `separate_shorts=${settings.separateShorts}`, '', '#rss'];
     rss.forEach(feed => {
         if (feed.name) lines.push(`# ${feed.name}`);
         lines.push(feed.url.trim());
@@ -224,6 +232,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingEl = $('loading');
     const keyboardHelp = $('keyboard-help');
     const setupForm = $('setup-form');
+    const shortsBtn = $('shorts-btn');
+    const shortsViewer = $('shorts-viewer');
+    const shortsStage = $('shorts-stage');
+    const shortsViewerTitle = $('shorts-viewer-title');
+    const closeShortsBtn = $('close-shorts-btn');
+    const markShortsDoneBtn = $('mark-shorts-done-btn');
 
     let feedData = [];
     let feedById = new Map();
@@ -236,6 +250,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let feedsSha = '';
     let feedsDirty = false;
     let selectedFeedIndex = null;
+    const pageSettings = document.body?.dataset || {};
+    let rssSettings = {
+        disableShorts: pageSettings.disableShorts !== 'false',
+        separateShorts: pageSettings.separateShorts === 'true'
+    };
+    let shortsItems = [];
+    let shortsIndex = 0;
 
     if (refreshFeedsBtn) refreshFeedsBtn.disabled = true;
     if (manageFeedsBtn) manageFeedsBtn.disabled = true;
@@ -317,6 +338,10 @@ document.addEventListener('DOMContentLoaded', () => {
             connectBtn.hidden = localDev;
         }
         if (disconnectBtn) disconnectBtn.hidden = localDev || !connected;
+        const disable = $('disable-shorts-toggle');
+        const separate = $('separate-shorts-toggle');
+        if (disable) disable.checked = rssSettings.disableShorts;
+        if (separate) { separate.checked = rssSettings.separateShorts; separate.disabled = rssSettings.disableShorts; }
     }
 
     function closeSettings() { closeModal(settingsModal); }
@@ -349,6 +374,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     $('settings-link')?.addEventListener('click', openSettings);
+    $('rss-settings-btn')?.addEventListener('click', openSettings);
+    $('disable-shorts-toggle')?.addEventListener('change', event => {
+        const separate = $('separate-shorts-toggle');
+        if (separate) separate.disabled = event.target.checked;
+    });
+    $('save-rss-settings-btn')?.addEventListener('click', async () => {
+        const next = {
+            disableShorts: $('disable-shorts-toggle')?.checked ?? true,
+            separateShorts: !($('disable-shorts-toggle')?.checked ?? true) && ($('separate-shorts-toggle')?.checked ?? false)
+        };
+        try {
+            if (!managedFeeds.length) {
+                const file = await getFeedsFile();
+                managedFeeds = parseFeedsFile(file.content);
+                feedsSha = file.sha;
+            }
+            const result = await updateFeedsFile(serializeFeedsFile(managedFeeds, next), feedsSha);
+            feedsSha = result.content?.sha || feedsSha;
+            rssSettings = next;
+            closeSettings();
+            updateShortsButton();
+            toast('RSS settings saved. Refresh feeds to apply.', 'success', 2800);
+        } catch (error) { setStatus(error.message || 'Could not save RSS settings.', 'error'); }
+    });
     closeBtn?.addEventListener('click', closeSettings);
     connectBtn?.addEventListener('click', () => doConnect(false));
     setupConnectBtn?.addEventListener('click', () => doConnect(true));
@@ -565,7 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (closeFeedsBtn) closeFeedsBtn.disabled = true;
         setStatus('Saving feeds...', 'info', feedsStatus);
         try {
-            const result = await updateFeedsFile(serializeFeedsFile(managedFeeds), feedsSha);
+            const result = await updateFeedsFile(serializeFeedsFile(managedFeeds, rssSettings), feedsSha);
             feedsSha = result.content?.sha || feedsSha;
         } catch (error) {
             setStatus(error.message || 'Could not save feeds. Try again.', 'error', feedsStatus);
@@ -655,12 +704,71 @@ document.addEventListener('DOMContentLoaded', () => {
         feedEl.appendChild(frag);
     }
 
+    function isShort(item) { return item?.link && /youtube\.com\/shorts\//i.test(item.link); }
+
+    function updateShortsButton() {
+        if (!shortsBtn) return;
+        const count = feedData.filter(item => isShort(item) && isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id))).length;
+        const totalShorts = feedData.filter(isShort).length;
+        const available = !rssSettings.disableShorts && rssSettings.separateShorts && totalShorts > 0;
+        shortsBtn.hidden = !available;
+        shortsBtn.classList.toggle('has-shorts', count > 0);
+        shortsBtn.title = 'Open Shorts';
+        shortsBtn.setAttribute('aria-label', 'Open Shorts');
+    }
+
+    function renderShort() {
+        if (!shortsStage || !shortsItems[shortsIndex]) return;
+        const item = shortsItems[shortsIndex];
+        const id = item.video_id || item.link.match(/[?&]v=([^&]+)/)?.[1] || item.link.split('/').pop();
+        shortsStage.innerHTML = `<iframe src="https://www.youtube.com/embed/${encodeURIComponent(id)}?autoplay=1&playsinline=1" title="${item.title.replace(/"/g, '&quot;')}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><div class="shorts-caption"><strong>${item.title}</strong><span>${item.feed_title || ''}</span></div>`;
+        shortsViewer.querySelector('.shorts-end').hidden = true;
+    }
+
+    function openShorts() {
+        const unread = feedData.filter(item => isShort(item) && isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id)));
+        shortsItems = unread.length ? unread : feedData.filter(isShort);
+        if (!shortsItems.length) return;
+        if (shortsViewerTitle) shortsViewerTitle.textContent = unread.length ? 'New Shorts' : 'All Shorts';
+        shortsIndex = 0;
+        shortsViewer.hidden = false;
+        document.body.classList.add('shorts-open');
+        renderShort();
+    }
+    function nextShort() {
+        if (shortsIndex < shortsItems.length - 1) { shortsIndex += 1; renderShort(); }
+        else shortsViewer.querySelector('.shorts-end').hidden = false;
+    }
+    function closeShorts() { shortsViewer.hidden = true; document.body.classList.remove('shorts-open'); shortsStage.innerHTML = ''; }
+    async function markShortsDone() {
+        const now = new Date().toISOString();
+        meta = gistSync.getLocal(); meta.items = meta.items || [];
+        const byId = new Map(meta.items.map(item => [item.id, item]));
+        shortsItems.forEach(item => {
+            let record = byId.get(item.id);
+            if (!record) { record = { id: item.id, date: now, starred: false }; meta.items.push(record); }
+            record.seen = true; record.published = item.published; record.read_changed_at = now;
+        });
+        meta.updated_at = now; gistSync.setLocal(meta);
+        markShortsDone.disabled = true;
+        try { await upload(); closeShorts(); renderAll(); toast('Shorts marked done', 'success', 2000); }
+        catch (error) { toast(error.message || 'Could not save Shorts', 'error', 4000); markShortsDone.disabled = false; }
+    }
+    shortsBtn?.addEventListener('click', openShorts);
+    closeShortsBtn?.addEventListener('click', closeShorts);
+    markShortsDoneBtn?.addEventListener('click', markShortsDone);
+    let shortsTouchY = 0;
+    shortsViewer?.addEventListener('touchstart', e => { shortsTouchY = e.touches[0].clientY; }, { passive: true });
+    shortsViewer?.addEventListener('touchend', e => { if (shortsTouchY - e.changedTouches[0].clientY > 45) nextShort(); }, { passive: true });
+    shortsViewer?.addEventListener('wheel', e => { if (e.deltaY > 30) { e.preventDefault(); nextShort(); } }, { passive: false });
+
     function renderFeed() {
         if (!feedEl) return;
+        const displayData = rssSettings.disableShorts ? feedData.filter(item => !isShort(item)) : feedData;
         const starredIds = new Set(getStarredItems(meta));
-        const unstarred = feedData.filter(i => !starredIds.has(i.id));
-        const starred = feedData.filter(i => starredIds.has(i.id));
-        const unreadCount = feedData.filter(item => isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id))).length;
+        const unstarred = displayData.filter(i => !starredIds.has(i.id));
+        const starred = displayData.filter(i => starredIds.has(i.id));
+        const unreadCount = displayData.filter(item => isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id))).length;
         const markReadAction = unreadCount ? `
             <div class="mark-read-action">
                 <button id="mark-read-btn" class="btn mark-read-btn" type="button"${syncReady ? '' : ' disabled'}>
@@ -775,6 +883,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderArchived(meta.items);
         applyView(meta.items);
         syncThumbAspect();
+        updateShortsButton();
     }
 
     window.addEventListener('blink-sync', event => {
@@ -796,6 +905,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('keydown', e => {
         if (e.target.tagName === 'INPUT') return;
+        if (!shortsViewer.hidden) {
+            if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); nextShort(); }
+            else if (e.key === 'Escape' || e.key === 'ArrowUp') { e.preventDefault(); if (e.key === 'Escape') closeShorts(); }
+            return;
+        }
         const items = visibleItems();
         if (!items.length) return;
         switch (e.key) {

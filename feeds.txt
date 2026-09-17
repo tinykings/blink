@@ -1,3 +1,7 @@
+#settings
+include_youtube_shorts=true
+separate_shorts=true
+
 #rss
 # Reddit EmulationOniOS
 https://www.reddit.com/r/EmulationOniOS/top.rss?t=week

@@ -35,7 +35,7 @@
         }
     </script>
 </head>
-<body data-retention-days="5">
+<body data-retention-days="5" data-disable-shorts="false" data-separate-shorts="true">
     <div id="loading">
         <div class="skeleton">
             <div class="skeleton-card"><div class="skeleton-media"></div><div class="skeleton-title"></div><div class="skeleton-meta"></div></div>
@@ -79,6 +79,9 @@
             </button>
             <button id="manage-feeds-btn" class="btn floating-btn" title="Manage feeds" aria-label="Manage feeds" disabled>
                 <svg viewBox="0 0 24 24"><circle cx="5" cy="19" r="1"/><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/></svg>
+            </button>
+            <button id="shorts-btn" class="btn floating-btn shorts-footer-btn" title="Open Shorts" aria-label="Open Shorts" hidden>
+                <svg viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></svg>
             </button>
         </div>
         <button id="refresh-feeds-btn" class="btn floating-btn floating-right" title="Refresh feeds" aria-label="Refresh feeds" disabled>
@@ -128,6 +131,8 @@
             </div>
             <div id="feed-list" class="feed-list" aria-live="polite"></div>
             <div class="modal-actions feeds-actions">
+                <button id="rss-settings-btn" class="btn feeds-settings-btn" type="button">Settings</button>
+                <span class="feeds-actions-spacer"></span>
                 <button id="discard-feeds-btn" class="btn" type="button">Discard</button>
                 <button id="save-feeds-btn" class="btn primary" type="button" disabled>Save</button>
             </div>
@@ -140,14 +145,31 @@
             <div id="status" class="status"></div>
             <p style="font-size:.85rem;color:var(--muted);margin-block-end:12px;">GitHub Gist sync</p>
             <p id="github-connection" class="connection-state">Not connected</p>
+            <div class="rss-preferences">
+                <h3>RSS preferences</h3>
+                <label class="toggle-row"><input id="disable-shorts-toggle" type="checkbox"><span>Disable YouTube Shorts</span></label>
+                <p class="setting-hint">When enabled, Shorts stay out of normal feed.</p>
+                <label class="toggle-row"><input id="separate-shorts-toggle" type="checkbox"><span>Separate Shorts</span></label>
+                <p class="setting-hint">Show Shorts in dedicated viewer.</p>
+            </div>
             <button id="connect-github-btn" class="btn connect-btn">Connect GitHub</button>
             <div class="modal-actions">
                 <button id="disconnect-github-btn" class="btn danger" hidden>Disconnect</button>
+                <button id="save-rss-settings-btn" class="btn primary" type="button">Save RSS settings</button>
                 <button id="close-btn" class="btn">Close</button>
             </div>
         </div>
     </div>
 
+    <div id="shorts-viewer" class="shorts-viewer" hidden>
+        <button id="close-shorts-btn" class="shorts-close" type="button" aria-label="Close Shorts">×</button>
+        <h2 id="shorts-viewer-title" class="shorts-viewer-title"></h2>
+        <div id="shorts-stage" class="shorts-stage"></div>
+        <div class="shorts-end" hidden>
+            <p>End of Shorts</p>
+            <button id="mark-shorts-done-btn" class="btn primary" type="button">Mark Shorts as done</button>
+        </div>
+    </div>
     <script type="module" src="js/main.js?v=23"></script>
 <script id="feed-data" type="application/json">[
   {

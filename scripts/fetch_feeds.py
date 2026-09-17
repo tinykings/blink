@@ -24,6 +24,7 @@ warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 # Configuration
 TIMEZONE = 'America/Los_Angeles'
 ITEMS_RETENTION_DAYS = 5
+# Defaults used when feeds.txt has no app settings block.
 INCLUDE_YOUTUBE_SHORTS = False
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
 REQUEST_TIMEOUT = 30
@@ -71,6 +72,11 @@ class FeedProcessor:
         self.session = requests.Session()
         self.session.headers.update({'User-Agent': USER_AGENT})
         self.feed_title_overrides: Dict[str, str] = {}
+        self.include_youtube_shorts: Optional[bool] = None
+        self.separate_shorts = False
+
+    def youtube_shorts_enabled(self) -> bool:
+        return INCLUDE_YOUTUBE_SHORTS if self.include_youtube_shorts is None else self.include_youtube_shorts
         
     def get_youtube_channel_info(self, url: str) -> Tuple[Optional[str], Optional[str]]:
         """Extract YouTube channel ID and name from URL."""
@@ -170,7 +176,10 @@ class FeedProcessor:
                 continue
             if line.startswith('#'):
                 lowered = line.lower()
-                if lowered == '#rss':
+                if lowered == '#settings':
+                    current_section = 'settings'
+                    pending_comment = None
+                elif lowered == '#rss':
                     current_section = 'rss'
                     pending_comment = None
                 elif lowered == '#youtube':
@@ -180,6 +189,17 @@ class FeedProcessor:
                     pending_comment = line
                 continue
 
+            if current_section == 'settings':
+                key, _, value = line.partition('=')
+                setting_key = key.strip().lower()
+                enabled = value.strip().lower() in ('1', 'true', 'yes', 'on')
+                if setting_key == 'include_youtube_shorts':
+                    self.include_youtube_shorts = enabled
+                elif setting_key == 'disable_shorts':
+                    self.include_youtube_shorts = not enabled
+                elif setting_key == 'separate_shorts':
+                    self.separate_shorts = value.strip().lower() in ('1', 'true', 'yes', 'on')
+                continue
             if current_section == 'rss':
                 if 'youtube.com/feeds/videos.xml' in line:
                     youtube_rss_urls.append((line, pending_comment))
@@ -246,13 +266,13 @@ class FeedProcessor:
         for url, _, channel_name in converted_entries:
             if not url.startswith("https://www.youtube.com/feeds/videos.xml"):
                 continue
-            if not INCLUDE_YOUTUBE_SHORTS:
+            if not self.youtube_shorts_enabled():
                 url = url.replace('channel_id=UC', 'playlist_id=UULF', 1)
             youtube_feed_urls.append(url)
             if channel_name:
                 self.feed_title_overrides[url] = channel_name
 
-        if not INCLUDE_YOUTUBE_SHORTS:
+        if not self.youtube_shorts_enabled():
             logger.info("YouTube Shorts disabled; using long-form uploads playlists")
 
         all_rss_urls = rss_urls + youtube_feed_urls
@@ -379,7 +399,7 @@ class FeedProcessor:
                     continue
 
                 # Playlists can still contain Shorts; also check each entry's URL.
-                if (is_youtube_feed and not INCLUDE_YOUTUBE_SHORTS
+                if (is_youtube_feed and not self.youtube_shorts_enabled()
                         and urlsplit(link).path.startswith('/shorts/')):
                     continue
 
@@ -582,6 +602,8 @@ class FeedProcessor:
         last_updated_text = now.strftime("%I:%M")
         template = template.replace('<!-- last_updated_placeholder -->', last_updated_text)
         template = template.replace('<!-- items_retention_days_placeholder -->', str(ITEMS_RETENTION_DAYS))
+        template = template.replace('<!-- disable_shorts_placeholder -->', str(not self.youtube_shorts_enabled()).lower())
+        template = template.replace('<!-- separate_shorts_placeholder -->', str(self.separate_shorts).lower())
         
         try:
             with open(output_path, 'w', encoding='utf-8') as f:
