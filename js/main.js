@@ -856,8 +856,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         meta.updated_at = now; gistSync.setLocal(meta);
         markShortsDone.disabled = true;
-        try { await upload(); closeShorts(); renderAll(); toast('Shorts marked done', 'success', 2000); }
-        catch (error) { toast(error.message || 'Could not save Shorts', 'error', 4000); markShortsDone.disabled = false; }
+        try { await upload(); closeShorts(); renderAll(); showFeedSyncMessage('Shorts marked done', 'success', 2000); }
+        catch (error) { showFeedSyncMessage(error.message || 'Could not save Shorts', 'error', 4000); markShortsDone.disabled = false; }
     }
     shortsStage?.addEventListener('click', event => {
         const button = event.target.closest('[data-short-command]');
