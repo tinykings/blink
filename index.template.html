@@ -67,11 +67,6 @@
         </div>
     </div>
 
-    <div id="feed-sync-status" class="feed-sync-status" role="status" aria-live="polite" aria-atomic="true" hidden>
-        <span class="sync-spinner" aria-hidden="true"></span>
-        <span id="feed-sync-text">Refreshing feeds...</span>
-    </div>
-
     <div id="floating-buttons">
         <div class="floating-left floating-group">
             <button id="view-btn" class="btn floating-btn" title="Toggle view" aria-label="Toggle view">
@@ -84,6 +79,11 @@
                 <svg viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></svg>
             </button>
         </div>
+        <div id="feed-sync-status" class="feed-sync-status" role="status" aria-live="polite" aria-atomic="true" hidden>
+            <span class="sync-spinner" aria-hidden="true"></span>
+            <span id="feed-sync-text">Refreshing feeds...</span>
+        </div>
+        <div id="shorts-empty-status" class="shorts-empty-status" role="status" aria-live="polite" hidden>No shorts</div>
         <button id="refresh-feeds-btn" class="btn floating-btn floating-right" title="Refresh feeds" aria-label="Refresh feeds" disabled>
             <svg viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5"/></svg>
         </button>

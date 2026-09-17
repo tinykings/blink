@@ -240,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const keyboardHelp = $('keyboard-help');
     const setupForm = $('setup-form');
     const shortsBtn = $('shorts-btn');
+    const shortsEmptyStatus = $('shorts-empty-status');
     const shortsViewer = $('shorts-viewer');
     const shortsStage = $('shorts-stage');
     const shortsViewerTitle = $('shorts-viewer-title');
@@ -265,6 +266,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     let shortsItems = [];
     let shortsIndex = 0;
+    let shortsEmptyStatusTimer;
+    let feedSyncStatusTimer;
 
     if (refreshFeedsBtn) refreshFeedsBtn.disabled = true;
     if (manageFeedsBtn) manageFeedsBtn.disabled = true;
@@ -315,9 +318,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setFeedSyncStatus(message, type = 'progress') {
         if (!feedSyncStatus || !feedSyncText) return;
+        clearTimeout(feedSyncStatusTimer);
         feedSyncText.textContent = message;
         feedSyncStatus.className = `feed-sync-status ${type}`;
         feedSyncStatus.hidden = false;
+    }
+
+    function showFeedSyncMessage(message, type, ms) {
+        if (!feedSyncStatus) return;
+        setFeedSyncStatus(message, type);
+        feedSyncStatusTimer = setTimeout(() => { feedSyncStatus.hidden = true; }, ms);
     }
 
     function setUpdatedAtText() {
@@ -798,7 +808,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateShortsButton() {
         if (!shortsBtn) return;
         const count = feedData.filter(item => isShort(item) && isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id))).length;
-        const available = !rssSettings.disableShorts && rssSettings.separateShorts && count > 0;
+        const available = !rssSettings.disableShorts && rssSettings.separateShorts;
         shortsBtn.hidden = !available;
         shortsBtn.classList.toggle('has-shorts', count > 0);
         shortsBtn.title = 'Open Shorts';
@@ -813,10 +823,17 @@ document.addEventListener('DOMContentLoaded', () => {
         shortsViewer.querySelector('.shorts-end').hidden = true;
     }
 
+    function showNoShorts() {
+        if (!shortsEmptyStatus) return;
+        clearTimeout(shortsEmptyStatusTimer);
+        shortsEmptyStatus.hidden = false;
+        shortsEmptyStatusTimer = setTimeout(() => { shortsEmptyStatus.hidden = true; }, 5000);
+    }
+
     function openShorts() {
         const unread = feedData.filter(item => isShort(item) && isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id)));
         shortsItems = unread;
-        if (!shortsItems.length) return;
+        if (!shortsItems.length) { showNoShorts(); return; }
         if (shortsViewerTitle) shortsViewerTitle.textContent = 'New Shorts';
         shortsIndex = 0;
         shortsViewer.hidden = false;
@@ -1203,13 +1220,11 @@ document.addEventListener('DOMContentLoaded', () => {
             meta.updated_at = now;
             gistSync.setLocal(meta);
             await upload();
-            toast('Marked all read', 'success', 2000);
-            if (feedSyncStatus) feedSyncStatus.hidden = true;
+            showFeedSyncMessage('Marked all read', 'success', 2000);
             renderAll();
         } catch (error) {
             const message = error.message || 'Could not mark items read. Try again.';
-            setFeedSyncStatus(message, 'error');
-            toast(message, 'error', 5000);
+            showFeedSyncMessage(message, 'error', 5000);
             button.disabled = false;
         } finally {
             if (refreshFeedsBtn) refreshFeedsBtn.disabled = !syncReady;
@@ -1241,8 +1256,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         } catch (error) {
             const message = error.message || 'Feed refresh failed. Try again.';
-            setFeedSyncStatus(message, 'error');
-            toast(message, 'error', 5000);
+            showFeedSyncMessage(message, 'error', 5000);
             refreshFeedsBtn.disabled = false;
             refreshFeedsBtn.classList.remove('refreshing');
             if (markReadButton) markReadButton.disabled = false;
