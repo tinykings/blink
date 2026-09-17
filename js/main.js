@@ -709,8 +709,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateShortsButton() {
         if (!shortsBtn) return;
         const count = feedData.filter(item => isShort(item) && isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id))).length;
-        const totalShorts = feedData.filter(isShort).length;
-        const available = !rssSettings.disableShorts && rssSettings.separateShorts && totalShorts > 0;
+        const available = !rssSettings.disableShorts && rssSettings.separateShorts && count > 0;
         shortsBtn.hidden = !available;
         shortsBtn.classList.toggle('has-shorts', count > 0);
         shortsBtn.title = 'Open Shorts';
@@ -727,9 +726,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openShorts() {
         const unread = feedData.filter(item => isShort(item) && isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id)));
-        shortsItems = unread.length ? unread : feedData.filter(isShort);
+        shortsItems = unread;
         if (!shortsItems.length) return;
-        if (shortsViewerTitle) shortsViewerTitle.textContent = unread.length ? 'New Shorts' : 'All Shorts';
+        if (shortsViewerTitle) shortsViewerTitle.textContent = 'New Shorts';
         shortsIndex = 0;
         shortsViewer.hidden = false;
         document.body.classList.add('shorts-open');
@@ -1086,7 +1085,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function markAllRead(button) {
         if (button.disabled || !syncReady) return;
         const currentMetaById = new Map((gistSync.getLocal().items || []).map(item => [item.id, item]));
-        const unreadCount = feedData.filter(item => isUnreadVersion(item, currentMetaById.get(item.id))).length;
+        const mainItems = feedData.filter(item => !isShort(item) || !rssSettings.separateShorts);
+        const unreadCount = mainItems.filter(item => isUnreadVersion(item, currentMetaById.get(item.id))).length;
         if (!unreadCount || !confirm(`Mark all ${unreadCount} unread items as read?`)) return;
 
         button.disabled = true;
@@ -1098,7 +1098,7 @@ document.addEventListener('DOMContentLoaded', () => {
             meta.items = meta.items || [];
             const now = new Date().toISOString();
             const metaById = new Map(meta.items.map(item => [item.id, item]));
-            feedData.forEach(item => {
+            mainItems.forEach(item => {
                 const m = metaById.get(item.id);
                 if (!isUnreadVersion(item, m)) return;
                 if (!m) {
