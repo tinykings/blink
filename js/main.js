@@ -15,7 +15,7 @@ import {
 } from './github-auth.js';
 
 let meta = { items: [] };
-let rssSettings = { disableShorts: true, separateShorts: false };
+let rssSettings = { disableShorts: true };
 
 function relTime(dateStr) {
     if (!dateStr) return '';
@@ -93,7 +93,6 @@ function parseFeedsFile(content) {
             const [key, value] = line.split('=', 2);
             if (key === 'include_youtube_shorts') rssSettings.disableShorts = !['true', '1', 'yes', 'on'].includes((value || '').trim().toLowerCase());
             if (key === 'disable_shorts') rssSettings.disableShorts = ['true', '1', 'yes', 'on'].includes((value || '').trim().toLowerCase());
-            if (key === 'separate_shorts') rssSettings.separateShorts = ['true', '1', 'yes', 'on'].includes((value || '').trim().toLowerCase());
         } else {
             feeds.push({ type, url: line, name: pendingName });
             pendingName = '';
@@ -102,10 +101,10 @@ function parseFeedsFile(content) {
     return feeds;
 }
 
-function serializeFeedsFile(feeds, settings = { disableShorts: true, separateShorts: false }) {
+function serializeFeedsFile(feeds, settings = { disableShorts: true }) {
     const rss = feeds.filter(feed => feed.type === 'rss');
     const youtube = feeds.filter(feed => feed.type === 'youtube');
-    const lines = ['#settings', `include_youtube_shorts=${!settings.disableShorts}`, `separate_shorts=${settings.separateShorts}`, '', '#rss'];
+    const lines = ['#settings', `include_youtube_shorts=${!settings.disableShorts}`, '', '#rss'];
     rss.forEach(feed => {
         if (feed.name) lines.push(`# ${feed.name}`);
         lines.push(feed.url.trim());
@@ -261,8 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let addingFeed = false;
     const pageSettings = document.body?.dataset || {};
     rssSettings = {
-        disableShorts: pageSettings.disableShorts !== 'false',
-        separateShorts: pageSettings.separateShorts === 'true'
+        disableShorts: pageSettings.disableShorts !== 'false'
     };
     let shortsItems = [];
     let shortsIndex = 0;
@@ -357,9 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (disconnectBtn) disconnectBtn.hidden = localDev || !connected;
         const disable = $('disable-shorts-toggle');
-        const separate = $('separate-shorts-toggle');
         if (disable) disable.checked = rssSettings.disableShorts;
-        if (separate) { separate.checked = rssSettings.separateShorts; separate.disabled = rssSettings.disableShorts; }
     }
 
     function closeSettings() { closeModal(settingsModal); }
@@ -393,14 +389,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     $('settings-link')?.addEventListener('click', openSettings);
     $('rss-settings-btn')?.addEventListener('click', openSettings);
-    $('disable-shorts-toggle')?.addEventListener('change', event => {
-        const separate = $('separate-shorts-toggle');
-        if (separate) separate.disabled = event.target.checked;
-    });
     $('save-rss-settings-btn')?.addEventListener('click', async () => {
         const next = {
-            disableShorts: $('disable-shorts-toggle')?.checked ?? true,
-            separateShorts: !($('disable-shorts-toggle')?.checked ?? true) && ($('separate-shorts-toggle')?.checked ?? false)
+            disableShorts: $('disable-shorts-toggle')?.checked ?? true
         };
         try {
             // Refresh SHA first; feed refresh workflow may have updated feeds.txt.
@@ -808,7 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateShortsButton() {
         if (!shortsBtn) return;
         const count = feedData.filter(item => isShort(item) && isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id))).length;
-        const available = !rssSettings.disableShorts && rssSettings.separateShorts;
+        const available = !rssSettings.disableShorts;
         shortsBtn.hidden = !available;
         shortsBtn.classList.toggle('has-shorts', count > 0);
         shortsBtn.title = 'Open Shorts';
@@ -831,6 +822,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openShorts() {
+        if (rssSettings.disableShorts) return;
         const unread = feedData.filter(item => isShort(item) && isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id)));
         shortsItems = unread;
         if (!shortsItems.length) { showNoShorts(); return; }
@@ -892,9 +884,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderFeed() {
         if (!feedEl) return;
-        const displayData = (rssSettings.disableShorts || rssSettings.separateShorts)
-            ? feedData.filter(item => !isShort(item))
-            : feedData;
+        const displayData = feedData.filter(item => !isShort(item));
         const starredIds = new Set(getStarredItems(meta));
         const unstarred = displayData.filter(i => !starredIds.has(i.id));
         const starred = displayData.filter(i => starredIds.has(i.id));
@@ -1191,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function markAllRead(button) {
         if (button.disabled || !syncReady) return;
         const currentMetaById = new Map((gistSync.getLocal().items || []).map(item => [item.id, item]));
-        const mainItems = feedData.filter(item => !isShort(item) || !rssSettings.separateShorts);
+        const mainItems = feedData.filter(item => !isShort(item));
         const unreadCount = mainItems.filter(item => isUnreadVersion(item, currentMetaById.get(item.id))).length;
         if (!unreadCount || !confirm(`Mark all ${unreadCount} unread items as read?`)) return;
 

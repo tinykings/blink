@@ -73,7 +73,6 @@ class FeedProcessor:
         self.session.headers.update({'User-Agent': USER_AGENT})
         self.feed_title_overrides: Dict[str, str] = {}
         self.include_youtube_shorts: Optional[bool] = None
-        self.separate_shorts = False
 
     def youtube_shorts_enabled(self) -> bool:
         return INCLUDE_YOUTUBE_SHORTS if self.include_youtube_shorts is None else self.include_youtube_shorts
@@ -197,8 +196,6 @@ class FeedProcessor:
                     self.include_youtube_shorts = enabled
                 elif setting_key == 'disable_shorts':
                     self.include_youtube_shorts = not enabled
-                elif setting_key == 'separate_shorts':
-                    self.separate_shorts = value.strip().lower() in ('1', 'true', 'yes', 'on')
                 continue
             if current_section == 'rss':
                 if 'youtube.com/feeds/videos.xml' in line:
@@ -603,7 +600,6 @@ class FeedProcessor:
         template = template.replace('<!-- last_updated_placeholder -->', last_updated_text)
         template = template.replace('<!-- items_retention_days_placeholder -->', str(ITEMS_RETENTION_DAYS))
         template = template.replace('<!-- disable_shorts_placeholder -->', str(not self.youtube_shorts_enabled()).lower())
-        template = template.replace('<!-- separate_shorts_placeholder -->', str(self.separate_shorts).lower())
         
         try:
             with open(output_path, 'w', encoding='utf-8') as f:

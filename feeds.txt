@@ -1,6 +1,5 @@
 #settings
 include_youtube_shorts=true
-separate_shorts=true
 
 #rss
 # Reddit EmulationOniOS
