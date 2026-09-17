@@ -127,6 +127,15 @@ function validFeedUrl(value) {
     }
 }
 
+function isYouTubeUrl(value) {
+    try {
+        const hostname = new URL(value).hostname.toLowerCase().replace(/^www\./, '');
+        return hostname === 'youtube.com' || hostname.endsWith('.youtube.com');
+    } catch {
+        return false;
+    }
+}
+
 function inferFeedType(value) {
     try {
         const hostname = new URL(value).hostname.toLowerCase().replace(/^www\./, '');
@@ -217,14 +226,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const manageFeedsBtn = $('manage-feeds-btn');
     const feedsModal = $('feeds-modal');
     const closeFeedsBtn = $('close-feeds-btn');
-    const discardFeedsBtn = $('discard-feeds-btn');
-    const saveFeedsBtn = $('save-feeds-btn');
     const feedsStatus = $('feeds-status');
     const feedsSummary = $('feeds-summary');
     const feedList = $('feed-list');
     const feedSearch = $('feed-search');
     const addFeedForm = $('add-feed-form');
-    const feedUrl = $('feed-url');
     const refreshFeedsBtn = $('refresh-feeds-btn');
     const feedSyncStatus = $('feed-sync-status');
     const feedSyncText = $('feed-sync-text');
@@ -251,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let feedsSha = '';
     let feedsDirty = false;
     let selectedFeedIndex = null;
+    let addingFeed = false;
     const pageSettings = document.body?.dataset || {};
     rssSettings = {
         disableShorts: pageSettings.disableShorts !== 'false',
@@ -409,10 +416,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setFeedsDirty(dirty) {
         feedsDirty = dirty;
-        if (saveFeedsBtn) saveFeedsBtn.disabled = !dirty;
         if (feedsSummary) {
             const suffix = dirty ? ' · Unsaved changes' : '';
             feedsSummary.textContent = `${managedFeeds.length} subscription${managedFeeds.length === 1 ? '' : 's'}${suffix}`;
+        }
+    }
+
+    async function persistManagedFeeds() {
+        const invalid = managedFeeds.find(feed => !validFeedUrl(feed.url));
+        if (invalid) {
+            setStatus(`Invalid feed URL: ${invalid.url || 'empty URL'}`, 'error', feedsStatus);
+            return false;
+        }
+        const normalized = managedFeeds.map(feed => feed.url.trim());
+        if (new Set(normalized).size !== normalized.length) {
+            setStatus('Remove duplicate feed URLs before saving.', 'error', feedsStatus);
+            return false;
+        }
+        setStatus('Saving feeds...', 'info', feedsStatus);
+        try {
+            const result = await updateFeedsFile(serializeFeedsFile(managedFeeds, rssSettings), feedsSha);
+            feedsSha = result.content?.sha || feedsSha;
+            managedFeeds.forEach(feed => { delete feed.isNew; });
+            setFeedsDirty(false);
+            toast('Feeds saved', 'success', 2200);
+            return true;
+        } catch (error) {
+            setStatus(error.message || 'Could not save feeds. Try again.', 'error', feedsStatus);
+            return false;
         }
     }
 
@@ -421,7 +452,96 @@ document.addEventListener('DOMContentLoaded', () => {
         feedList.innerHTML = '';
         const content = feedsModal?.querySelector('.feeds-content');
         const selectedFeed = selectedFeedIndex === null ? null : managedFeeds[selectedFeedIndex];
-        content?.classList.toggle('editing-feed', !!selectedFeed);
+        content?.classList.toggle('editing-feed', !!selectedFeed || addingFeed);
+
+        if (addingFeed) {
+            const detail = document.createElement('div');
+            detail.className = 'feed-detail feed-add-detail';
+
+            const back = document.createElement('button');
+            back.className = 'feed-detail-back';
+            back.type = 'button';
+            back.innerHTML = '<svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg><span>All feeds</span>';
+            back.addEventListener('click', () => {
+                addingFeed = false;
+                renderManagedFeeds();
+            });
+
+            const title = document.createElement('h3');
+            title.textContent = 'Add feed';
+            const rssLabel = document.createElement('label');
+            rssLabel.textContent = 'RSS feed';
+            const rss = document.createElement('input');
+            rss.type = 'url';
+            rss.inputMode = 'url';
+            rss.autocomplete = 'url';
+            rss.placeholder = 'https://example.com/feed.xml';
+            const youtubeLabel = document.createElement('label');
+            youtubeLabel.textContent = 'YouTube channel URL or name';
+            const youtube = document.createElement('input');
+            youtube.type = 'text';
+            youtube.autocomplete = 'off';
+            youtube.placeholder = 'https://www.youtube.com/@9to5Mac or 9to5Mac';
+            const add = document.createElement('button');
+            add.className = 'btn primary feed-detail-add';
+            add.type = 'button';
+            add.textContent = 'Add';
+            add.addEventListener('click', async () => {
+                const rssUrl = rss.value.trim();
+                const channel = youtube.value.trim();
+                if (!rssUrl && !channel) {
+                    setStatus('Enter RSS feed or YouTube channel.', 'error', feedsStatus);
+                    rss.focus();
+                    return;
+                }
+                if (rssUrl && !validFeedUrl(rssUrl)) {
+                    setStatus('Enter a valid RSS feed URL.', 'error', feedsStatus);
+                    rss.focus();
+                    return;
+                }
+                if (channel && validFeedUrl(channel) && !isYouTubeUrl(channel)) {
+                    setStatus('Enter a YouTube channel URL or name.', 'error', feedsStatus);
+                    youtube.focus();
+                    return;
+                }
+                if (channel && !validFeedUrl(channel)) {
+                    const handle = channel.replace(/^@/, '').replace(/\s+/g, '');
+                    if (!handle) {
+                        setStatus('Enter valid YouTube channel URL or name.', 'error', feedsStatus);
+                        youtube.focus();
+                        return;
+                    }
+                    youtube.value = `https://www.youtube.com/@${handle}`;
+                }
+                const entries = [];
+                if (rssUrl) entries.push({ type: inferFeedType(rssUrl), url: rssUrl, name: '', isNew: true });
+                if (channel) {
+                    const channelUrl = youtube.value.trim();
+                    entries.push({ type: 'youtube', url: channelUrl, name: '', isNew: true });
+                }
+                const duplicates = entries.some(entry => managedFeeds.some(feed => feed.url === entry.url));
+                if (duplicates) {
+                    setStatus('This feed is already in your list.', 'error', feedsStatus);
+                    return;
+                }
+                managedFeeds.unshift(...entries.reverse());
+                add.disabled = true;
+                setFeedsDirty(true);
+                if (await persistManagedFeeds()) {
+                    addingFeed = false;
+                    clearStatus(feedsStatus);
+                    renderManagedFeeds();
+                } else {
+                    managedFeeds.splice(0, entries.length);
+                    setFeedsDirty(false);
+                    add.disabled = false;
+                }
+            });
+            detail.append(back, title, rssLabel, rss, youtubeLabel, youtube, add);
+            feedList.appendChild(detail);
+            rss.focus();
+            return;
+        }
 
         if (selectedFeed) {
             const detail = document.createElement('div');
@@ -473,6 +593,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const detailActions = document.createElement('div');
             detailActions.className = 'feed-detail-actions';
+            const save = document.createElement('button');
+            save.className = 'btn primary';
+            save.type = 'button';
+            save.textContent = 'Save';
+            save.addEventListener('click', async () => {
+                save.disabled = true;
+                if (await persistManagedFeeds()) {
+                    selectedFeedIndex = null;
+                    renderManagedFeeds();
+                } else {
+                    save.disabled = false;
+                }
+            });
             const copy = document.createElement('button');
             copy.className = 'btn';
             copy.type = 'button';
@@ -496,7 +629,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 setFeedsDirty(true);
                 renderManagedFeeds();
             });
-            detailActions.append(copy, remove);
+            detailActions.append(save, copy, remove);
             detail.append(back, title, nameLabel, name, urlLabel, url, detailActions);
             feedList.appendChild(detail);
             return;
@@ -553,11 +686,11 @@ document.addEventListener('DOMContentLoaded', () => {
         clearStatus(feedsStatus);
         if (feedList) feedList.innerHTML = '<p class="feed-empty">Loading feeds...</p>';
         if (feedsSummary) feedsSummary.textContent = 'Loading subscriptions...';
-        if (saveFeedsBtn) saveFeedsBtn.disabled = true;
         try {
             const file = await getFeedsFile();
             managedFeeds = parseFeedsFile(file.content);
             selectedFeedIndex = null;
+            addingFeed = false;
             feedsSha = file.sha;
             if (feedSearch) feedSearch.value = '';
             setFeedsDirty(false);
@@ -570,63 +703,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeFeeds() {
-        if (feedsDirty && !confirm('Discard unsaved feed changes?')) return;
         closeModal(feedsModal);
     }
 
     manageFeedsBtn?.addEventListener('click', openFeeds);
     closeFeedsBtn?.addEventListener('click', closeFeeds);
-    discardFeedsBtn?.addEventListener('click', closeFeeds);
     feedsModal?.addEventListener('click', event => { if (event.target === feedsModal) closeFeeds(); });
     feedSearch?.addEventListener('input', renderManagedFeeds);
     addFeedForm?.addEventListener('submit', event => {
         event.preventDefault();
-        const url = feedUrl?.value.trim() || '';
-        if (!validFeedUrl(url)) {
-            setStatus('Enter a valid http or https URL.', 'error', feedsStatus);
-            feedUrl?.focus();
-            return;
-        }
-        if (managedFeeds.some(feed => feed.url === url)) {
-            setStatus('This feed is already in your list.', 'error', feedsStatus);
-            return;
-        }
-        managedFeeds.unshift({ type: inferFeedType(url), url, name: '', isNew: true });
-        if (feedUrl) feedUrl.value = '';
-        if (feedSearch) feedSearch.value = '';
+        addingFeed = true;
+        selectedFeedIndex = null;
         clearStatus(feedsStatus);
-        setFeedsDirty(true);
         renderManagedFeeds();
-        feedUrl?.focus();
-    });
-    saveFeedsBtn?.addEventListener('click', async () => {
-        const invalid = managedFeeds.find(feed => !validFeedUrl(feed.url));
-        if (invalid) {
-            setStatus(`Invalid feed URL: ${invalid.url || 'empty URL'}`, 'error', feedsStatus);
-            return;
-        }
-        const normalized = managedFeeds.map(feed => feed.url.trim());
-        if (new Set(normalized).size !== normalized.length) {
-            setStatus('Remove duplicate feed URLs before saving.', 'error', feedsStatus);
-            return;
-        }
-        saveFeedsBtn.disabled = true;
-        if (closeFeedsBtn) closeFeedsBtn.disabled = true;
-        setStatus('Saving feeds...', 'info', feedsStatus);
-        try {
-            const result = await updateFeedsFile(serializeFeedsFile(managedFeeds, rssSettings), feedsSha);
-            feedsSha = result.content?.sha || feedsSha;
-        } catch (error) {
-            setStatus(error.message || 'Could not save feeds. Try again.', 'error', feedsStatus);
-            saveFeedsBtn.disabled = false;
-            if (closeFeedsBtn) closeFeedsBtn.disabled = false;
-            return;
-        }
-        managedFeeds.forEach(feed => { delete feed.isNew; });
-        setFeedsDirty(false);
-        if (closeFeedsBtn) closeFeedsBtn.disabled = false;
-        closeModal(feedsModal);
-        toast('Feeds saved', 'success', 2200);
     });
 
     if (repoLink) repoLink.href = `https://github.com/${getFeedRepository()}`;

@@ -503,7 +503,9 @@ img { max-width: 100%; height: auto; display: block; }
 .add-feed-form label { margin: 0; }
 .add-feed-row { display: flex; gap: 8px; min-width: 0; }
 .add-feed-row input { width: auto; min-width: 0; flex: 1; }
-.feed-add-btn { min-width: 68px; min-height: 44px; padding-inline: 16px; font-weight: 700; }
+.feed-add-btn { min-width: 100px; min-height: 44px; padding-inline: 16px; font-weight: 700; }
+.add-feed-form .feed-add-btn { grid-column: 1 / -1; width: 100%; }
+.feed-detail-add { min-height: 44px; margin-block-start: 24px; padding-inline: 18px; font-weight: 700; }
 .feed-list-toolbar { padding-block: 14px 10px; }
 .feed-list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: var(--border) transparent; }
 .feed-row {

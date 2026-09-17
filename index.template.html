@@ -119,11 +119,7 @@
             </div>
             <div id="feeds-status" class="status" role="status" aria-live="polite"></div>
             <form id="add-feed-form" class="add-feed-form">
-                <label for="feed-url">RSS or YouTube Channel</label>
-                <div class="add-feed-row">
-                    <input id="feed-url" type="url" inputmode="url" autocomplete="url" placeholder="https://example.com/feed.xml or youtube.com/@channel" required>
-                    <button class="btn feed-add-btn" type="submit">Add</button>
-                </div>
+                <button id="open-add-feed-btn" class="btn feed-add-btn" type="submit">Add feed</button>
             </form>
             <div class="feed-list-toolbar">
                 <label class="sr-only" for="feed-search">Search feeds</label>
@@ -132,9 +128,6 @@
             <div id="feed-list" class="feed-list" aria-live="polite"></div>
             <div class="modal-actions feeds-actions">
                 <button id="rss-settings-btn" class="btn feeds-settings-btn" type="button">Settings</button>
-                <span class="feeds-actions-spacer"></span>
-                <button id="discard-feeds-btn" class="btn" type="button">Discard</button>
-                <button id="save-feeds-btn" class="btn primary" type="button" disabled>Save</button>
             </div>
         </div>
     </div>
