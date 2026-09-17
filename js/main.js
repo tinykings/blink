@@ -15,6 +15,7 @@ import {
 } from './github-auth.js';
 
 let meta = { items: [] };
+let rssSettings = { disableShorts: true, separateShorts: false };
 
 function relTime(dateStr) {
     if (!dateStr) return '';
@@ -251,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let feedsDirty = false;
     let selectedFeedIndex = null;
     const pageSettings = document.body?.dataset || {};
-    let rssSettings = {
+    rssSettings = {
         disableShorts: pageSettings.disableShorts !== 'false',
         separateShorts: pageSettings.separateShorts === 'true'
     };
