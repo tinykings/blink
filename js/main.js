@@ -253,6 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let showingDesc = false;
     let currentIdx = -1;
     let syncReady = false;
+    let starSyncPending = false;
+    const displayedStarGroup = new Map();
     let managedFeeds = [];
     let feedsSha = '';
     let feedsDirty = false;
@@ -773,7 +775,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!feedEl) return;
         feedEl.querySelectorAll('.item[data-archived]').forEach(el => el.remove());
         const activeIds = new Set(feedData.map(i => i.id));
-        const archived = (metaItems || []).filter(i => i?.starred && !activeIds.has(i.id) && (i.url || i.link));
+        const archived = (metaItems || []).filter(i => (i?.starred || displayedStarGroup.get(i?.id)) && !activeIds.has(i.id) && (i.url || i.link));
+        archived.forEach(item => {
+            if (!displayedStarGroup.has(item.id)) displayedStarGroup.set(item.id, true);
+        });
         if (!archived.length) return;
         const frag = document.createDocumentFragment();
         archived.forEach(m => {
@@ -792,6 +797,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (el) { el.dataset.archived = 'true'; frag.appendChild(el); }
         });
         feedEl.appendChild(frag);
+    }
+
+    function displayedStarred(id, itemMeta) {
+        return displayedStarGroup.has(id) ? displayedStarGroup.get(id) : !!itemMeta?.starred;
     }
 
     function isShort(item) { return item?.link && /youtube\.com\/shorts\//i.test(item.link); }
@@ -886,9 +895,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!feedEl) return;
         const displayData = feedData.filter(item => !isShort(item));
         const starredIds = new Set(getStarredItems(meta));
-        const unstarred = displayData.filter(i => !starredIds.has(i.id));
-        const starred = displayData.filter(i => starredIds.has(i.id));
-        const unreadCount = displayData.filter(item => isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id))).length;
+        displayData.forEach(item => {
+            if (!displayedStarGroup.has(item.id)) displayedStarGroup.set(item.id, starredIds.has(item.id));
+        });
+        const unstarred = displayData.filter(i => !displayedStarGroup.get(i.id));
+        const starred = displayData.filter(i => displayedStarGroup.get(i.id));
+        const unreadCount = displayData.filter(item => {
+            const itemMeta = (meta.items || []).find(m => m.id === item.id);
+            const displayedMeta = itemMeta
+                ? { ...itemMeta, starred: displayedStarred(item.id, itemMeta) }
+                : { starred: displayedStarred(item.id, itemMeta) };
+            return isUnreadVersion(item, displayedMeta);
+        }).length;
         const markReadAction = unreadCount ? `
             <div class="mark-read-action">
                 <button id="mark-read-btn" class="btn mark-read-btn" type="button"${syncReady ? '' : ' disabled'}>
@@ -903,26 +921,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function visibleItems() {
         if (!feedEl) return [];
         return Array.from(feedEl.querySelectorAll('.item')).filter(i => i.style.display !== 'none');
-    }
-
-    function captureFeedPosition(excludedId) {
-        const anchor = visibleItems().find(item => item.dataset.id !== excludedId && item.getBoundingClientRect().bottom > 0);
-        return {
-            id: anchor?.dataset.id || '',
-            top: anchor?.getBoundingClientRect().top || 0,
-            scrollY: window.scrollY
-        };
-    }
-
-    function restoreFeedPosition(position) {
-        const anchor = position.id
-            ? feedEl?.querySelector(`.item[data-id="${CSS.escape(position.id)}"]`)
-            : null;
-        if (anchor && anchor.style.display !== 'none') {
-            window.scrollBy(0, anchor.getBoundingClientRect().top - position.top);
-        } else {
-            window.scrollTo(0, position.scrollY);
-        }
     }
 
     function highlight(idx) {
@@ -949,17 +947,26 @@ document.addEventListener('DOMContentLoaded', () => {
             let count = 0;
             all.forEach(item => {
                 const m = byId.get(item.dataset.id);
-                const hide = !shouldShowInUnreadView(feedById.get(item.dataset.id), m);
+                const displayedMeta = m
+                    ? { ...m, starred: displayedStarred(item.dataset.id, m) }
+                    : { starred: displayedStarred(item.dataset.id, m) };
+                const hide = !shouldShowInUnreadView(feedById.get(item.dataset.id), displayedMeta);
                 if (hide && videoPlayers.has(item.dataset.id)) stopVideoByItemId(item.dataset.id);
                 item.style.display = hide ? 'none' : '';
                 if (!hide) count++;
             });
             const sep = feedEl.querySelector('.sep');
             if (sep) {
-                const visibleStarred = all.filter(i => byId.get(i.dataset.id)?.starred && i.style.display !== 'none');
+                const visibleStarred = all.filter(i => displayedStarred(i.dataset.id, byId.get(i.dataset.id)) && i.style.display !== 'none');
                 sep.style.display = visibleStarred.length ? '' : 'none';
             }
-            const unreadCount = feedData.filter(item => isUnreadVersion(item, byId.get(item.id))).length;
+            const unreadCount = feedData.filter(item => {
+                const m = byId.get(item.id);
+                const displayedMeta = m
+                    ? { ...m, starred: displayedStarred(item.id, m) }
+                    : { starred: displayedStarred(item.id, m) };
+                return isUnreadVersion(item, displayedMeta);
+            }).length;
             const markReadAction = feedEl.querySelector('.mark-read-action');
             if (markReadAction) markReadAction.style.display = unreadCount ? '' : 'none';
             if (emptyEl) emptyEl.style.display = count ? 'none' : '';
@@ -1007,7 +1014,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.addEventListener('blink-sync', event => {
-        if (syncReady && event.detail.type === 'success') renderAll();
+        if (!syncReady || event.detail.type !== 'success') return;
+        if (starSyncPending) {
+            starSyncPending = false;
+            meta = gistSync.getLocal();
+            setUpdatedAtText();
+            return;
+        }
+        renderAll();
     });
 
     viewBtn?.addEventListener('click', () => {
@@ -1105,7 +1119,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const star = e.target.closest('.star');
         if (star) {
             const id = star.dataset.id;
-            const feedPosition = captureFeedPosition(id);
             let items = meta.items || [];
             const now = new Date().toISOString();
             let item = items.find(i => i.id === id);
@@ -1147,8 +1160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             meta.items = items;
             meta.updated_at = now;
             gistSync.setLocal(meta);
-            renderAll();
-            restoreFeedPosition(feedPosition);
+            starSyncPending = true;
             gistSync.pushSoon();
             return;
         }
@@ -1211,6 +1223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             gistSync.setLocal(meta);
             await upload();
             showFeedSyncMessage('Marked all read', 'success', 2000);
+            displayedStarGroup.clear();
             renderAll();
         } catch (error) {
             const message = error.message || 'Could not mark items read. Try again.';
