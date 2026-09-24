@@ -27,8 +27,10 @@ https://www.macstories.net/feed/
 https://feedpress.me/512pixels
 
 #youtube
-https://www.youtube.com/@SkillUp
-https://www.youtube.com/@GamingInTheWild
+# Skill Up
+https://www.youtube.com/feeds/videos.xml?channel_id=UCZ7AeeVbyslLM_8-nVy2B8Q
+# Gaming In The Wild
+https://www.youtube.com/feeds/videos.xml?channel_id=UC2CxEBWZNBMDV5evJvFWkpQ
 # Josh King
 https://www.youtube.com/feeds/videos.xml?channel_id=UCsgRdw6ocFYQldZpfk3Lgtw
 # fpt.
