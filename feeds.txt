@@ -2,7 +2,8 @@
 include_youtube_shorts=true
 
 #rss
-https://www.reddit.com/r/IndieGaming/top.rss?t=week
+# Reddit iOSGaming
+https://www.reddit.com/r/iosgaming/top.rss?t=week
 # Reddit Sysadmin
 https://www.reddit.com/r/sysadmin/top.rss?t=week
 # Reddit Technology
@@ -27,8 +28,6 @@ https://www.macstories.net/feed/
 https://feedpress.me/512pixels
 
 #youtube
-# Skill Up
-https://www.youtube.com/feeds/videos.xml?channel_id=UCZ7AeeVbyslLM_8-nVy2B8Q
 # Gaming In The Wild
 https://www.youtube.com/feeds/videos.xml?channel_id=UC2CxEBWZNBMDV5evJvFWkpQ
 # Josh King
