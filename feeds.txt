@@ -2,6 +2,7 @@
 include_youtube_shorts=true
 
 #rss
+# EmulationOniOS
 https://www.reddit.com/r/emulationonios/top.rss?t=week
 # Reddit iOSGaming
 https://www.reddit.com/r/iosgaming/top.rss?t=week
