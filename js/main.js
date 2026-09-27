@@ -626,11 +626,21 @@ document.addEventListener('DOMContentLoaded', () => {
             remove.className = 'btn danger';
             remove.type = 'button';
             remove.textContent = 'Delete feed';
-            remove.addEventListener('click', () => {
-                managedFeeds.splice(selectedFeedIndex, 1);
-                selectedFeedIndex = null;
+            remove.addEventListener('click', async () => {
+                const removedIndex = selectedFeedIndex;
+                const wasDirty = feedsDirty;
+                const [removedFeed] = managedFeeds.splice(removedIndex, 1);
+                remove.disabled = true;
                 setFeedsDirty(true);
-                renderManagedFeeds();
+                if (await persistManagedFeeds()) {
+                    selectedFeedIndex = null;
+                    clearStatus(feedsStatus);
+                    renderManagedFeeds();
+                } else {
+                    managedFeeds.splice(removedIndex, 0, removedFeed);
+                    setFeedsDirty(wasDirty);
+                    remove.disabled = false;
+                }
             });
             detailActions.append(save, copy, remove);
             detail.append(back, title, nameLabel, name, urlLabel, url, detailActions);
