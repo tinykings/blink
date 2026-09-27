@@ -2,8 +2,6 @@
 include_youtube_shorts=true
 
 #rss
-# Reddit iOSGaming
-https://www.reddit.com/r/iosgaming/top.rss?t=week
 # Reddit Sysadmin
 https://www.reddit.com/r/sysadmin/top.rss?t=week
 # Reddit Technology
