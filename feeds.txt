@@ -8,8 +8,6 @@ https://www.reddit.com/r/iosgaming/top.rss?t=week
 https://www.reddit.com/r/sysadmin/top.rss?t=week
 # Reddit Technology
 https://www.reddit.com/r/technology/top.rss?t=week
-# Reddit Worldnews
-https://www.reddit.com/r/worldnews/top.rss?t=week
 # Reddit New Shows
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&restrict_sr=1&t=week
 # Reddit Apple
