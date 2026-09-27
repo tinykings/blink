@@ -106,8 +106,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UC2LRtW0XMsBJuX0Qjk3pnow
 https://www.youtube.com/feeds/videos.xml?channel_id=UCXihzT25LZhdz836Kd4XHPQ
 # Asa Park
 https://www.youtube.com/feeds/videos.xml?channel_id=UCxs87BsBSzw8FC7IlvfQ5kA
-# Austin Williams
-https://www.youtube.com/feeds/videos.xml?channel_id=UC9SLXh5V1bwFiS82DTRUx8A
 # Bad Lip Reading
 https://www.youtube.com/feeds/videos.xml?channel_id=UC67f2Qf7FYhtoUIF4Sf29cA
 # baixu
