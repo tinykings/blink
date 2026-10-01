@@ -24,6 +24,7 @@ https://www.macstories.net/feed/
 https://feedpress.me/512pixels
 # Reddit Bazzite
 https://www.reddit.com/r/bazzite/top.rss?t=week
+# Reddit Games
 https://www.reddit.com/r/games/top.rss?t=week
 https://www.reddit.com/r/pcgaming/top.rss?t=week
 
