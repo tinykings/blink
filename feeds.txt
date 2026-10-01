@@ -1,5 +1,5 @@
 #settings
-include_youtube_shorts=false
+include_youtube_shorts=true
 
 #rss
 # Reddit Sysadmin
