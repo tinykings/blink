@@ -26,6 +26,7 @@ https://feedpress.me/512pixels
 https://www.reddit.com/r/bazzite/top.rss?t=week
 # Reddit Games
 https://www.reddit.com/r/games/top.rss?t=week
+# Reddit PCGaming
 https://www.reddit.com/r/pcgaming/top.rss?t=week
 
 #youtube
