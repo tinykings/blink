@@ -830,6 +830,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = shortsItems[shortsIndex];
         const id = item.video_id || item.link.match(/[?&]v=([^&]+)/)?.[1] || item.link.split('/').pop();
         shortsStage.innerHTML = `<iframe id="shorts-frame" src="https://www.youtube.com/embed/${encodeURIComponent(id)}?autoplay=1&mute=1&playsinline=1&enablejsapi=1" title="${item.title.replace(/"/g, '&quot;')}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><div class="shorts-caption"><strong>${item.title}</strong><span>${item.feed_title || ''}</span></div><div class="shorts-controls"><button class="shorts-control" data-short-command="unMute" type="button">🔊 Unmute</button><button class="shorts-control" data-short-command="pauseVideo" type="button">⏸ Pause</button></div><div class="shorts-gesture-layer" aria-hidden="true"></div>`;
+        const frame = $('shorts-frame');
+        frame?.addEventListener('load', () => frame.classList.add('loaded'), { once: true });
         shortsViewer.querySelector('.shorts-end').hidden = true;
     }
 

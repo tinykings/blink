@@ -285,6 +285,8 @@ img { max-width: 100%; height: auto; display: block; }
 .feeds-repo-link { display: inline-block; margin-block-start: 8px; color: var(--accent); }
 .feeds-repo-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
+.floating-btn[hidden] { display: none; }
+
 .floating-btn {
   width: 50px;
   height: 50px;
@@ -726,8 +728,9 @@ input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1p
 /* === Shorts viewer === */
 .shorts-viewer { position: fixed; inset: 0; z-index: 250; background: #090b0b; display: grid; place-items: center; }
 .shorts-viewer[hidden] { display: none; }
-.shorts-stage { position: relative; width: min(100vw, 500px); height: 100dvh; overflow: hidden; }
-.shorts-stage iframe { width: 100%; height: 100%; border: 0; }
+.shorts-stage { position: relative; width: min(100vw, 500px); height: 100dvh; overflow: hidden; background: #090b0b; }
+.shorts-stage iframe { width: 100%; height: 100%; border: 0; display: block; background: #090b0b; opacity: 0; }
+.shorts-stage iframe.loaded { opacity: 1; }
 .shorts-gesture-layer { position: absolute; inset: 0; z-index: 1; touch-action: none; }
 @media (pointer: coarse) { .shorts-gesture-layer { pointer-events: auto; } }
 @media (pointer: fine) { .shorts-gesture-layer { pointer-events: none; } }
