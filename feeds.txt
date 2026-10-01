@@ -22,6 +22,7 @@ https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
 # 512pixels
 https://feedpress.me/512pixels
+# Reddit Bazzite
 https://www.reddit.com/r/bazzite/top.rss?t=week
 https://www.reddit.com/r/games/top.rss?t=week
 https://www.reddit.com/r/pcgaming/top.rss?t=week
