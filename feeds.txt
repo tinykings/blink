@@ -512,8 +512,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCuQT7Vc3OjjZuGkqehNxb6w
 https://www.youtube.com/feeds/videos.xml?channel_id=UCWQaM7SpSECp9FELz-cHzuQ
 # AI For Humans
 https://www.youtube.com/feeds/videos.xml?channel_id=UCghJTNTO9kcDeUFXMuSDGLQ
-# Saturday Night Live
-https://www.youtube.com/feeds/videos.xml?channel_id=UCqFzWxSCi39LnW1JKFR3efg
 # The Art Of Storytelling
 https://www.youtube.com/feeds/videos.xml?channel_id=UCSW5iY5oGJtx_E_IPFxDraQ
 # Soder Cinema
