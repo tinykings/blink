@@ -64,8 +64,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCq4CfirfepI5tN5tQme_9rQ
 https://www.youtube.com/feeds/videos.xml?channel_id=UCgUOWrjLEhmHE9tqYtoeS_g
 # DF Clips
 https://www.youtube.com/feeds/videos.xml?channel_id=UCLdBr5f6RcP6l_TAP4GkhDQ
-# IGN Games
-https://www.youtube.com/feeds/videos.xml?channel_id=UCdVrPfq-B9N5v01axUoDfLA
 # Daryl Talks Games
 https://www.youtube.com/feeds/videos.xml?channel_id=UCJfJWct8jN1RpCuVWk3zHTA
 # mossbag
