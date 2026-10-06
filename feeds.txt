@@ -31,7 +31,7 @@ https://www.reddit.com/r/pcgaming/top.rss?t=week
 
 #youtube
 # IGN
-https://m.youtube.com/@IGNGames/videos?ra=m
+https://www.youtube.com/feeds/videos.xml?channel_id=UCdVrPfq-B9N5v01axUoDfLA
 # Dammit Jeff
 https://www.youtube.com/feeds/videos.xml?channel_id=UCXOSur_wiS9TK0WUhJrYrlA
 # Rogan 🎮 gaming nonsense
