@@ -30,6 +30,7 @@ https://www.reddit.com/r/games/top.rss?t=week
 https://www.reddit.com/r/pcgaming/top.rss?t=week
 
 #youtube
+# IGN
 https://m.youtube.com/@IGNGames/videos?ra=m
 # Dammit Jeff
 https://www.youtube.com/feeds/videos.xml?channel_id=UCXOSur_wiS9TK0WUhJrYrlA
