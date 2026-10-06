@@ -269,7 +269,7 @@ img { max-width: 100%; height: auto; display: block; }
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 10px 16px calc(env(safe-area-inset-bottom, 0) + 10px);
+  padding: 10px 16px;
   z-index: 100;
   border: 1px solid var(--border);
   border-bottom: 0;
