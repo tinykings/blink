@@ -18,7 +18,7 @@ Blink is a client-side RSS reader that runs entirely in the browser. Fork it, ad
 - **RSS & YouTube** — Add, edit, copy, and remove subscriptions from Blink. YouTube channel URLs are automatically converted to RSS feeds.
 - **Starred items** — Star items to save them permanently. Recent unstarred items are pruned after a configurable number of days.
 - **Gist sync** — Sync starred items across devices using a private GitHub Gist.
-- **Read-state controls** — Mark all new items read from the feed, or refresh feeds independently from the footer.
+- **Read-state controls** — Mark all new items read to remove them from the feed, or refresh feeds independently from the footer.
 - **Keyboard navigation** — Browse and interact without leaving the keyboard.
 - **PWA** — Installable as a Progressive Web App with offline support via Service Worker.
 - **Dark/light mode** — Follows system preference.
@@ -39,13 +39,13 @@ On first visit, select **Connect GitHub** and authorize Gist access. Blink finds
 
 Blink loads read state and stars from `blink-data.json` on startup and merges changes after network reconnect. Every save fetches and merges remote state first. Read and star changes have separate timestamps so starring does not mark an item read.
 
-The icon-only view button switches between **Unread** and **All**, not a read-only archive. Opening a link or playing a video does not mark it read. **Mark all N unread items as read** includes unstarred items you have not scrolled to. Starred items stay visible in both views and are excluded from read status.
+Blink shows unread and starred items only. Opening a link or playing a video does not mark it read. **Mark all N unread items as read** includes unstarred items you have not scrolled to and removes them from the feed. Starred items stay visible and are excluded from read status. There is no read-item archive or view toggle.
 
 ## Configuration
 
 ### feeds.txt
 
-Use the Feeds button beside the seen/unseen control to manage subscriptions in Blink. Saving commits `feeds.txt` through GitHub. Use the footer refresh button when you want to fetch subscriptions and reload the reader. You can also edit `feeds.txt` directly. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
+Use the Feeds button in the footer to manage subscriptions in Blink. Saving commits `feeds.txt` through GitHub. Use the footer refresh button when you want to fetch subscriptions and reload the reader. You can also edit `feeds.txt` directly. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
 
 ```
 #rss

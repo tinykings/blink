@@ -14,7 +14,7 @@ export function isUnreadVersion(item, itemMeta) {
     return !itemMeta?.starred && !isSeenVersion(item, itemMeta);
 }
 
-export function shouldShowInUnreadView(item, itemMeta) {
+export function shouldShowInFeed(item, itemMeta) {
     return !!itemMeta?.starred || isUnreadVersion(item, itemMeta);
 }
 
@@ -25,6 +25,13 @@ export function feedSnapshot(item) {
         if (typeof item[key] === 'string') snapshot[key] = item[key];
     }
     return snapshot;
+}
+
+const SNAPSHOT_KEYS = ['id', 'link', 'title', 'published', 'thumbnail', 'video_id', 'feed_title', 'description'];
+
+function sameSnapshot(a, b) {
+    if (!a || !b) return a === b;
+    return SNAPSHOT_KEYS.every(key => a[key] === b[key]);
 }
 
 // Later sources win ties, but an older page must not replace a newer version.
@@ -47,11 +54,12 @@ export function mergeFeedItems(...sources) {
 export function rememberFeedItems(state, items) {
     state.items = state.items || [];
     const byId = new Map(state.items.map(item => [item.id, item]));
+    const now = new Date().toISOString();
     let changed = false;
     for (const snapshot of mergeFeedItems(items)) {
         let record = byId.get(snapshot.id);
         if (!record) {
-            record = { id: snapshot.id, date: new Date().toISOString(), seen: false, starred: false };
+            record = { id: snapshot.id, date: now, seen: false, starred: false };
             state.items.push(record);
             byId.set(record.id, record);
         }
@@ -60,10 +68,13 @@ export function rememberFeedItems(state, items) {
             changed = true;
         }
         if (isSeenVersion(snapshot, record) && !record.starred) continue;
-        const latest = mergeFeedItems([record.feed_item], [snapshot])[0];
-        if (JSON.stringify(record.feed_item) !== JSON.stringify(latest)) {
+        const previous = feedSnapshot(record.feed_item);
+        const previousPublished = Date.parse(previous?.published) || 0;
+        const currentPublished = Date.parse(snapshot.published) || 0;
+        const latest = previous && previousPublished > currentPublished ? previous : snapshot;
+        if (!sameSnapshot(previous, latest)) {
             record.feed_item = latest;
-            record.feed_item_updated_at = new Date().toISOString();
+            record.feed_item_updated_at = now;
             changed = true;
         }
     }

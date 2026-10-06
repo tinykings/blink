@@ -17,7 +17,7 @@ function setup(failSave = false) {
         $: () => null,
         document: { body: { setAttribute() {}, removeAttribute() {} } },
         window: { location: { reload() { calls.push('reload'); } } },
-        setFeedSyncStatus() {}, toast() {}, rememberFeedItems,
+        setFeedSyncStatus() {}, showFeedSyncMessage() {}, rememberFeedItems,
         gistSync: { getLocal: () => state },
         feedData: [
             { id: 'read', link: 'https://example.com/read', published: '2020-01-01' },

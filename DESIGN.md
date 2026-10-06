@@ -122,11 +122,16 @@ Blink is a single-page RSS reader built for keyboard-first power users who want 
 - Unstarred items expire per retention days config
 
 ### Mark All Read
-- Confirm dialog shows unstarred unread count; in-place re-render (no page reload)
-- Starred items stay visible in New view and are excluded from read state
+- Confirm dialog shows unstarred unread count; in-place re-render removes read items (no page reload)
+- Starred items stay visible and are excluded from read state
 - Triggered from labeled button after new unstarred items, immediately above starred-item separator
-- Hidden outside New view and when no unstarred unread items remain
+- Hidden when no unstarred unread items remain
 - Disabled until Gist sync is ready
+
+### Feed Visibility
+- The feed contains unread and starred items only
+- Read items have no archive or alternate view
+- The footer has no read-visibility toggle
 
 ### Feed Refresh
 - Triggered independently from refresh button in bottom bar
@@ -159,6 +164,12 @@ Blink is a single-page RSS reader built for keyboard-first power users who want 
 - `js/youtube.js` — YouTube embed player lifecycle
 - Inline JSON in `#feed-data` script tag as initial data source
 - `localStorage` for credential persistence; in-memory `meta` object for runtime state
+
+### Rendering Performance
+- Feed cards render in batches of 40 as the viewport approaches the end of the current batch
+- Collapsed descriptions are materialized only when expanded
+- Read/star metadata is indexed by item ID for rendering and Shorts filtering
+- Keyboard focus updates only the previously and currently focused cards
 
 ## File Organization
 

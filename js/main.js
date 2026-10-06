@@ -1,6 +1,6 @@
 import { createYouTubePlayer, stopVideoByItemId, videoPlayers } from './youtube.js';
 import { getStarredItems } from './storage.js';
-import { isUnreadVersion, mergeFeedItems, rememberFeedItems, shouldShowInUnreadView } from './feed-state.js';
+import { isUnreadVersion, mergeFeedItems, rememberFeedItems, shouldShowInFeed } from './feed-state.js';
 import { gistSync, upload } from './sync.js';
 import {
     connectGitHub,
@@ -221,7 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const disconnectBtn = $('disconnect-github-btn');
     const closeBtn = $('close-btn');
     const feedEl = $('feed');
-    const viewBtn = $('view-btn');
     const manageFeedsBtn = $('manage-feeds-btn');
     const feedsModal = $('feeds-modal');
     const closeFeedsBtn = $('close-feeds-btn');
@@ -248,10 +247,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let feedData = [];
     let feedById = new Map();
-    let firstFeedRender = true;
-    let showingNew = true;
+    let metaById = new Map();
+    let starredIds = new Set();
     let showingDesc = false;
     let currentIdx = -1;
+    let focusedItem = null;
+    let renderedItems = [];
+    let renderedDataById = new Map();
+    let feedRenderQueue = [];
+    let feedRenderCursor = 0;
+    let feedRenderObserver = null;
     let syncReady = false;
     let starSyncPending = false;
     const displayedStarGroup = new Map();
@@ -268,6 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let shortsIndex = 0;
     let shortsEmptyStatusTimer;
     let feedSyncStatusTimer;
+    const FEED_BATCH_SIZE = 40;
 
     if (refreshFeedsBtn) refreshFeedsBtn.disabled = true;
     if (manageFeedsBtn) manageFeedsBtn.disabled = true;
@@ -751,7 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return el ? { title: el.textContent.trim(), url: el.href } : null;
     }
 
-    function itemHtml(item) {
+    function itemHtml(item, archived = false) {
         let media = '';
         if (item.video_id) {
             const thumb = `https://img.youtube.com/vi/${item.video_id}/sddefault.jpg`;
@@ -759,15 +765,23 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (item.thumbnail) {
             media = `<a href="${item.link}" target="_blank"><img src="${item.thumbnail}" alt="" class="thumb" loading="lazy" decoding="async"></a>`;
         }
-        const desc = item.description ? `<div class="desc">${makeLinksClickable(item.description)}</div>` : '';
+        const desc = item.description ? '<div class="desc" data-description-pending></div>' : '';
         const expandBtn = item.description ? `<button class="expand-btn" title="Toggle description" aria-label="Toggle description"><svg viewBox="0 0 24 24" width="16" height="16"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : '';
-        const starred = getStarredItems(meta).includes(item.id);
+        const starred = starredIds.has(item.id);
         const star = `<button class="star${starred ? ' starred' : ''}" data-id="${item.id}" aria-pressed="${starred}">&#9829;</button>`;
         const actions = `<div class="item-actions">${star}</div>`;
         const source = item.feed_title || '';
         const time = relTime(item.published);
         const itemMeta = (source || time || expandBtn) ? `<div class="meta">${expandBtn}${source ? `<span class="source-dot" style="color:${feedColor(source)}">&#9679;</span><span class="source">${source}</span>` : ''}${source && time ? '<span class="meta-sep">&middot;</span>' : ''}${time ? `<span class="time">${time}</span>` : ''}</div>` : '';
-        return `<div class="item${showingDesc ? ' show-desc' : ''}" data-id="${item.id}" tabindex="0">${media}<h2><a href="${item.link}" target="_blank">${item.title}</a></h2>${itemMeta}${desc}${actions}</div>`;
+        return `<div class="item${showingDesc ? ' show-desc' : ''}" data-id="${item.id}"${archived ? ' data-archived="true"' : ''} tabindex="0">${media}<h2><a href="${item.link}" target="_blank">${item.title}</a></h2>${itemMeta}${desc}${actions}</div>`;
+    }
+
+    function materializeDescription(itemEl) {
+        const desc = itemEl?.querySelector('.desc[data-description-pending]');
+        if (!desc) return;
+        const item = renderedDataById.get(itemEl.dataset.id);
+        desc.innerHTML = makeLinksClickable(item?.description || '');
+        delete desc.dataset.descriptionPending;
     }
 
     function syncThumbAspect(root = feedEl) {
@@ -781,43 +795,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function renderArchived(metaItems = []) {
-        if (!feedEl) return;
-        feedEl.querySelectorAll('.item[data-archived]').forEach(el => el.remove());
+    function archivedItems(metaItems = []) {
         const activeIds = new Set(feedData.map(i => i.id));
         const archived = (metaItems || []).filter(i => (i?.starred || displayedStarGroup.get(i?.id)) && !activeIds.has(i.id) && (i.url || i.link));
         archived.forEach(item => {
             if (!displayedStarGroup.has(item.id)) displayedStarGroup.set(item.id, true);
         });
-        if (!archived.length) return;
-        const frag = document.createDocumentFragment();
-        archived.forEach(m => {
-            const html = itemHtml({
+        return archived.map(m => ({
+            archived: true,
+            item: {
                 id: m.id,
                 title: m.title || 'Untitled',
                 link: m.url || m.link,
                 published: m.published,
                 feed_title: m.feed_title || '',
                 thumbnail: m.thumbnail || '',
-                video_id: m.video_id || ''
-            });
-            const wrap = document.createElement('div');
-            wrap.innerHTML = html;
-            const el = wrap.firstElementChild;
-            if (el) { el.dataset.archived = 'true'; frag.appendChild(el); }
-        });
-        feedEl.appendChild(frag);
-    }
-
-    function displayedStarred(id, itemMeta) {
-        return displayedStarGroup.has(id) ? displayedStarGroup.get(id) : !!itemMeta?.starred;
+                video_id: m.video_id || '',
+                description: m.feed_item?.description || m.description || ''
+            }
+        }));
     }
 
     function isShort(item) { return item?.link && /youtube\.com\/shorts\//i.test(item.link); }
 
     function updateShortsButton() {
         if (!shortsBtn) return;
-        const count = feedData.filter(item => isShort(item) && isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id))).length;
+        const count = feedData.filter(item => isShort(item) && isUnreadVersion(item, metaById.get(item.id))).length;
         const available = !rssSettings.disableShorts;
         shortsBtn.hidden = !available;
         shortsBtn.classList.toggle('has-shorts', count > 0);
@@ -844,7 +847,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openShorts() {
         if (rssSettings.disableShorts) return;
-        const unread = feedData.filter(item => isShort(item) && isUnreadVersion(item, (meta.items || []).find(m => m.id === item.id)));
+        const unread = feedData.filter(item => isShort(item) && isUnreadVersion(item, metaById.get(item.id)));
         shortsItems = unread;
         if (!shortsItems.length) { showNoShorts(); return; }
         if (shortsViewerTitle) shortsViewerTitle.textContent = 'New Shorts';
@@ -903,22 +906,64 @@ document.addEventListener('DOMContentLoaded', () => {
     shortsViewer?.addEventListener('touchend', shortsTouchEnd, { passive: true, capture: true });
     shortsViewer?.addEventListener('wheel', e => { if (e.deltaY > 30) { e.preventDefault(); nextShort(); } }, { passive: false });
 
+    function appendFeedBatch(batchSize = FEED_BATCH_SIZE) {
+        const sentinel = $('feed-render-sentinel');
+        if (!sentinel || feedRenderCursor >= feedRenderQueue.length) return;
+        const template = document.createElement('template');
+        const batchData = [];
+        const html = [];
+        let itemCount = 0;
+
+        while (feedRenderCursor < feedRenderQueue.length) {
+            const entry = feedRenderQueue[feedRenderCursor];
+            if (entry.item && itemCount >= batchSize) break;
+            feedRenderCursor += 1;
+            if (entry.item) {
+                html.push(itemHtml(entry.item, entry.archived));
+                batchData.push(entry.item);
+                itemCount += 1;
+            } else {
+                html.push(entry.html);
+            }
+        }
+
+        template.innerHTML = html.join('');
+        const newItems = Array.from(template.content.querySelectorAll('.item'));
+        batchData.forEach(item => renderedDataById.set(item.id, item));
+        sentinel.before(template.content);
+        renderedItems.push(...newItems);
+        newItems.forEach(itemEl => {
+            if (showingDesc) materializeDescription(itemEl);
+            syncThumbAspect(itemEl);
+        });
+
+        if (feedRenderCursor >= feedRenderQueue.length) {
+            feedRenderObserver?.disconnect();
+            feedRenderObserver = null;
+            sentinel.remove();
+        }
+    }
+
+    function hasPendingFeedItems() {
+        return feedRenderCursor < feedRenderQueue.length;
+    }
+
     function renderFeed() {
         if (!feedEl) return;
-        const displayData = feedData.filter(item => !isShort(item));
-        const starredIds = new Set(getStarredItems(meta));
-        displayData.forEach(item => {
+        feedRenderObserver?.disconnect();
+        feedRenderObserver = null;
+        renderedItems = [];
+        renderedDataById = new Map();
+        focusedItem = null;
+        const mainItems = feedData.filter(item => !isShort(item));
+        mainItems.forEach(item => {
             if (!displayedStarGroup.has(item.id)) displayedStarGroup.set(item.id, starredIds.has(item.id));
         });
+        const displayData = mainItems.filter(item => shouldShowInFeed(item, metaById.get(item.id)));
         const unstarred = displayData.filter(i => !displayedStarGroup.get(i.id));
         const starred = displayData.filter(i => displayedStarGroup.get(i.id));
-        const unreadCount = displayData.filter(item => {
-            const itemMeta = (meta.items || []).find(m => m.id === item.id);
-            const displayedMeta = itemMeta
-                ? { ...itemMeta, starred: displayedStarred(item.id, itemMeta) }
-                : { starred: displayedStarred(item.id, itemMeta) };
-            return isUnreadVersion(item, displayedMeta);
-        }).length;
+        const archived = archivedItems(meta.items || []);
+        const unreadCount = mainItems.filter(item => isUnreadVersion(item, metaById.get(item.id))).length;
         const markReadAction = unreadCount ? `
             <div class="mark-read-action">
                 <button id="mark-read-btn" class="btn mark-read-btn" type="button"${syncReady ? '' : ' disabled'}>
@@ -926,102 +971,58 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span>Mark all ${unreadCount} unread items as read</span>
                 </button>
             </div>` : '';
-        const sep = starred.length && unstarred.length ? '<div class="sep"><span class="sep-heart">&#9829;</span></div>' : '';
-        feedEl.innerHTML = unstarred.map(itemHtml).join('') + markReadAction + sep + starred.map(itemHtml).join('');
+        const sep = (starred.length || archived.length) && unstarred.length ? '<div class="sep"><span class="sep-heart">&#9829;</span></div>' : '';
+        feedRenderQueue = [
+            ...unstarred.map(item => ({ item, archived: false })),
+            ...(markReadAction ? [{ html: markReadAction }] : []),
+            ...(sep ? [{ html: sep }] : []),
+            ...starred.map(item => ({ item, archived: false })),
+            ...archived
+        ];
+        feedRenderCursor = 0;
+        feedEl.innerHTML = '<div id="feed-render-sentinel" aria-hidden="true"></div>';
+        appendFeedBatch();
+        const sentinel = $('feed-render-sentinel');
+        if (sentinel && 'IntersectionObserver' in window) {
+            feedRenderObserver = new IntersectionObserver(entries => {
+                if (entries.some(entry => entry.isIntersecting)) appendFeedBatch();
+            }, { rootMargin: '800px 0px' });
+            feedRenderObserver.observe(sentinel);
+        } else if (sentinel) {
+            appendFeedBatch(Number.POSITIVE_INFINITY);
+        }
     }
 
     function visibleItems() {
-        if (!feedEl) return [];
-        return Array.from(feedEl.querySelectorAll('.item')).filter(i => i.style.display !== 'none');
+        return renderedItems;
     }
 
     function highlight(idx) {
-        visibleItems().forEach((i, n) => i.classList.toggle('focused', n === idx));
+        focusedItem?.classList.remove('focused');
+        focusedItem = renderedItems[idx] || null;
+        focusedItem?.classList.add('focused');
     }
     function scrollToItem(idx) {
-        const items = visibleItems();
-        if (idx >= 0 && idx < items.length) items[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    function applyView(metaItems) {
-        if (!feedEl) return;
-        if (viewBtn) {
-            viewBtn.title = showingNew ? 'Show all items' : 'Show unread items';
-            viewBtn.setAttribute('aria-label', viewBtn.title);
-        }
-        const all = Array.from(feedEl.querySelectorAll('.item'));
-        if (!all.length) { if (emptyEl && showingNew) emptyEl.style.display = ''; return; }
-
-        const focused = currentIdx >= 0 ? visibleItems()[currentIdx]?.dataset.id : null;
-        const byId = new Map((metaItems || []).map(i => [i.id, i]));
-
-        if (showingNew) {
-            let count = 0;
-            all.forEach(item => {
-                const m = byId.get(item.dataset.id);
-                const displayedMeta = m
-                    ? { ...m, starred: displayedStarred(item.dataset.id, m) }
-                    : { starred: displayedStarred(item.dataset.id, m) };
-                const hide = !shouldShowInUnreadView(feedById.get(item.dataset.id), displayedMeta);
-                if (hide && videoPlayers.has(item.dataset.id)) stopVideoByItemId(item.dataset.id);
-                item.style.display = hide ? 'none' : '';
-                if (!hide) count++;
-            });
-            const sep = feedEl.querySelector('.sep');
-            if (sep) {
-                const visibleStarred = all.filter(i => displayedStarred(i.dataset.id, byId.get(i.dataset.id)) && i.style.display !== 'none');
-                sep.style.display = visibleStarred.length ? '' : 'none';
-            }
-            const unreadCount = feedData.filter(item => {
-                const m = byId.get(item.id);
-                const displayedMeta = m
-                    ? { ...m, starred: displayedStarred(item.id, m) }
-                    : { starred: displayedStarred(item.id, m) };
-                return isUnreadVersion(item, displayedMeta);
-            }).length;
-            const markReadAction = feedEl.querySelector('.mark-read-action');
-            if (markReadAction) markReadAction.style.display = unreadCount ? '' : 'none';
-            if (emptyEl) emptyEl.style.display = count ? 'none' : '';
-        } else {
-            all.forEach(i => i.style.display = '');
-            const markReadAction = feedEl.querySelector('.mark-read-action');
-            if (markReadAction) markReadAction.style.display = 'none';
-            if (emptyEl) emptyEl.style.display = 'none';
-        }
-
-        const svg = viewBtn?.querySelector('svg');
-        if (svg) {
-            svg.innerHTML = showingNew
-                ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
-                : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-        }
-
-        if (focused) {
-            const items = visibleItems();
-            currentIdx = items.findIndex(i => i.dataset.id === focused);
-            highlight(currentIdx >= 0 ? currentIdx : -1);
-        } else {
-            currentIdx = -1;
-            highlight(-1);
-        }
+        if (idx >= 0 && idx < renderedItems.length) renderedItems[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function renderAll() {
         meta = gistSync.getLocal();
         meta.items = meta.items || [];
-        const captured = firstFeedRender && rememberFeedItems(meta, feedData);
-        firstFeedRender = false;
-        feedData = mergeFeedItems(feedData, meta.items.map(item => item.feed_item));
+        // Put the freshly fetched page last so updated content wins ties without
+        // needing a separate pre-merge capture pass.
+        feedData = mergeFeedItems(meta.items.map(item => item.feed_item), feedData);
         feedById = new Map(feedData.map(item => [item.id, item]));
-        if (rememberFeedItems(meta, feedData) || captured) {
+        if (rememberFeedItems(meta, feedData)) {
             gistSync.setLocal(meta);
             gistSync.pushSoon();
         }
+        metaById = new Map(meta.items.map(item => [item.id, item]));
+        starredIds = new Set(getStarredItems(meta));
         setUpdatedAtText();
         renderFeed();
-        renderArchived(meta.items);
-        applyView(meta.items);
-        syncThumbAspect();
+        if (emptyEl) emptyEl.style.display = visibleItems().length ? 'none' : '';
+        currentIdx = -1;
         updateShortsButton();
     }
 
@@ -1030,23 +1031,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (starSyncPending) {
             starSyncPending = false;
             meta = gistSync.getLocal();
+            metaById = new Map((meta.items || []).map(item => [item.id, item]));
+            starredIds = new Set(getStarredItems(meta));
             setUpdatedAtText();
             return;
         }
         renderAll();
-    });
-
-    viewBtn?.addEventListener('click', () => {
-        showingNew = !showingNew;
-        if (feedEl && feedEl.querySelector('.item')) {
-            meta = gistSync.getLocal();
-            meta.items = meta.items || [];
-            setUpdatedAtText();
-            applyView(meta.items);
-            syncThumbAspect();
-        } else {
-            renderAll();
-        }
     });
 
     document.addEventListener('keydown', e => {
@@ -1056,11 +1046,15 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (e.key === 'Escape' || e.key === 'ArrowUp') { e.preventDefault(); if (e.key === 'Escape') closeShorts(); }
             return;
         }
-        const items = visibleItems();
+        let items = visibleItems();
         if (!items.length) return;
         switch (e.key) {
             case 'j':
                 e.preventDefault();
+                if (currentIdx + 1 >= items.length && hasPendingFeedItems()) {
+                    appendFeedBatch();
+                    items = visibleItems();
+                }
                 currentIdx = Math.min(currentIdx + 1, items.length - 1);
                 highlight(currentIdx);
                 scrollToItem(currentIdx);
@@ -1159,19 +1153,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 star.setAttribute('aria-pressed', item.starred);
             } else {
-                items.push({
+                item = {
                     id, date: now, starred: true, starred_changed_at: now, seen: false,
                     title: m.title || '', url: m.url || '', link: m.url || '',
                     published: m.published || now, thumbnail: m.thumbnail || '',
                     video_id: m.video_id || '', feed_title: m.feed_title || '',
                     description: m.description || ''
-                });
+                };
+                items.push(item);
                 star.classList.add('starred');
                 star.setAttribute('aria-pressed', 'true');
             }
             meta.items = items;
             meta.updated_at = now;
             gistSync.setLocal(meta);
+            if (item) metaById.set(id, item);
+            if (item?.starred) starredIds.add(id);
+            else starredIds.delete(id);
             starSyncPending = true;
             gistSync.pushSoon();
             return;
@@ -1183,6 +1181,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (itemEl) {
                 itemEl.classList.toggle('show-desc');
                 showingDesc = itemEl.classList.contains('show-desc');
+                if (showingDesc) materializeDescription(itemEl);
                 localStorage.setItem('SHOW_DESC', showingDesc ? 'true' : 'false');
             }
             return;

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isSeenVersion, isUnreadVersion, mergeFeedItems, rememberFeedItems, shouldShowInUnreadView } from '../js/feed-state.js';
+import { isSeenVersion, isUnreadVersion, mergeFeedItems, rememberFeedItems, shouldShowInFeed } from '../js/feed-state.js';
 import { sanitizeItemForStorage } from '../js/storage.js';
 
 const item = { id: 'one', link: 'https://example.com/one', published: '2020-01-01T00:00:00Z', title: 'One', description: 'Keep this description' };
@@ -24,6 +24,13 @@ test('an older feed page cannot roll back the snapshot', () => {
     assert.deepEqual(mergeFeedItems([newer], [item]), [newer]);
 });
 
+test('fresh feed content wins when the publication timestamp is unchanged', () => {
+    const previous = { ...item, title: 'Old title' };
+    const state = { items: [{ id: item.id, seen: false, starred: true, feed_item: previous }] };
+    assert.equal(rememberFeedItems(state, [item]), true);
+    assert.equal(state.items[0].feed_item.title, item.title);
+});
+
 test('read snapshot content is removed from storage, while unread and starred content survive', () => {
     const record = { id: item.id, tracked: true, seen: true, published: item.published, feed_item: item, title: item.title, url: item.link };
     assert.equal(sanitizeItemForStorage(record).feed_item, undefined);
@@ -34,20 +41,20 @@ test('read snapshot content is removed from storage, while unread and starred co
     assert.equal(sanitizeItemForStorage(record).url, undefined);
 });
 
-test('starred items are excluded from unread status but remain in unread view', () => {
+test('starred items are excluded from unread status but remain in the feed', () => {
     const readStarred = { id: item.id, seen: true, starred: true, published: item.published };
     const unreadStarred = { ...readStarred, seen: false };
     assert.equal(isUnreadVersion(item, readStarred), false);
     assert.equal(isUnreadVersion(item, unreadStarred), false);
-    assert.equal(shouldShowInUnreadView(item, readStarred), true);
-    assert.equal(shouldShowInUnreadView(item, unreadStarred), true);
+    assert.equal(shouldShowInFeed(item, readStarred), true);
+    assert.equal(shouldShowInFeed(item, unreadStarred), true);
 });
 
 test('unstarred items retain normal unread filtering', () => {
     assert.equal(isUnreadVersion(item, { seen: false, starred: false }), true);
-    assert.equal(shouldShowInUnreadView(item, { seen: false, starred: false }), true);
+    assert.equal(shouldShowInFeed(item, { seen: false, starred: false }), true);
     assert.equal(isUnreadVersion(item, { seen: true, starred: false, published: item.published }), false);
-    assert.equal(shouldShowInUnreadView(item, { seen: true, starred: false, published: item.published }), false);
+    assert.equal(shouldShowInFeed(item, { seen: true, starred: false, published: item.published }), false);
 });
 
 test('read markers refer to the read version, not the latest stored snapshot', () => {
