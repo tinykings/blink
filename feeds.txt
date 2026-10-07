@@ -31,6 +31,7 @@ https://www.reddit.com/r/games/top.rss?t=week
 https://www.reddit.com/r/pcgaming/top.rss?t=week
 
 #youtube
+https://www.youtube.com/@RetroGameCorps
 https://www.youtube.com/@NerdNest
 # IGN
 https://www.youtube.com/feeds/videos.xml?channel_id=UCdVrPfq-B9N5v01axUoDfLA
