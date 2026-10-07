@@ -2,6 +2,7 @@
 include_youtube_shorts=false
 
 #rss
+https://kill-the-newsletter.com/feeds/omppsqehhti0bme4mv2saz2uqf668ijih2hxshe9.xml
 https://www.reddit.com/r/moonlightstreaming/top.rss?t=week
 # Reddit Sysadmin
 https://www.reddit.com/r/sysadmin/top.rss?t=week
