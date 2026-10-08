@@ -158,8 +158,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCYwEmRci4vGt2w1UMcyUHhw
 https://www.youtube.com/feeds/videos.xml?channel_id=UCpCrcUPVtIvXLDnHnexu-WQ
 # Proper Honest Tech
 https://www.youtube.com/feeds/videos.xml?channel_id=UCi7eZm4CkFiLEZ4tF4Er4lA
-# 9to5Mac
-https://www.youtube.com/feeds/videos.xml?channel_id=UChjRM_qQAaOAiLNbOGbYcRA
 # Apple
 https://www.youtube.com/feeds/videos.xml?channel_id=UCE_M8A5yxnLfW0KghEeajjw
 # Apple TV
