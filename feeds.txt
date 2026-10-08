@@ -3,7 +3,8 @@ include_youtube_shorts=false
 
 #rss
 https://kill-the-newsletter.com/feeds/omppsqehhti0bme4mv2saz2uqf668ijih2hxshe9.xml
-https://www.reddit.com/r/moonlightstreaming/top.rss?t=week
+# Reddit Linux_Gaming
+https://www.reddit.com/r/linux_gaming/top.rss?t=week
 # Reddit Sysadmin
 https://www.reddit.com/r/sysadmin/top.rss?t=week
 # Reddit Technology
@@ -24,7 +25,7 @@ https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
 # 512pixels
 https://feedpress.me/512pixels
-# Reddit Bazzite
+# Reddit Linux_Gaming
 https://www.reddit.com/r/bazzite/top.rss?t=week
 # Reddit Games
 https://www.reddit.com/r/games/top.rss?t=week
