@@ -24,8 +24,6 @@ https://feeds.feedburner.com/StudyHacks
 https://krebsonsecurity.com/feed/
 https://hnrss.org/newest?points=150
 https://www.macstories.net/feed/
-# 512pixels
-https://feedpress.me/512pixels
 # Reddit Linux_Gaming
 https://www.reddit.com/r/bazzite/top.rss?t=week
 # Reddit Games
