@@ -12,8 +12,6 @@ https://www.reddit.com/r/sysadmin/top.rss?t=week
 https://www.reddit.com/r/technology/top.rss?t=week
 # Reddit New Shows
 https://www.reddit.com/r/television/search.rss?q=flair_name%3A%22Premiere%22&restrict_sr=1&t=week
-# Reddit Apple
-https://www.reddit.com/r/apple/top.rss?t=week
 # Reddit ChatGPT
 https://www.reddit.com/r/chatgpt/top.rss?t=week
 https://pitchfork.com/feed/reviews/best/albums/rss
