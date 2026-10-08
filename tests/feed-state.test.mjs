@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isSeenVersion, isUnreadVersion, mergeFeedItems, rememberFeedItems, shouldShowInFeed } from '../js/feed-state.js';
+import { isSeenVersion, isUnreadVersion, markFeedItemsRead, mergeFeedItems, rememberFeedItems, shouldShowInFeed } from '../js/feed-state.js';
 import { sanitizeItemForStorage } from '../js/storage.js';
 
 const item = { id: 'one', link: 'https://example.com/one', published: '2020-01-01T00:00:00Z', title: 'One', description: 'Keep this description' };
@@ -39,6 +39,31 @@ test('read snapshot content is removed from storage, while unread and starred co
     assert.equal(sanitizeItemForStorage(record).tracked, true);
     assert.equal(sanitizeItemForStorage(record).title, undefined);
     assert.equal(sanitizeItemForStorage(record).url, undefined);
+});
+
+test('marking feed items read updates unstarred versions and preserves starred items', () => {
+    const changedAt = '2025-02-01T00:00:00Z';
+    const state = { items: [{ id: 'starred', starred: true, seen: false }] };
+    const starred = { ...item, id: 'starred' };
+
+    assert.equal(markFeedItemsRead(state, [item, starred], changedAt), true);
+    assert.deepEqual(state.items.find(record => record.id === item.id), {
+        id: item.id,
+        date: changedAt,
+        starred: false,
+        tracked: true,
+        seen: true,
+        published: item.published,
+        read_changed_at: changedAt
+    });
+    assert.deepEqual(state.items.find(record => record.id === 'starred'), { id: 'starred', starred: true, seen: false });
+    assert.equal(state.updated_at, changedAt);
+});
+
+test('marking feed items read is idempotent for an already-read version', () => {
+    const state = { items: [{ id: item.id, starred: false, seen: true, published: item.published }] };
+    assert.equal(markFeedItemsRead(state, [item], '2025-02-01T00:00:00Z'), false);
+    assert.equal(state.updated_at, undefined);
 });
 
 test('starred items are excluded from unread status but remain in the feed', () => {

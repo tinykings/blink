@@ -18,6 +18,28 @@ export function shouldShowInFeed(item, itemMeta) {
     return !!itemMeta?.starred || isUnreadVersion(item, itemMeta);
 }
 
+export function markFeedItemsRead(state, items, changedAt = new Date().toISOString()) {
+    state.items = state.items || [];
+    const byId = new Map(state.items.map(item => [item.id, item]));
+    let changed = false;
+    for (const item of items || []) {
+        let record = byId.get(item.id);
+        if (!isUnreadVersion(item, record)) continue;
+        if (!record) {
+            record = { id: item.id, date: changedAt, starred: false };
+            state.items.push(record);
+            byId.set(item.id, record);
+        }
+        record.tracked = true;
+        record.seen = true;
+        record.published = item.published;
+        record.read_changed_at = changedAt;
+        changed = true;
+    }
+    if (changed) state.updated_at = changedAt;
+    return changed;
+}
+
 export function feedSnapshot(item) {
     if (!item || typeof item.id !== 'string' || !item.id || typeof item.link !== 'string') return null;
     const snapshot = { id: item.id, link: item.link };

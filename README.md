@@ -18,7 +18,7 @@ Blink is a client-side RSS reader that runs entirely in the browser. Fork it, ad
 - **RSS & YouTube** — Add, edit, copy, and remove subscriptions from Blink. YouTube channel URLs are automatically converted to RSS feeds.
 - **Starred items** — Star items to save them permanently. Recent unstarred items are pruned after a configurable number of days.
 - **Gist sync** — Sync starred items across devices using a private GitHub Gist.
-- **Read-state controls** — Mark all new items read to remove them from the feed, or refresh feeds independently from the footer.
+- **Refresh as inbox reset** — Refresh marks current unstarred items read, then fetches and loads new feed items.
 - **Keyboard navigation** — Browse and interact without leaving the keyboard.
 - **PWA** — Installable as a Progressive Web App with offline support via Service Worker.
 - **Dark/light mode** — Follows system preference.
@@ -39,13 +39,13 @@ On first visit, select **Connect GitHub** and authorize Gist access. Blink finds
 
 Blink loads read state and stars from `blink-data.json` on startup and merges changes after network reconnect. Every save fetches and merges remote state first. Read and star changes have separate timestamps so starring does not mark an item read.
 
-Blink shows unread and starred items only. Opening a link or playing a video does not mark it read. **Mark all N unread items as read** includes unstarred items you have not scrolled to and removes them from the feed. Starred items stay visible and are excluded from read status. There is no read-item archive or view toggle.
+Blink shows unread and starred items only. Opening a link or playing a video does not mark it read. **Refresh Feeds** marks all current unstarred items read before fetching, including items you have not scrolled to. Those items disappear after reload; new or updated items load, and starred items stay visible. There is no read-item archive or view toggle.
 
 ## Configuration
 
 ### feeds.txt
 
-Use the Feeds button in the footer to manage subscriptions in Blink. Saving commits `feeds.txt` through GitHub. Use the footer refresh button when you want to fetch subscriptions and reload the reader. You can also edit `feeds.txt` directly. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
+Use the Feeds button in the footer to manage subscriptions in Blink. Saving commits `feeds.txt` through GitHub. Use the footer refresh button when you want to mark current unstarred items read, fetch subscriptions, and reload the reader. You can also edit `feeds.txt` directly. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
 
 ```
 #rss
@@ -65,9 +65,9 @@ YouTube channel URLs (`@handle` format) are automatically resolved to their RSS 
 
 The feed fetcher includes items from the last 5 days by default. To change this window, set `ITEMS_RETENTION_DAYS` in `scripts/fetch_feeds.py`.
 
-Once Blink loads an item, it saves unread content in `blink-data.json`. Unread items survive later refreshes even if a feed fails, removes an entry, or ages it out of the fetch window. Items merge by ID, newest publication first. Refresh saves the backlog before fetching and will not reload if saving fails.
+Once Blink loads an item, it saves unread content in `blink-data.json`. Unread items survive reloads and sync until you use Refresh Feeds. Items merge by ID, newest publication first.
 
-Marking an item read removes its saved content on the next save, unless it is starred. Compact read markers remain so older tabs cannot restore those items as unread. Starred content stays indefinitely.
+Refresh Feeds marks every current unstarred item read, saves that state, then fetches and loads feeds. Current unstarred items disappear; newly published or updated items appear, while starred content stays indefinitely. Refresh stops before fetching when saving read state fails. Compact read markers remain so older tabs cannot restore read items as unread.
 
 Backlog capture starts when this version loads successfully. It cannot recover entries already missing from both the page and Gist. Entries published and removed between visits are not captured. Local development uses browser storage instead of Gist. Unread content and read markers increase storage use over time.
 

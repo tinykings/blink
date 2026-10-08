@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { rememberFeedItems } from '../js/feed-state.js';
+import { markFeedItemsRead } from '../js/feed-state.js';
 
 // Exercise the actual UI refresh function with network and DOM effects stubbed.
 const main = readFileSync(new URL('../js/main.js', import.meta.url), 'utf8');
@@ -10,18 +10,22 @@ const refresh = main.slice(main.indexOf('    async function performFeedRefresh()
 
 function setup(failSave = false) {
     const calls = [];
-    const state = { items: [{ id: 'read', seen: true, published: '2020-01-01' }] };
+    const state = { items: [
+        { id: 'read', seen: true, published: '2020-01-01' },
+        { id: 'starred', seen: false, starred: true }
+    ] };
     const context = vm.createContext({
         syncReady: true,
         refreshFeedsBtn: { disabled: false, classList: { add() {}, remove() {} } },
         $: () => null,
         document: { body: { setAttribute() {}, removeAttribute() {} } },
         window: { location: { reload() { calls.push('reload'); } } },
-        setFeedSyncStatus() {}, showFeedSyncMessage() {}, rememberFeedItems,
-        gistSync: { getLocal: () => state },
+        setFeedSyncStatus() {}, showFeedSyncMessage() {}, markFeedItemsRead,
+        gistSync: { getLocal: () => state, setLocal() {} },
         feedData: [
             { id: 'read', link: 'https://example.com/read', published: '2020-01-01' },
-            { id: 'unread', link: 'https://example.com/unread', published: '2020-01-01' }
+            { id: 'unread', link: 'https://example.com/unread', published: '2020-01-01' },
+            { id: 'starred', link: 'https://example.com/starred', published: '2020-01-01' }
         ],
         upload: async () => {
             calls.push('save');
@@ -33,16 +37,16 @@ function setup(failSave = false) {
     return { calls, state, context };
 }
 
-test('refresh saves backlog before fetch and flushes state before reload without marking read', async () => {
+test('refresh marks current unstarred items read before fetch and keeps starred items', async () => {
     const app = setup();
     assert.equal(await app.context.performFeedRefresh(), true);
     assert.deepEqual(app.calls, ['save', 'fetch', 'save', 'reload']);
-    assert.equal(app.state.items.find(item => item.id === 'unread').seen, false);
+    assert.equal(app.state.items.find(item => item.id === 'unread').seen, true);
     assert.equal(app.state.items.find(item => item.id === 'read').seen, true);
-    assert.equal(app.state.items.find(item => item.id === 'unread').feed_item.link, 'https://example.com/unread');
+    assert.equal(app.state.items.find(item => item.id === 'starred').seen, false);
 });
 
-test('failed backlog save stops refresh and reload, and restores refresh button', async () => {
+test('failed read-state save stops refresh and reload, and restores refresh button', async () => {
     const app = setup(true);
     assert.equal(await app.context.performFeedRefresh(), false);
     assert.deepEqual(app.calls, ['save']);

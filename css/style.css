@@ -191,21 +191,7 @@ img { max-width: 100%; height: auto; display: block; }
   100% { transform: scale(0.8); }
 }
 
-/* === Mark Read + Separator === */
-.mark-read-action {
-  display: flex;
-  justify-content: center;
-  margin-block: 8px 16px;
-}
-.mark-read-btn {
-  min-height: 44px;
-  padding: 10px 16px;
-  display: inline-flex;
-  gap: 8px;
-  font: 600 .9rem/1 var(--ff);
-}
-.mark-read-btn:disabled { cursor: wait; }
-
+/* === Starred Separator === */
 .sep {
   display: flex;
   align-items: center;

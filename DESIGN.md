@@ -121,21 +121,16 @@ Blink is a single-page RSS reader built for keyboard-first power users who want 
 - Merge resolves last-write-wins on starred status by `starred_changed_at`
 - Unstarred items expire per retention days config
 
-### Mark All Read
-- Confirm dialog shows unstarred unread count; in-place re-render removes read items (no page reload)
-- Starred items stay visible and are excluded from read state
-- Triggered from labeled button after new unstarred items, immediately above starred-item separator
-- Hidden when no unstarred unread items remain
-- Disabled until Gist sync is ready
-
 ### Feed Visibility
 - The feed contains unread and starred items only
 - Read items have no archive or alternate view
 - The footer has no read-visibility toggle
 
 ### Feed Refresh
-- Triggered independently from refresh button in bottom bar
-- Runs feed workflow and reloads after completion without changing read state
+- Triggered from refresh button in bottom bar
+- Marks every current unstarred item read and saves state before fetching
+- Reloads after fetch; newly published or updated items appear while starred items remain visible
+- Stops before fetching when read-state save fails
 
 ## Theme System
 

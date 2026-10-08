@@ -1,6 +1,6 @@
 import { createYouTubePlayer, stopVideoByItemId, videoPlayers } from './youtube.js';
 import { getStarredItems } from './storage.js';
-import { isUnreadVersion, mergeFeedItems, rememberFeedItems, shouldShowInFeed } from './feed-state.js';
+import { isUnreadVersion, markFeedItemsRead, mergeFeedItems, rememberFeedItems, shouldShowInFeed } from './feed-state.js';
 import { gistSync, upload } from './sync.js';
 import {
     connectGitHub,
@@ -963,18 +963,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const unstarred = displayData.filter(i => !displayedStarGroup.get(i.id));
         const starred = displayData.filter(i => displayedStarGroup.get(i.id));
         const archived = archivedItems(meta.items || []);
-        const unreadCount = mainItems.filter(item => isUnreadVersion(item, metaById.get(item.id))).length;
-        const markReadAction = unreadCount ? `
-            <div class="mark-read-action">
-                <button id="mark-read-btn" class="btn mark-read-btn" type="button"${syncReady ? '' : ' disabled'}>
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span>Mark all ${unreadCount} unread items as read</span>
-                </button>
-            </div>` : '';
         const sep = (starred.length || archived.length) && unstarred.length ? '<div class="sep"><span class="sep-heart">&#9829;</span></div>' : '';
         feedRenderQueue = [
             ...unstarred.map(item => ({ item, archived: false })),
-            ...(markReadAction ? [{ html: markReadAction }] : []),
             ...(sep ? [{ html: sep }] : []),
             ...starred.map(item => ({ item, archived: false })),
             ...archived
@@ -1201,66 +1192,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    async function markAllRead(button) {
-        if (button.disabled || !syncReady) return;
-        const currentMetaById = new Map((gistSync.getLocal().items || []).map(item => [item.id, item]));
-        const mainItems = feedData.filter(item => !isShort(item));
-        const unreadCount = mainItems.filter(item => isUnreadVersion(item, currentMetaById.get(item.id))).length;
-        if (!unreadCount || !confirm(`Mark all ${unreadCount} unread items as read?`)) return;
-
-        button.disabled = true;
-        if (refreshFeedsBtn) refreshFeedsBtn.disabled = true;
-        document.body.setAttribute('aria-busy', 'true');
-        try {
-            setFeedSyncStatus('Saving read state...');
-            meta = gistSync.getLocal();
-            meta.items = meta.items || [];
-            const now = new Date().toISOString();
-            const metaById = new Map(meta.items.map(item => [item.id, item]));
-            mainItems.forEach(item => {
-                const m = metaById.get(item.id);
-                if (!isUnreadVersion(item, m)) return;
-                if (!m) {
-                    const newMeta = { id: item.id, date: now, starred: false, seen: true, read_changed_at: now, published: item.published };
-                    meta.items.push(newMeta);
-                    metaById.set(item.id, newMeta);
-                } else {
-                    m.seen = true;
-                    m.published = item.published;
-                    m.read_changed_at = now;
-                }
-            });
-            meta.updated_at = now;
-            gistSync.setLocal(meta);
-            await upload();
-            showFeedSyncMessage('Marked all read', 'success', 2000);
-            displayedStarGroup.clear();
-            renderAll();
-        } catch (error) {
-            const message = error.message || 'Could not mark items read. Try again.';
-            showFeedSyncMessage(message, 'error', 5000);
-            button.disabled = false;
-        } finally {
-            if (refreshFeedsBtn) refreshFeedsBtn.disabled = !syncReady;
-            document.body.removeAttribute('aria-busy');
-        }
-    }
-
-    feedEl?.addEventListener('click', event => {
-        const button = event.target.closest('#mark-read-btn');
-        if (button) markAllRead(button);
-    });
-
     async function performFeedRefresh() {
         if (!syncReady) return false;
         refreshFeedsBtn.disabled = true;
         refreshFeedsBtn.classList.add('refreshing');
-        const markReadButton = $('mark-read-btn');
-        if (markReadButton) markReadButton.disabled = true;
         document.body.setAttribute('aria-busy', 'true');
         try {
-            setFeedSyncStatus('Saving unread items...');
-            rememberFeedItems(gistSync.getLocal(), feedData);
+            setFeedSyncStatus('Marking current items read...');
+            const currentMeta = gistSync.getLocal();
+            markFeedItemsRead(currentMeta, feedData);
+            gistSync.setLocal(currentMeta);
             await upload();
             await refreshFeeds(message => setFeedSyncStatus(message));
             // Save any read/star changes made while the feed fetch was running.
@@ -1273,7 +1214,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showFeedSyncMessage(message, 'error', 5000);
             refreshFeedsBtn.disabled = false;
             refreshFeedsBtn.classList.remove('refreshing');
-            if (markReadButton) markReadButton.disabled = false;
             document.body.removeAttribute('aria-busy');
             return false;
         }
