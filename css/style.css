@@ -238,9 +238,11 @@ img { max-width: 100%; height: auto; display: block; }
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
+  display: block;
   border: 2px solid color-mix(in oklab, var(--accent) 35%, transparent);
-  border-block-start-color: var(--accent);
+  border-top-color: var(--accent);
   border-radius: 50%;
+  transform-origin: center;
   animation: sync-spin .8s linear infinite;
 }
 @keyframes sync-spin { to { transform: rotate(360deg); } }
@@ -797,5 +799,9 @@ body.shorts-open { overflow: hidden; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  .sync-spinner {
+    animation-duration: .8s !important;
+    animation-iteration-count: infinite !important;
   }
 }
