@@ -33,7 +33,8 @@ https://www.reddit.com/r/games/top.rss?t=week
 https://www.reddit.com/r/pcgaming/top.rss?t=week
 
 #youtube
-https://www.youtube.com/@dhh37/
+# David Heinemeier Hansson
+https://www.youtube.com/feeds/videos.xml?channel_id=UCUkM9uMpWatT7gVWShgtKFw
 # Retro Game Corps
 https://www.youtube.com/feeds/videos.xml?channel_id=UCoZQiN0o7f36H7PaW4fVhFw
 # NerdNest
