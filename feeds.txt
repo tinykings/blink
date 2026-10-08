@@ -2,6 +2,7 @@
 include_youtube_shorts=false
 
 #rss
+https://omarchy.us/news/rss.xml
 https://kill-the-newsletter.com/feeds/omppsqehhti0bme4mv2saz2uqf668ijih2hxshe9.xml
 # Reddit Linux_Gaming
 https://www.reddit.com/r/linux_gaming/top.rss?t=week
