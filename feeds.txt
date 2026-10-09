@@ -420,8 +420,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCqN9KTs9pdTWw7i31eBNv4w
 https://www.youtube.com/feeds/videos.xml?channel_id=UCKtiMrNZq0gGbPTnsMu7Bsw
 # Sam Witteveen
 https://www.youtube.com/feeds/videos.xml?channel_id=UC55ODQSvARtgSyc8ThfiepQ
-# Samuel Nam
-https://www.youtube.com/feeds/videos.xml?channel_id=UCovagaiL6pBYWfvThaXVniA
 # Sara Dietschy
 https://www.youtube.com/feeds/videos.xml?channel_id=UC3fg6pL63upkXCc0T203wVg
 # Sarah Li
