@@ -118,8 +118,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCCghUBYXUjmJWBO5GlWcxCw
 https://www.youtube.com/feeds/videos.xml?channel_id=UC2CxEBWZNBMDV5evJvFWkpQ
 # Josh King
 https://www.youtube.com/feeds/videos.xml?channel_id=UCsgRdw6ocFYQldZpfk3Lgtw
-# fpt.
-https://www.youtube.com/feeds/videos.xml?channel_id=UC8jkbVLPvztz8TuE98OYo8Q
 # Julia Turc
 https://www.youtube.com/feeds/videos.xml?channel_id=UCMUy_WsUIYbM_hKR9drb9dA
 # Pete Peppers
