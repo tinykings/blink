@@ -305,8 +305,6 @@ https://www.youtube.com/feeds/videos.xml?channel_id=UCNhWSOlt_UoCzS2YSMhHYmA
 https://www.youtube.com/feeds/videos.xml?channel_id=UCSGzChAG2DNHh6DlAY1XRPA
 # Kirsten Dirksen
 https://www.youtube.com/feeds/videos.xml?channel_id=UCDsElQQt_gCZ9LgnW-7v-cQ
-# Kyle Erickson
-https://www.youtube.com/feeds/videos.xml?channel_id=UCnn3N0i3TVGbQ9bMb4ln2OQ
 # LagomHolly
 https://www.youtube.com/feeds/videos.xml?channel_id=UCuyOC4Dfun9E-l6DEJwMZzA
 # Laura Tynan | The Witch of Wall Street
