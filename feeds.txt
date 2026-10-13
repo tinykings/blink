@@ -26,10 +26,19 @@ https://hnrss.org/newest?points=150
 https://www.reddit.com/r/games/top.rss?t=week
 # Reddit PCGaming
 https://www.reddit.com/r/pcgaming/top.rss?t=week
+https://www.macstories.net/feed/
+# Reddit Apple
+https://www.reddit.com/r/apple/top.rss?t=week
 
 #youtube
-# David Heinemeier Hansson
-https://www.youtube.com/feeds/videos.xml?channel_id=UCUkM9uMpWatT7gVWShgtKFw
+# 9to5Mac
+https://www.youtube.com/feeds/videos.xml?channel_id=UChjRM_qQAaOAiLNbOGbYcRA
+# Apple
+https://www.youtube.com/feeds/videos.xml?channel_id=UCE_M8A5yxnLfW0KghEeajjw
+# fpt.
+https://www.youtube.com/feeds/videos.xml?channel_id=UC8jkbVLPvztz8TuE98OYo8Q
+# Proper Honest Tech
+https://www.youtube.com/feeds/videos.xml?channel_id=UCi7eZm4CkFiLEZ4tF4Er4lA
 # Retro Game Corps
 https://www.youtube.com/feeds/videos.xml?channel_id=UCoZQiN0o7f36H7PaW4fVhFw
 # NerdNest
