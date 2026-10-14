@@ -67,6 +67,48 @@ class YouTubeShortsTests(unittest.TestCase):
         self.assertEqual(urls, [feed_url])
         self.assertNotIn('playlist_id=UULF', urls[0])
 
+    def test_html_fallback_parses_current_lockup_format(self):
+        data = {
+            'contents': [{
+                'lockupViewModel': {
+                    'contentId': 'video123',
+                    'contentType': 'LOCKUP_CONTENT_TYPE_VIDEO',
+                    'metadata': {'lockupMetadataViewModel': {
+                        'title': {'content': 'Fallback video'},
+                        'metadata': {'contentMetadataViewModel': {
+                            'metadataRows': [{'metadataParts': [
+                                {'text': {'content': '123 views'}},
+                                {'text': {'content': '2h ago'}},
+                            ]}]
+                        }},
+                    }},
+                }
+            }]
+        }
+        url = 'https://www.youtube.com/feeds/videos.xml?channel_id=UCtest'
+
+        items = self.processor._process_youtube_initial_data(data, url, 'Test channel')
+
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]['video_id'], 'video123')
+        self.assertEqual(items[0]['title'], 'Fallback video')
+        self.assertEqual(items[0]['feed_title'], 'Test channel')
+        self.assertEqual(
+            items[0]['published'].astimezone(pytz.utc),
+            datetime(2026, 9, 7, 22, tzinfo=pytz.utc),
+        )
+
+    def test_html_fallback_drops_items_older_than_retention(self):
+        data = {'videoRenderer': {
+            'videoId': 'old-video',
+            'title': {'simpleText': 'Old video'},
+            'publishedTimeText': {'simpleText': '2 weeks ago'},
+        }}
+
+        items = self.processor._process_youtube_initial_data(data, 'youtube-url', 'Channel')
+
+        self.assertEqual(items, [])
+
 
 if __name__ == '__main__':
     unittest.main()

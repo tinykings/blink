@@ -4,6 +4,7 @@ import logging
 import re
 import requests
 import time
+import threading
 import warnings
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -26,11 +27,18 @@ TIMEZONE = 'America/Los_Angeles'
 ITEMS_RETENTION_DAYS = 5
 # Defaults used when feeds.txt has no app settings block.
 INCLUDE_YOUTUBE_SHORTS = False
-USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
 REQUEST_TIMEOUT = 30
 MAX_WORKERS = 10
 MAX_RETRIES = 3
-RETRY_BASE_DELAY = 1.0  # seconds
+RETRY_BASE_DELAY = 2.0  # seconds
+# GitHub-hosted runners share IP ranges. Sending hundreds of requests at once
+# makes YouTube return transient 404/500 responses and Reddit return 429.
+HOST_REQUEST_INTERVALS = {
+    'youtube.com': 0.5,
+    'reddit.com': 6.5,
+}
+RETRYABLE_STATUS_CODES = {408, 425, 429, 500, 502, 503, 504}
 
 
 @dataclass
@@ -71,18 +79,69 @@ class FeedProcessor:
         self.utc_now = datetime.now(pytz.utc)
         self.session = requests.Session()
         self.session.headers.update({'User-Agent': USER_AGENT})
+        self._host_locks: Dict[str, threading.Lock] = {}
+        self._host_locks_guard = threading.Lock()
+        self._host_next_request: Dict[str, float] = {}
         self.feed_title_overrides: Dict[str, str] = {}
         self.include_youtube_shorts: Optional[bool] = None
 
     def youtube_shorts_enabled(self) -> bool:
         return INCLUDE_YOUTUBE_SHORTS if self.include_youtube_shorts is None else self.include_youtube_shorts
+
+    def _host_interval(self, hostname: str) -> float:
+        for domain, interval in HOST_REQUEST_INTERVALS.items():
+            if hostname == domain or hostname.endswith(f'.{domain}'):
+                return interval
+        return 0.0
+
+    def _get_host_lock(self, hostname: str) -> threading.Lock:
+        with self._host_locks_guard:
+            return self._host_locks.setdefault(hostname, threading.Lock())
+
+    def _request(self, url: str) -> requests.Response:
+        """GET a URL while pacing requests to rate-sensitive hosts."""
+        hostname = (urlsplit(url).hostname or '').lower()
+        interval = self._host_interval(hostname)
+        if not interval:
+            return self.session.get(url, timeout=REQUEST_TIMEOUT)
+
+        # Keep each sensitive host serialized. This also avoids concurrent use
+        # of one Session against hosts which set anti-abuse cookies.
+        with self._get_host_lock(hostname):
+            wait = self._host_next_request.get(hostname, 0.0) - time.monotonic()
+            if wait > 0:
+                time.sleep(wait)
+            try:
+                return self.session.get(url, timeout=REQUEST_TIMEOUT)
+            finally:
+                self._host_next_request[hostname] = time.monotonic() + interval
+
+    @staticmethod
+    def _should_retry(url: str, error: requests.RequestException) -> bool:
+        response = getattr(error, 'response', None)
+        if response is None:
+            return True
+        if response.status_code in RETRYABLE_STATUS_CODES:
+            return True
+        # YouTube uses 404 as an overload/anti-abuse response even for known,
+        # valid channel IDs. A paced retry commonly succeeds.
+        return response.status_code == 404 and 'youtube.com/feeds/' in url
+
+    @staticmethod
+    def _retry_delay(error: requests.RequestException, attempt: int) -> float:
+        response = getattr(error, 'response', None)
+        retry_after = response.headers.get('Retry-After') if response is not None else None
+        try:
+            return min(60.0, max(float(retry_after), RETRY_BASE_DELAY * (2 ** attempt)))
+        except (TypeError, ValueError):
+            return RETRY_BASE_DELAY * (2 ** attempt)
         
     def get_youtube_channel_info(self, url: str) -> Tuple[Optional[str], Optional[str]]:
         """Extract YouTube channel ID and name from URL."""
         logger.debug(f"Extracting YouTube channel info from: {url}")
 
         try:
-            response = self.session.get(url, timeout=REQUEST_TIMEOUT)
+            response = self._request(url)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'lxml')
 
@@ -136,7 +195,7 @@ class FeedProcessor:
             handle_match = re.search(r'youtube\.com/(@[\w.-]+)', url)
             if handle_match:
                 resolve_url = f"https://www.youtube.com/{handle_match.group(1)}/videos"
-                response = self.session.get(resolve_url, timeout=REQUEST_TIMEOUT)
+                response = self._request(resolve_url)
                 match = re.search(r'"externalId"\s*:\s*"(UC[\w-]+)"', response.text)
                 if not match:
                     match = re.search(r'channel/(UC[\w-]+)', response.text)
@@ -320,13 +379,137 @@ class FeedProcessor:
         except IOError as e:
             logger.error(f"Could not update {file_path}: {e}")
 
+    @staticmethod
+    def _youtube_text(value: Any) -> str:
+        if not isinstance(value, dict):
+            return ''
+        if value.get('simpleText'):
+            return value['simpleText']
+        return ''.join(run.get('text', '') for run in value.get('runs', []))
+
+    def _youtube_relative_time(self, text: str) -> Optional[datetime]:
+        """Convert YouTube's relative publish label to an approximate UTC time."""
+        lowered = text.lower().replace('streamed ', '').replace('premiered ', '')
+        if lowered == 'yesterday':
+            return self.utc_now - timedelta(days=1)
+        match = re.search(
+            r'(\d+)\s*(minute|min|hour|hr|day|week|wk|month|mo|year|yr|[mhdw])s?\s+ago',
+            lowered,
+        )
+        if not match:
+            return self.utc_now if any(word in lowered for word in ('live', 'premiere')) else None
+        amount = int(match.group(1))
+        unit = match.group(2)
+        if unit in ('minute', 'min', 'm'):
+            return self.utc_now - timedelta(minutes=amount)
+        if unit in ('hour', 'hr', 'h'):
+            return self.utc_now - timedelta(hours=amount)
+        if unit in ('day', 'd'):
+            return self.utc_now - timedelta(days=amount)
+        if unit in ('week', 'wk', 'w'):
+            return self.utc_now - timedelta(weeks=amount)
+        if unit in ('month', 'mo'):
+            return self.utc_now - timedelta(days=30 * amount)
+        return self.utc_now - timedelta(days=365 * amount)
+
+    def _process_youtube_initial_data(self, data: Dict[str, Any], url: str,
+                                      channel_name: str) -> List[Dict[str, Any]]:
+        items = []
+        seen = set()
+        cutoff_time = self.utc_now - timedelta(days=ITEMS_RETENTION_DAYS)
+
+        def add_item(video_id: str, title: str, published_label: str) -> None:
+            if not video_id or video_id in seen or not title:
+                return
+            published = self._youtube_relative_time(published_label)
+            if published is None or published < cutoff_time:
+                return
+            seen.add(video_id)
+            items.append({
+                'id': f'yt:video:{video_id}',
+                'title': title,
+                'link': f'https://www.youtube.com/watch?v={video_id}',
+                'published': published.astimezone(self.local_tz),
+                'thumbnail': '',
+                'feed_title': self.feed_title_overrides.get(url) or channel_name,
+                'video_id': video_id,
+                'description': '',
+            })
+
+        def walk(value: Any) -> None:
+            if isinstance(value, list):
+                for child in value:
+                    walk(child)
+                return
+            if not isinstance(value, dict):
+                return
+
+            renderer = value.get('videoRenderer')
+            if renderer:
+                add_item(
+                    renderer.get('videoId', ''),
+                    self._youtube_text(renderer.get('title')),
+                    self._youtube_text(renderer.get('publishedTimeText')),
+                )
+                return
+
+            lockup = value.get('lockupViewModel')
+            if lockup and lockup.get('contentType') == 'LOCKUP_CONTENT_TYPE_VIDEO':
+                metadata = lockup.get('metadata', {}).get('lockupMetadataViewModel', {})
+                rows = (metadata.get('metadata', {}).get('contentMetadataViewModel', {})
+                        .get('metadataRows', []))
+                labels = [
+                    part.get('text', {}).get('content', '')
+                    for row in rows
+                    for part in row.get('metadataParts', [])
+                ]
+                published_label = next(
+                    (label for label in reversed(labels)
+                     if re.search(r'ago|yesterday|live|premiere', label, re.I)),
+                    '',
+                )
+                add_item(
+                    lockup.get('contentId', ''),
+                    metadata.get('title', {}).get('content', ''),
+                    published_label,
+                )
+                return
+
+            for child in value.values():
+                walk(child)
+
+        walk(data)
+        return items
+
+    def _fetch_youtube_html(self, url: str) -> Optional[List[Dict[str, Any]]]:
+        """Fallback for YouTube's intermittently unavailable Atom endpoint."""
+        match = re.search(r'channel_id=(UC[\w-]+)', url)
+        if not match:
+            return None
+        channel_url = f'https://www.youtube.com/channel/{match.group(1)}/videos'
+        try:
+            response = self._request(channel_url)
+            response.raise_for_status()
+            initial_data = re.search(r'var ytInitialData = ({.*?});</script>', response.text, re.S)
+            if not initial_data:
+                return None
+            data = json.loads(initial_data.group(1))
+            title_match = re.search(r'<title>(.*?)</title>', response.text, re.S)
+            channel_name = BeautifulSoup(
+                title_match.group(1), 'html.parser'
+            ).get_text().replace(' - YouTube', '').strip() if title_match else ''
+            return self._process_youtube_initial_data(data, url, channel_name)
+        except (requests.RequestException, json.JSONDecodeError, ValueError) as e:
+            logger.warning(f"YouTube HTML fallback failed for {url}: {e}")
+            return None
+
     def fetch_single_feed(self, url: str, stats: Optional[FeedStats] = None) -> List[Dict[str, Any]]:
         """Fetch and parse a single RSS feed with retry logic."""
         last_error = None
 
         for attempt in range(MAX_RETRIES):
             try:
-                response = self.session.get(url, timeout=REQUEST_TIMEOUT)
+                response = self._request(url)
                 response.raise_for_status()
 
                 feed = feedparser.parse(response.content)
@@ -344,14 +527,26 @@ class FeedProcessor:
 
             except requests.RequestException as e:
                 last_error = str(e)
-                if attempt < MAX_RETRIES - 1:
-                    delay = RETRY_BASE_DELAY * (2 ** attempt)  # Exponential backoff
+                if 'youtube.com/feeds/' in url:
+                    fallback_items = self._fetch_youtube_html(url)
+                    if fallback_items is not None:
+                        logger.warning(
+                            f"Used YouTube HTML fallback for {url} ({len(fallback_items)} items)"
+                        )
+                        if stats:
+                            stats.record_success(url)
+                        return fallback_items
+                retry = attempt < MAX_RETRIES - 1 and self._should_retry(url, e)
+                if retry:
+                    delay = self._retry_delay(e, attempt)
                     logger.debug(f"Retry {attempt + 1}/{MAX_RETRIES} for {url} after {delay}s")
                     if stats:
                         stats.record_retry()
                     time.sleep(delay)
                 else:
-                    logger.error(f"Error fetching feed {url} after {MAX_RETRIES} attempts: {e}")
+                    attempts = attempt + 1
+                    logger.error(f"Error fetching feed {url} after {attempts} attempt(s): {e}")
+                    break
             except Exception as e:
                 last_error = str(e)
                 logger.error(f"Error processing feed {url}: {e}")
