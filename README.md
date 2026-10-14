@@ -9,7 +9,7 @@
 
 ---
 
-Blink is a client-side RSS reader that runs entirely in the browser. Fork it, add your feeds, enable GitHub Pages, and you have a personal feed reader that refreshes on demand — no server required.
+Blink is a client-side RSS reader that runs entirely in the browser. Fork it, add your feeds, enable GitHub Pages, and you have a personal feed reader refreshed hourly by GitHub Actions — no server required.
 
 **Note:** A GitHub Gist is required to use Blink. Your Gist stores unread items, read state, and stars across devices.
 
@@ -18,7 +18,7 @@ Blink is a client-side RSS reader that runs entirely in the browser. Fork it, ad
 - **RSS & YouTube** — Add, edit, copy, and remove subscriptions from Blink. YouTube channel URLs are automatically converted to RSS feeds.
 - **Starred items** — Star items to save them permanently. Recent unstarred items are pruned after a configurable number of days.
 - **Gist sync** — Sync starred items across devices using a private GitHub Gist.
-- **Refresh as inbox reset** — Refresh marks current unstarred items read, then fetches and loads new feed items.
+- **Inbox reset** — Mark all current unstarred items read with one button; scheduled builds fetch new items hourly.
 - **Keyboard navigation** — Browse and interact without leaving the keyboard.
 - **PWA** — Installable as a Progressive Web App with offline support via Service Worker.
 - **Dark/light mode** — Follows system preference.
@@ -29,7 +29,7 @@ Blink is a client-side RSS reader that runs entirely in the browser. Fork it, ad
 2. Edit `feeds.txt` to add initial RSS feeds and YouTube channels (see [Configuration](#configuration) below).
 3. Go to **Settings → Pages** in your fork and set the source to **GitHub Actions**.
 4. Add repository variable `GIST_AUTH_URL` with shared OAuth Worker URL.
-5. Use the refresh button in Blink to fetch your feeds and deploy the updated site.
+5. Wait for the hourly workflow, or run it once by pushing a commit, to fetch feeds and deploy the site.
 
 Your reader will be live at `https://<your-username>.github.io/blink/`.
 
@@ -39,13 +39,13 @@ On first visit, select **Connect GitHub** and authorize Gist access. Blink finds
 
 Blink loads read state and stars from `blink-data.json` on startup and merges changes after network reconnect. Every save fetches and merges remote state first. Read and star changes have separate timestamps so starring does not mark an item read.
 
-Blink shows unread and starred items only. Opening a link or playing a video does not mark it read. **Refresh Feeds** marks all current unstarred items read before fetching, including items you have not scrolled to. Those items disappear after reload; new or updated items load, and starred items stay visible. There is no read-item archive or view toggle.
+Blink shows unread and starred items only. Opening a link or playing a video does not mark it read. **Mark current items read** marks all current unstarred items read, including items you have not scrolled to. Those items disappear immediately, while starred items stay visible. New or updated items arrive with the next hourly deployment. There is no read-item archive or view toggle.
 
 ## Configuration
 
 ### feeds.txt
 
-Use the Feeds button in the footer to manage subscriptions in Blink. Saving commits `feeds.txt` through GitHub. Use the footer refresh button when you want to mark current unstarred items read, fetch subscriptions, and reload the reader. You can also edit `feeds.txt` directly. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
+Use the Feeds button in the footer to manage subscriptions in Blink. Saving commits `feeds.txt` through GitHub; the next hourly workflow applies subscription changes. Use the footer checkmark button to mark current unstarred items read. You can also edit `feeds.txt` directly. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
 
 ```
 #rss
@@ -65,9 +65,9 @@ YouTube channel URLs (`@handle` format) are automatically resolved to their RSS 
 
 The feed fetcher includes items from the last 5 days by default. To change this window, set `ITEMS_RETENTION_DAYS` in `scripts/fetch_feeds.py`.
 
-Once Blink loads an item, it saves unread content in `blink-data.json`. Unread items survive reloads and sync until you use Refresh Feeds. Items merge by ID, newest publication first.
+Once Blink loads an item, it saves unread content in `blink-data.json`. Unread items survive reloads and sync until you mark them read. Items merge by ID, newest publication first.
 
-Refresh Feeds marks every current unstarred item read, saves that state, then fetches and loads feeds. Current unstarred items disappear; newly published or updated items appear, while starred content stays indefinitely. Refresh stops before fetching when saving read state fails. Compact read markers remain so older tabs cannot restore read items as unread.
+Marking current items read saves every current unstarred item as read and removes it from view. Starred content stays indefinitely. Compact read markers remain so older tabs cannot restore read items as unread. Feed fetching and site deployment run hourly from the scheduled GitHub Actions workflow.
 
 Backlog capture starts when this version loads successfully. It cannot recover entries already missing from both the page and Gist. Entries published and removed between visits are not captured. Local development uses browser storage instead of Gist. Unread content and read markers increase storage use over time.
 
@@ -93,7 +93,7 @@ python scripts/fetch_feeds.py   # initial index.html
 python scripts/dev_server.py    # http://127.0.0.1:8000
 ```
 
-Use `scripts/dev_server.py`, not `python -m http.server`, when testing feed management. **Save** writes `feeds.txt`; the footer refresh button runs `scripts/fetch_feeds.py` and reloads Blink.
+Use `scripts/dev_server.py`, not `python -m http.server`, when testing feed management. **Save** writes `feeds.txt`. Run `python scripts/fetch_feeds.py` separately when you need fresh local feed data.
 
 `js/config.local.js` is not needed. Localhost always uses local development mode; deployed Pages builds inject GitHub configuration during deployment.
 
@@ -101,4 +101,4 @@ Use `scripts/dev_server.py`, not `python -m http.server`, when testing feed mana
 
 `scripts/fetch_feeds.py` reads `feeds.txt`, fetches all feeds in parallel, and embeds the results as JSON in `index.html`. The browser-side JavaScript reads this data and renders the UI. There is no backend — everything runs at build time via GitHub Actions and then client-side in the browser.
 
-The GitHub Actions workflow (`.github/workflows/main.yml`) runs on demand from the footer refresh button, generates the updated `index.html`, and deploys it to Pages.
+The GitHub Actions workflow (`.github/workflows/main.yml`) runs hourly at 17 minutes past the hour, generates updated `index.html`, and deploys it to Pages. It also runs after relevant pushes.

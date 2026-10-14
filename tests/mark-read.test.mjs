@@ -4,9 +4,9 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { markFeedItemsRead } from '../js/feed-state.js';
 
-// Exercise the actual UI refresh function with network and DOM effects stubbed.
+// Exercise actual mark-as-read UI function with DOM and sync effects stubbed.
 const main = readFileSync(new URL('../js/main.js', import.meta.url), 'utf8');
-const refresh = main.slice(main.indexOf('    async function performFeedRefresh()'), main.indexOf("    refreshFeedsBtn?.addEventListener('click'"));
+const markAsRead = main.slice(main.indexOf('    async function performMarkAsRead()'), main.indexOf("    markReadBtn?.addEventListener('click'"));
 
 function setup(failSave = false) {
     const calls = [];
@@ -16,10 +16,8 @@ function setup(failSave = false) {
     ] };
     const context = vm.createContext({
         syncReady: true,
-        refreshFeedsBtn: { disabled: false, classList: { add() {}, remove() {} } },
-        $: () => null,
+        markReadBtn: { disabled: false },
         document: { body: { setAttribute() {}, removeAttribute() {} } },
-        window: { location: { reload() { calls.push('reload'); } } },
         setFeedSyncStatus() {}, showFeedSyncMessage() {}, markFeedItemsRead,
         gistSync: { getLocal: () => state, setLocal() {} },
         feedData: [
@@ -31,36 +29,32 @@ function setup(failSave = false) {
             calls.push('save');
             if (failSave) throw new Error('Gist unavailable');
         },
-        refreshFeeds: async () => { calls.push('fetch'); }
+        renderAll: () => { calls.push('render'); }
     });
-    vm.runInContext(refresh, context);
+    vm.runInContext(markAsRead, context);
     return { calls, state, context };
 }
 
-test('refresh marks current unstarred items read before fetch and keeps starred items', async () => {
+test('mark as read saves current unstarred items without fetching feeds', async () => {
     const app = setup();
-    assert.equal(await app.context.performFeedRefresh(), true);
-    assert.deepEqual(app.calls, ['save', 'fetch', 'save', 'reload']);
+    assert.equal(await app.context.performMarkAsRead(), true);
+    assert.deepEqual(app.calls, ['save', 'render']);
     assert.equal(app.state.items.find(item => item.id === 'unread').seen, true);
     assert.equal(app.state.items.find(item => item.id === 'read').seen, true);
     assert.equal(app.state.items.find(item => item.id === 'starred').seen, false);
+    assert.equal(app.context.markReadBtn.disabled, false);
 });
 
-test('failed read-state save stops refresh and reload, and restores refresh button', async () => {
+test('failed read-state save leaves page open and restores button', async () => {
     const app = setup(true);
-    assert.equal(await app.context.performFeedRefresh(), false);
+    assert.equal(await app.context.performMarkAsRead(), false);
     assert.deepEqual(app.calls, ['save']);
-    assert.equal(app.context.refreshFeedsBtn.disabled, false);
+    assert.equal(app.context.markReadBtn.disabled, false);
 });
 
-test('a failed final save leaves the page open after feed fetch', async () => {
+test('no unread items skips save and still updates view', async () => {
     const app = setup();
-    let saves = 0;
-    app.context.upload = async () => {
-        app.calls.push('save');
-        if (++saves === 2) throw new Error('Gist unavailable');
-    };
-    assert.equal(await app.context.performFeedRefresh(), false);
-    assert.deepEqual(app.calls, ['save', 'fetch', 'save']);
-    assert.equal(app.context.refreshFeedsBtn.disabled, false);
+    app.context.feedData = [{ id: 'read', link: 'https://example.com/read', published: '2020-01-01' }];
+    assert.equal(await app.context.performMarkAsRead(), true);
+    assert.deepEqual(app.calls, ['render']);
 });

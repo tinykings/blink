@@ -10,7 +10,6 @@ import {
     getGitHubConfig,
     getGitHubLogin,
     isLocalDevelopment,
-    refreshFeeds,
     updateFeedsFile
 } from './github-auth.js';
 
@@ -229,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedList = $('feed-list');
     const feedSearch = $('feed-search');
     const addFeedForm = $('add-feed-form');
-    const refreshFeedsBtn = $('refresh-feeds-btn');
+    const markReadBtn = $('mark-read-btn');
     const feedSyncStatus = $('feed-sync-status');
     const feedSyncText = $('feed-sync-text');
     const emptyEl = $('empty');
@@ -275,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let feedSyncStatusTimer;
     const FEED_BATCH_SIZE = 40;
 
-    if (refreshFeedsBtn) refreshFeedsBtn.disabled = true;
+    if (markReadBtn) markReadBtn.disabled = true;
     if (manageFeedsBtn) manageFeedsBtn.disabled = true;
 
     const emptyVariants = [
@@ -383,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (floatingBtns) floatingBtns.style.display = '';
             if (updateHeader) updateHeader.style.display = '';
             if (feedEl) feedEl.style.display = '';
-            if (refreshFeedsBtn) refreshFeedsBtn.disabled = false;
+            if (markReadBtn) markReadBtn.disabled = false;
             if (manageFeedsBtn) manageFeedsBtn.disabled = false;
             renderAll();
             if (!isSetup) openSettings();
@@ -402,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
             disableShorts: $('disable-shorts-toggle')?.checked ?? true
         };
         try {
-            // Refresh SHA first; feed refresh workflow may have updated feeds.txt.
+            // Refresh SHA first; scheduled feed builds may have updated feeds.txt.
             const file = await getFeedsFile();
             managedFeeds = parseFeedsFile(file.content);
             feedsSha = file.sha;
@@ -411,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
             rssSettings = next;
             closeSettings();
             updateShortsButton();
-            toast('RSS settings saved. Refresh feeds to apply.', 'success', 2800);
+            toast('RSS settings saved. Scheduled refresh applies within an hour.', 'success', 3200);
         } catch (error) { setStatus(error.message || 'Could not save RSS settings.', 'error'); }
     });
     closeBtn?.addEventListener('click', closeSettings);
@@ -448,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
             feedsSha = result.content?.sha || feedsSha;
             managedFeeds.forEach(feed => { delete feed.isNew; });
             setFeedsDirty(false);
-            toast('Feeds saved', 'success', 2200);
+            toast('Feeds saved. Scheduled refresh applies within an hour.', 'success', 3200);
             return true;
         } catch (error) {
             setStatus(error.message || 'Could not save feeds. Try again.', 'error', feedsStatus);
@@ -1192,36 +1191,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    async function performFeedRefresh() {
+    async function performMarkAsRead() {
         if (!syncReady) return false;
-        refreshFeedsBtn.disabled = true;
-        refreshFeedsBtn.classList.add('refreshing');
+        markReadBtn.disabled = true;
         document.body.setAttribute('aria-busy', 'true');
         try {
             setFeedSyncStatus('Marking current items read...');
             const currentMeta = gistSync.getLocal();
-            markFeedItemsRead(currentMeta, feedData);
+            const changed = markFeedItemsRead(currentMeta, feedData);
             gistSync.setLocal(currentMeta);
-            await upload();
-            await refreshFeeds(message => setFeedSyncStatus(message));
-            // Save any read/star changes made while the feed fetch was running.
-            setFeedSyncStatus('Saving state before reload...');
-            await upload();
-            window.location.reload();
+            if (changed) await upload();
+            renderAll();
+            showFeedSyncMessage(changed ? 'Current items marked read.' : 'No unread items.', 'success', 2500);
             return true;
         } catch (error) {
-            const message = error.message || 'Feed refresh failed. Try again.';
+            const message = error.message || 'Could not mark items read. Try again.';
             showFeedSyncMessage(message, 'error', 5000);
-            refreshFeedsBtn.disabled = false;
-            refreshFeedsBtn.classList.remove('refreshing');
-            document.body.removeAttribute('aria-busy');
             return false;
+        } finally {
+            markReadBtn.disabled = false;
+            document.body.removeAttribute('aria-busy');
         }
     }
 
-    refreshFeedsBtn?.addEventListener('click', () => {
-        if (refreshFeedsBtn.disabled || !syncReady) return;
-        performFeedRefresh();
+    markReadBtn?.addEventListener('click', () => {
+        if (markReadBtn.disabled || !syncReady) return;
+        performMarkAsRead();
     });
 
     async function initSync() {
@@ -1235,7 +1230,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         syncReady = true;
-        if (refreshFeedsBtn) refreshFeedsBtn.disabled = false;
+        if (markReadBtn) markReadBtn.disabled = false;
         if (manageFeedsBtn) manageFeedsBtn.disabled = false;
         renderAll();
         if (loadingEl) loadingEl.style.display = 'none';

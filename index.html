@@ -78,11 +78,11 @@
         </div>
         <div id="feed-sync-status" class="feed-sync-status" role="status" aria-live="polite" aria-atomic="true" hidden>
             <span class="sync-spinner" aria-hidden="true"></span>
-            <span id="feed-sync-text">Refreshing feeds...</span>
+            <span id="feed-sync-text">Saving read state...</span>
         </div>
         <div id="shorts-empty-status" class="shorts-empty-status" role="status" aria-live="polite" hidden>No shorts</div>
-        <button id="refresh-feeds-btn" class="btn floating-btn floating-right" title="Mark current items read and refresh feeds" aria-label="Mark current items read and refresh feeds" disabled>
-            <svg viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5"/></svg>
+        <button id="mark-read-btn" class="btn floating-btn floating-right" title="Mark current items read" aria-label="Mark current items read" disabled>
+            <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>
         </button>
     </div>
 
@@ -158,7 +158,7 @@
             <button id="mark-shorts-done-btn" class="btn primary" type="button">Mark Shorts as done</button>
         </div>
     </div>
-    <script type="module" src="js/main.js?v=25"></script>
+    <script type="module" src="js/main.js?v=26"></script>
 <script id="feed-data" type="application/json">[
   {
     "id": "yt:video:OOv8OM_FxZ4",

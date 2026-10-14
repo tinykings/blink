@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
-"""Local Blink server with feed editing and refresh endpoints."""
+"""Local Blink server with feed editing support."""
 
 import argparse
 import hashlib
 import json
-import subprocess
-import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 FEEDS_FILE = ROOT / "feeds.txt"
-FETCH_SCRIPT = ROOT / "scripts" / "fetch_feeds.py"
 MAX_BODY_BYTES = 2 * 1024 * 1024
 
 
@@ -69,29 +66,6 @@ class BlinkDevHandler(SimpleHTTPRequestHandler):
             self.send_json(200, {"content": {"sha": file_sha(content)}})
         except (OSError, ValueError) as exc:
             self.send_json(400, {"error": str(exc)})
-
-    def do_POST(self) -> None:
-        if self.path != "/__blink/refresh":
-            self.send_json(404, {"error": "Not found"})
-            return
-        try:
-            result = subprocess.run(
-                [sys.executable, str(FETCH_SCRIPT)],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                timeout=15 * 60,
-                check=False,
-            )
-        except subprocess.TimeoutExpired:
-            self.send_json(504, {"error": "Local feed refresh timed out"})
-            return
-        if result.returncode != 0:
-            detail = (result.stderr or result.stdout).strip().splitlines()
-            self.send_json(500, {"error": detail[-1] if detail else "Local feed refresh failed"})
-            return
-        self.send_json(200, {"status": "complete"})
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Serve Blink with local feed management enabled")
