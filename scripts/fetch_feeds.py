@@ -258,19 +258,18 @@ class FeedProcessor:
         # Write back converted YouTube URLs to feeds.txt
         self._update_feeds_file(file_path, converted_entries)
 
-        # Return all RSS URLs, using YouTube's long-form uploads playlist when Shorts are disabled
+        # Use channel feeds. YouTube no longer reliably serves the generated
+        # UULF long-form playlist feeds; Shorts are filtered per entry below.
         youtube_feed_urls = []
         for url, _, channel_name in converted_entries:
             if not url.startswith("https://www.youtube.com/feeds/videos.xml"):
                 continue
-            if not self.youtube_shorts_enabled():
-                url = url.replace('channel_id=UC', 'playlist_id=UULF', 1)
             youtube_feed_urls.append(url)
             if channel_name:
                 self.feed_title_overrides[url] = channel_name
 
         if not self.youtube_shorts_enabled():
-            logger.info("YouTube Shorts disabled; using long-form uploads playlists")
+            logger.info("YouTube Shorts disabled; filtering channel feed entries")
 
         all_rss_urls = rss_urls + youtube_feed_urls
 

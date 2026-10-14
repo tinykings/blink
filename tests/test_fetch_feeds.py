@@ -1,5 +1,7 @@
+import tempfile
 import unittest
 from datetime import datetime
+from pathlib import Path
 from unittest.mock import patch
 
 import feedparser
@@ -27,7 +29,7 @@ class YouTubeShortsTests(unittest.TestCase):
                 <published>2026-09-07T17:00:17+00:00</published>
               </entry>
             </feed>''')
-        url = ('https://www.youtube.com/feeds/videos.xml?playlist_id=UULFtest'
+        url = ('https://www.youtube.com/feeds/videos.xml?channel_id=UCtest'
                if youtube else 'https://example.com/feed')
         with patch('scripts.fetch_feeds.INCLUDE_YOUTUBE_SHORTS', include_shorts):
             return self.processor._process_feed_entries(feed, url)
@@ -50,6 +52,20 @@ class YouTubeShortsTests(unittest.TestCase):
     def test_non_youtube_feed_unchanged(self):
         items = self.process_entry('https://example.com/shorts/article', False, youtube=False)
         self.assertEqual(len(items), 1)
+
+    def test_shorts_disabled_keeps_supported_channel_feed_url(self):
+        feed_url = 'https://www.youtube.com/feeds/videos.xml?channel_id=UCtest'
+        with tempfile.TemporaryDirectory() as directory:
+            feeds_file = Path(directory) / 'feeds.txt'
+            feeds_file.write_text(
+                '#settings\ninclude_youtube_shorts=false\n\n'
+                '#youtube\n# Test channel\n' + feed_url + '\n'
+            )
+
+            urls = self.processor.process_urls_file(str(feeds_file))
+
+        self.assertEqual(urls, [feed_url])
+        self.assertNotIn('playlist_id=UULF', urls[0])
 
 
 if __name__ == '__main__':
