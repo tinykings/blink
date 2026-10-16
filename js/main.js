@@ -1201,8 +1201,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const changed = markFeedItemsRead(currentMeta, feedData);
             gistSync.setLocal(currentMeta);
             if (changed) await upload();
-            renderAll();
-            showFeedSyncMessage(changed ? 'Current items marked read.' : 'No unread items.', 'success', 2500);
+            window.location.reload();
             return true;
         } catch (error) {
             const message = error.message || 'Could not mark items read. Try again.';

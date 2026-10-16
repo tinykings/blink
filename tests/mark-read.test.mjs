@@ -18,6 +18,7 @@ function setup(failSave = false) {
         syncReady: true,
         markReadBtn: { disabled: false },
         document: { body: { setAttribute() {}, removeAttribute() {} } },
+        window: { location: { reload: () => { calls.push('reload'); } } },
         setFeedSyncStatus() {}, showFeedSyncMessage() {}, markFeedItemsRead,
         gistSync: { getLocal: () => state, setLocal() {} },
         feedData: [
@@ -38,7 +39,7 @@ function setup(failSave = false) {
 test('mark as read saves current unstarred items without fetching feeds', async () => {
     const app = setup();
     assert.equal(await app.context.performMarkAsRead(), true);
-    assert.deepEqual(app.calls, ['save', 'render']);
+    assert.deepEqual(app.calls, ['save', 'reload']);
     assert.equal(app.state.items.find(item => item.id === 'unread').seen, true);
     assert.equal(app.state.items.find(item => item.id === 'read').seen, true);
     assert.equal(app.state.items.find(item => item.id === 'starred').seen, false);
@@ -52,9 +53,9 @@ test('failed read-state save leaves page open and restores button', async () => 
     assert.equal(app.context.markReadBtn.disabled, false);
 });
 
-test('no unread items skips save and still updates view', async () => {
+test('no unread items skips save and still reloads current content', async () => {
     const app = setup();
     app.context.feedData = [{ id: 'read', link: 'https://example.com/read', published: '2020-01-01' }];
     assert.equal(await app.context.performMarkAsRead(), true);
-    assert.deepEqual(app.calls, ['render']);
+    assert.deepEqual(app.calls, ['reload']);
 });
