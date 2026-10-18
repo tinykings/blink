@@ -112,6 +112,7 @@ export function sanitizeItemForStorage(item) {
         if (item.feed_item_updated_at) minimal.feed_item_updated_at = item.feed_item_updated_at;
     }
     if (item.read_changed_at) minimal.read_changed_at = item.read_changed_at;
+    if (item.published_is_approximate) minimal.published_is_approximate = true;
     if (item.starred_changed_at) minimal.starred_changed_at = item.starred_changed_at;
     if (!minimal.starred_changed_at && item.starredChangedAt) minimal.starred_changed_at = item.starredChangedAt;
     if (item.published) minimal.published = item.published;

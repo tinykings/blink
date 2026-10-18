@@ -430,6 +430,7 @@ class FeedProcessor:
                 'title': title,
                 'link': f'https://www.youtube.com/watch?v={video_id}',
                 'published': published.astimezone(self.local_tz),
+                'published_is_approximate': True,
                 'thumbnail': '',
                 'feed_title': self.feed_title_overrides.get(url) or channel_name,
                 'video_id': video_id,
@@ -595,6 +596,10 @@ class FeedProcessor:
                     continue
 
                 # Parse published time
+                published_is_approximate = not any(
+                    hasattr(entry, time_attr) and getattr(entry, time_attr)
+                    for time_attr in ['published_parsed', 'updated_parsed']
+                )
                 published_time = self._get_entry_time(entry)
                 if published_time < cutoff_time:
                     continue
@@ -613,6 +618,7 @@ class FeedProcessor:
                     'title': entry.get('title') or 'Untitled',
                     'link': link,
                     'published': published_time,
+                    'published_is_approximate': published_is_approximate,
                     'thumbnail': thumbnail_url,
                     'feed_title': self.feed_title_overrides.get(url) or getattr(feed.feed, 'title', ''),
                     'video_id': video_id,

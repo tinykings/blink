@@ -205,11 +205,13 @@ function merge(localObj, remoteObj) {
             if (localReadTime > remoteReadTime) {
                 existing.seen = !!item.seen;
                 existing.published = item.published;
+                existing.published_is_approximate = !!item.published_is_approximate;
                 existing.read_changed_at = item.read_changed_at;
             } else if (!localReadTime && !remoteReadTime) {
                 // Legacy records have no explicit unread action.
                 if (item.seen && (!existing.seen || getTimeOrZero(item.published) > getTimeOrZero(existing.published))) {
                     existing.published = item.published;
+                    existing.published_is_approximate = !!item.published_is_approximate;
                 }
                 existing.seen = !!(existing.seen || item.seen);
             }

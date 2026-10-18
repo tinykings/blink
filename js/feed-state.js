@@ -1,6 +1,9 @@
 // Feed snapshots are separate from the publication version marked read.
 export function isSeenVersion(item, itemMeta) {
     if (!itemMeta?.seen) return false;
+    // Relative dates and missing feed dates are estimates that drift on each fetch.
+    // They must not make an already-read item look like a newly published version.
+    if (itemMeta.published_is_approximate || item?.published_is_approximate) return true;
     if (!item?.published) return true;
     const seenVersion = itemMeta.published || itemMeta.starred_changed_at || itemMeta.starredChangedAt || itemMeta.date;
     if (!seenVersion) return true;
@@ -33,6 +36,7 @@ export function markFeedItemsRead(state, items, changedAt = new Date().toISOStri
         record.tracked = true;
         record.seen = true;
         record.published = item.published;
+        if (item.published_is_approximate) record.published_is_approximate = true;
         record.read_changed_at = changedAt;
         changed = true;
     }
@@ -46,10 +50,11 @@ export function feedSnapshot(item) {
     for (const key of ['title', 'published', 'thumbnail', 'video_id', 'feed_title', 'description']) {
         if (typeof item[key] === 'string') snapshot[key] = item[key];
     }
+    if (item.published_is_approximate === true) snapshot.published_is_approximate = true;
     return snapshot;
 }
 
-const SNAPSHOT_KEYS = ['id', 'link', 'title', 'published', 'thumbnail', 'video_id', 'feed_title', 'description'];
+const SNAPSHOT_KEYS = ['id', 'link', 'title', 'published', 'published_is_approximate', 'thumbnail', 'video_id', 'feed_title', 'description'];
 
 function sameSnapshot(a, b) {
     if (!a || !b) return a === b;
