@@ -169,7 +169,7 @@ Blink is a single-page RSS reader built for keyboard-first power users who want 
 ## File Organization
 
 ```
-index.html          Entry point, setup form, settings modal, feed data JSON
+index.html          Entry point, setup form, repository link, feed data JSON
 css/style.css       All styles (587 lines)
 js/main.js          App logic (571 lines)
 js/sync.js          Gist sync module (316 lines)

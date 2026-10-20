@@ -1,16 +1,12 @@
 import { createYouTubePlayer, stopVideoByItemId, videoPlayers } from './youtube.js';
 import { getStarredItems } from './storage.js';
-import { isUnreadVersion, markFeedItemsRead, mergeFeedItems, rememberFeedItems, shouldShowInFeed } from './feed-state.js';
+import { markFeedItemsRead, mergeFeedItems, rememberFeedItems, shouldShowInFeed } from './feed-state.js';
 import { gistSync, upload } from './sync.js';
 import {
     connectGitHub,
-    disconnectGitHub,
     getFeedRepository,
-    getFeedsFile,
     getGitHubConfig,
-    getGitHubLogin,
-    isLocalDevelopment,
-    updateFeedsFile
+    isLocalDevelopment
 } from './github-auth.js';
 
 let meta = { items: [] };
@@ -70,90 +66,6 @@ function toast(msg, type = 'info', ms = 3000) {
 
 function $(id) { return document.getElementById(id); }
 
-function parseFeedsFile(content) {
-    const feeds = [];
-    let type = 'rss';
-    let pendingName = '';
-    content.split(/\r?\n/).forEach(rawLine => {
-        const line = rawLine.trim();
-        if (!line) return;
-        if (line.toLowerCase() === '#settings') {
-            type = 'settings';
-            pendingName = '';
-        } else if (line.toLowerCase() === '#rss') {
-            type = 'rss';
-            pendingName = '';
-        } else if (line.toLowerCase() === '#youtube') {
-            type = 'youtube';
-            pendingName = '';
-        } else if (line.startsWith('#')) {
-            pendingName = line.slice(1).trim();
-        } else if (type === 'settings') {
-            const [key, value] = line.split('=', 2);
-            if (key === 'include_youtube_shorts') rssSettings.disableShorts = !['true', '1', 'yes', 'on'].includes((value || '').trim().toLowerCase());
-            if (key === 'disable_shorts') rssSettings.disableShorts = ['true', '1', 'yes', 'on'].includes((value || '').trim().toLowerCase());
-        } else {
-            feeds.push({ type, url: line, name: pendingName });
-            pendingName = '';
-        }
-    });
-    return feeds;
-}
-
-function serializeFeedsFile(feeds, settings = { disableShorts: true }) {
-    const rss = feeds.filter(feed => feed.type === 'rss');
-    const youtube = feeds.filter(feed => feed.type === 'youtube');
-    const lines = ['#settings', `include_youtube_shorts=${!settings.disableShorts}`, '', '#rss'];
-    rss.forEach(feed => {
-        if (feed.name) lines.push(`# ${feed.name}`);
-        lines.push(feed.url.trim());
-    });
-    lines.push('', '#youtube');
-    youtube.forEach(feed => {
-        if (feed.name) lines.push(`# ${feed.name}`);
-        lines.push(feed.url.trim());
-    });
-    return `${lines.join('\n')}\n`;
-}
-
-function validFeedUrl(value) {
-    try {
-        const url = new URL(value);
-        return url.protocol === 'http:' || url.protocol === 'https:';
-    } catch {
-        return false;
-    }
-}
-
-function isYouTubeUrl(value) {
-    try {
-        const hostname = new URL(value).hostname.toLowerCase().replace(/^www\./, '');
-        return hostname === 'youtube.com' || hostname.endsWith('.youtube.com');
-    } catch {
-        return false;
-    }
-}
-
-function inferFeedType(value) {
-    try {
-        const hostname = new URL(value).hostname.toLowerCase().replace(/^www\./, '');
-        return hostname === 'youtu.be' || hostname === 'youtube.com' || hostname.endsWith('.youtube.com')
-            ? 'youtube'
-            : 'rss';
-    } catch {
-        return 'rss';
-    }
-}
-
-function feedDisplayName(feed) {
-    if (feed.name) return feed.name;
-    try {
-        return new URL(feed.url).hostname.replace(/^www\./, '');
-    } catch {
-        return 'Unnamed feed';
-    }
-}
-
 function feedColor(name) {
     if (!name) return '';
     let hash = 0;
@@ -212,22 +124,9 @@ function closeModal(modal) {
 document.addEventListener('keydown', trapKeydown);
 
 document.addEventListener('DOMContentLoaded', () => {
-    const settingsModal = $('settings-modal');
-    const statusEl = $('status');
     const setupStatusEl = $('setup-status');
-    const connectBtn = $('connect-github-btn');
     const setupConnectBtn = $('setup-connect-github-btn');
-    const disconnectBtn = $('disconnect-github-btn');
-    const closeBtn = $('close-btn');
     const feedEl = $('feed');
-    const manageFeedsBtn = $('manage-feeds-btn');
-    const feedsModal = $('feeds-modal');
-    const closeFeedsBtn = $('close-feeds-btn');
-    const feedsStatus = $('feeds-status');
-    const feedsSummary = $('feeds-summary');
-    const feedList = $('feed-list');
-    const feedSearch = $('feed-search');
-    const addFeedForm = $('add-feed-form');
     const markReadBtn = $('mark-read-btn');
     const feedSyncStatus = $('feed-sync-status');
     const feedSyncText = $('feed-sync-text');
@@ -236,13 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingEl = $('loading');
     const keyboardHelp = $('keyboard-help');
     const setupForm = $('setup-form');
-    const shortsBtn = $('shorts-btn');
-    const shortsEmptyStatus = $('shorts-empty-status');
-    const shortsViewer = $('shorts-viewer');
-    const shortsStage = $('shorts-stage');
-    const shortsViewerTitle = $('shorts-viewer-title');
-    const closeShortsBtn = $('close-shorts-btn');
-    const markShortsDoneBtn = $('mark-shorts-done-btn');
 
     let feedData = [];
     let feedById = new Map();
@@ -259,23 +151,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let syncReady = false;
     let starSyncPending = false;
     const displayedStarGroup = new Map();
-    let managedFeeds = [];
-    let feedsSha = '';
-    let feedsDirty = false;
-    let selectedFeedIndex = null;
-    let addingFeed = false;
     const pageSettings = document.body?.dataset || {};
     rssSettings = {
         disableShorts: pageSettings.disableShorts !== 'false'
     };
-    let shortsItems = [];
-    let shortsIndex = 0;
-    let shortsEmptyStatusTimer;
     let feedSyncStatusTimer;
     const FEED_BATCH_SIZE = 40;
 
     if (markReadBtn) markReadBtn.disabled = true;
-    if (manageFeedsBtn) manageFeedsBtn.disabled = true;
 
     const emptyVariants = [
         ['All clear', 'Nothing new since last check'],
@@ -310,15 +193,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (updateHeader) updateHeader.style.display = 'none';
     }
 
-    function setStatus(msg, type = 'info', target = statusEl) {
+    function setStatus(msg, type = 'info', target = setupStatusEl) {
         if (!target) return;
         target.textContent = msg;
         target.className = `status ${type}`;
-    }
-    function clearStatus(target = statusEl) {
-        if (!target) return;
-        target.textContent = '';
-        target.className = 'status';
     }
 
     function setFeedSyncStatus(message, type = 'progress') {
@@ -344,32 +222,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function openSettings() {
-        openModal(settingsModal);
-        clearStatus();
-        const login = getGitHubLogin();
-        const { token, gistId } = getGitHubConfig();
-        const connected = token && gistId;
-        const connectionEl = $('github-connection');
-        if (connectionEl) connectionEl.textContent = localDev
-            ? 'Local development · GitHub disabled'
-            : connected
-                ? `Connected${login ? ` as @${login}` : ' to GitHub'}`
-                : 'Not connected';
-        if (connectBtn) {
-            connectBtn.textContent = connected ? 'Reconnect GitHub' : 'Connect GitHub';
-            connectBtn.hidden = localDev;
-        }
-        if (disconnectBtn) disconnectBtn.hidden = localDev || !connected;
-        const disable = $('disable-shorts-toggle');
-        if (disable) disable.checked = rssSettings.disableShorts;
-    }
-
-    function closeSettings() { closeModal(settingsModal); }
-
-    async function doConnect(isSetup) {
-        const targetStatus = isSetup ? setupStatusEl : statusEl;
-        const buttons = [connectBtn, setupConnectBtn].filter(Boolean);
+    async function doConnect() {
+        const targetStatus = setupStatusEl;
+        const buttons = [setupConnectBtn].filter(Boolean);
         buttons.forEach(button => { button.disabled = true; });
         setStatus('Waiting for GitHub...', 'info', targetStatus);
         try {
@@ -383,9 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (updateHeader) updateHeader.style.display = '';
             if (feedEl) feedEl.style.display = '';
             if (markReadBtn) markReadBtn.disabled = false;
-            if (manageFeedsBtn) manageFeedsBtn.disabled = false;
             renderAll();
-            if (!isSetup) openSettings();
         } catch (error) {
             setStatus(error.message || 'GitHub connection failed', 'error', targetStatus);
         } finally {
@@ -394,347 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    $('settings-link')?.addEventListener('click', openSettings);
-    $('rss-settings-btn')?.addEventListener('click', openSettings);
-    $('save-rss-settings-btn')?.addEventListener('click', async () => {
-        const next = {
-            disableShorts: $('disable-shorts-toggle')?.checked ?? true
-        };
-        try {
-            // Refresh SHA first; scheduled feed builds may have updated feeds.txt.
-            const file = await getFeedsFile();
-            managedFeeds = parseFeedsFile(file.content);
-            feedsSha = file.sha;
-            const result = await updateFeedsFile(serializeFeedsFile(managedFeeds, next), feedsSha);
-            feedsSha = result.content?.sha || feedsSha;
-            rssSettings = next;
-            closeSettings();
-            updateShortsButton();
-            toast('RSS settings saved. Scheduled refresh applies within an hour.', 'success', 3200);
-        } catch (error) { setStatus(error.message || 'Could not save RSS settings.', 'error'); }
-    });
-    closeBtn?.addEventListener('click', closeSettings);
-    connectBtn?.addEventListener('click', () => doConnect(false));
-    setupConnectBtn?.addEventListener('click', () => doConnect(true));
-    disconnectBtn?.addEventListener('click', () => {
-        disconnectGitHub();
-        window.location.reload();
-    });
-    settingsModal?.addEventListener('click', e => { if (e.target === settingsModal) closeSettings(); });
-
-    function setFeedsDirty(dirty) {
-        feedsDirty = dirty;
-        if (feedsSummary) {
-            const suffix = dirty ? ' · Unsaved changes' : '';
-            feedsSummary.textContent = `${managedFeeds.length} subscription${managedFeeds.length === 1 ? '' : 's'}${suffix}`;
-        }
-    }
-
-    async function persistManagedFeeds() {
-        const invalid = managedFeeds.find(feed => !validFeedUrl(feed.url));
-        if (invalid) {
-            setStatus(`Invalid feed URL: ${invalid.url || 'empty URL'}`, 'error', feedsStatus);
-            return false;
-        }
-        const normalized = managedFeeds.map(feed => feed.url.trim());
-        if (new Set(normalized).size !== normalized.length) {
-            setStatus('Remove duplicate feed URLs before saving.', 'error', feedsStatus);
-            return false;
-        }
-        setStatus('Saving feeds...', 'info', feedsStatus);
-        try {
-            const result = await updateFeedsFile(serializeFeedsFile(managedFeeds, rssSettings), feedsSha);
-            feedsSha = result.content?.sha || feedsSha;
-            managedFeeds.forEach(feed => { delete feed.isNew; });
-            setFeedsDirty(false);
-            toast('Feeds saved. Scheduled refresh applies within an hour.', 'success', 3200);
-            return true;
-        } catch (error) {
-            setStatus(error.message || 'Could not save feeds. Try again.', 'error', feedsStatus);
-            return false;
-        }
-    }
-
-    function renderManagedFeeds() {
-        if (!feedList) return;
-        feedList.innerHTML = '';
-        const content = feedsModal?.querySelector('.feeds-content');
-        const selectedFeed = selectedFeedIndex === null ? null : managedFeeds[selectedFeedIndex];
-        content?.classList.toggle('editing-feed', !!selectedFeed || addingFeed);
-
-        if (addingFeed) {
-            const detail = document.createElement('div');
-            detail.className = 'feed-detail feed-add-detail';
-
-            const back = document.createElement('button');
-            back.className = 'feed-detail-back';
-            back.type = 'button';
-            back.innerHTML = '<svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg><span>All feeds</span>';
-            back.addEventListener('click', () => {
-                addingFeed = false;
-                renderManagedFeeds();
-            });
-
-            const title = document.createElement('h3');
-            title.textContent = 'Add feed';
-            const rssLabel = document.createElement('label');
-            rssLabel.textContent = 'RSS feed';
-            const rss = document.createElement('input');
-            rss.type = 'url';
-            rss.inputMode = 'url';
-            rss.autocomplete = 'url';
-            rss.placeholder = 'https://example.com/feed.xml';
-            const youtubeLabel = document.createElement('label');
-            youtubeLabel.textContent = 'YouTube channel URL or name';
-            const youtube = document.createElement('input');
-            youtube.type = 'text';
-            youtube.autocomplete = 'off';
-            youtube.placeholder = 'https://www.youtube.com/@9to5Mac or 9to5Mac';
-            const add = document.createElement('button');
-            add.className = 'btn primary feed-detail-add';
-            add.type = 'button';
-            add.textContent = 'Add';
-            add.addEventListener('click', async () => {
-                const rssUrl = rss.value.trim();
-                const channel = youtube.value.trim();
-                if (!rssUrl && !channel) {
-                    setStatus('Enter RSS feed or YouTube channel.', 'error', feedsStatus);
-                    rss.focus();
-                    return;
-                }
-                if (rssUrl && !validFeedUrl(rssUrl)) {
-                    setStatus('Enter a valid RSS feed URL.', 'error', feedsStatus);
-                    rss.focus();
-                    return;
-                }
-                if (channel && validFeedUrl(channel) && !isYouTubeUrl(channel)) {
-                    setStatus('Enter a YouTube channel URL or name.', 'error', feedsStatus);
-                    youtube.focus();
-                    return;
-                }
-                if (channel && !validFeedUrl(channel)) {
-                    const handle = channel.replace(/^@/, '').replace(/\s+/g, '');
-                    if (!handle) {
-                        setStatus('Enter valid YouTube channel URL or name.', 'error', feedsStatus);
-                        youtube.focus();
-                        return;
-                    }
-                    youtube.value = `https://www.youtube.com/@${handle}`;
-                }
-                const entries = [];
-                if (rssUrl) entries.push({ type: inferFeedType(rssUrl), url: rssUrl, name: '', isNew: true });
-                if (channel) {
-                    const channelUrl = youtube.value.trim();
-                    entries.push({ type: 'youtube', url: channelUrl, name: '', isNew: true });
-                }
-                const duplicates = entries.some(entry => managedFeeds.some(feed => feed.url === entry.url));
-                if (duplicates) {
-                    setStatus('This feed is already in your list.', 'error', feedsStatus);
-                    return;
-                }
-                managedFeeds.unshift(...entries.reverse());
-                add.disabled = true;
-                setFeedsDirty(true);
-                if (await persistManagedFeeds()) {
-                    addingFeed = false;
-                    clearStatus(feedsStatus);
-                    renderManagedFeeds();
-                } else {
-                    managedFeeds.splice(0, entries.length);
-                    setFeedsDirty(false);
-                    add.disabled = false;
-                }
-            });
-            detail.append(back, title, rssLabel, rss, youtubeLabel, youtube, add);
-            feedList.appendChild(detail);
-            rss.focus();
-            return;
-        }
-
-        if (selectedFeed) {
-            const detail = document.createElement('div');
-            detail.className = 'feed-detail';
-
-            const back = document.createElement('button');
-            back.className = 'feed-detail-back';
-            back.type = 'button';
-            back.innerHTML = '<svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg><span>All feeds</span>';
-            back.addEventListener('click', () => {
-                selectedFeedIndex = null;
-                renderManagedFeeds();
-            });
-
-            const title = document.createElement('h3');
-            title.textContent = feedDisplayName(selectedFeed);
-
-            const nameLabel = document.createElement('label');
-            nameLabel.htmlFor = 'edit-feed-name';
-            nameLabel.textContent = 'Name';
-            const name = document.createElement('input');
-            name.id = 'edit-feed-name';
-            name.type = 'text';
-            name.value = selectedFeed.name;
-            name.placeholder = feedDisplayName(selectedFeed);
-            name.addEventListener('input', () => {
-                selectedFeed.name = name.value.trim();
-                title.textContent = feedDisplayName(selectedFeed);
-                setFeedsDirty(true);
-            });
-
-            const urlLabel = document.createElement('label');
-            urlLabel.htmlFor = 'edit-feed-url';
-            urlLabel.textContent = 'URL';
-            const url = document.createElement('input');
-            url.id = 'edit-feed-url';
-            url.className = 'feed-url-input';
-            url.type = 'url';
-            url.value = selectedFeed.url;
-            url.addEventListener('input', () => {
-                selectedFeed.url = url.value.trim();
-                selectedFeed.type = inferFeedType(selectedFeed.url);
-                if (!selectedFeed.name) {
-                    name.placeholder = feedDisplayName(selectedFeed);
-                    title.textContent = feedDisplayName(selectedFeed);
-                }
-                setFeedsDirty(true);
-            });
-
-            const detailActions = document.createElement('div');
-            detailActions.className = 'feed-detail-actions';
-            const save = document.createElement('button');
-            save.className = 'btn primary';
-            save.type = 'button';
-            save.textContent = 'Save';
-            save.addEventListener('click', async () => {
-                save.disabled = true;
-                if (await persistManagedFeeds()) {
-                    selectedFeedIndex = null;
-                    renderManagedFeeds();
-                } else {
-                    save.disabled = false;
-                }
-            });
-            const copy = document.createElement('button');
-            copy.className = 'btn';
-            copy.type = 'button';
-            copy.textContent = 'Copy URL';
-            copy.addEventListener('click', async () => {
-                try {
-                    await navigator.clipboard.writeText(url.value);
-                } catch {
-                    url.select();
-                    document.execCommand('copy');
-                }
-                toast('Feed URL copied', 'success', 1800);
-            });
-            const remove = document.createElement('button');
-            remove.className = 'btn danger';
-            remove.type = 'button';
-            remove.textContent = 'Delete feed';
-            remove.addEventListener('click', async () => {
-                const removedIndex = selectedFeedIndex;
-                const wasDirty = feedsDirty;
-                const [removedFeed] = managedFeeds.splice(removedIndex, 1);
-                remove.disabled = true;
-                setFeedsDirty(true);
-                if (await persistManagedFeeds()) {
-                    selectedFeedIndex = null;
-                    clearStatus(feedsStatus);
-                    renderManagedFeeds();
-                } else {
-                    managedFeeds.splice(removedIndex, 0, removedFeed);
-                    setFeedsDirty(wasDirty);
-                    remove.disabled = false;
-                }
-            });
-            detailActions.append(save, copy, remove);
-            detail.append(back, title, nameLabel, name, urlLabel, url, detailActions);
-            feedList.appendChild(detail);
-            return;
-        }
-
-        const query = feedSearch?.value.trim().toLowerCase() || '';
-        const visible = managedFeeds
-            .map((feed, index) => ({ feed, index }))
-            .filter(({ feed }) => !query || `${feed.type} ${feedDisplayName(feed)} ${feed.url}`.toLowerCase().includes(query))
-            .sort((a, b) => feedDisplayName(a.feed).localeCompare(feedDisplayName(b.feed), undefined, {
-                sensitivity: 'base',
-                numeric: true
-            }));
-        if (!visible.length) {
-            const empty = document.createElement('p');
-            empty.className = 'feed-empty';
-            empty.textContent = query ? 'No feeds match your search.' : 'No feeds yet. Add one above.';
-            feedList.appendChild(empty);
-            return;
-        }
-        visible.forEach(({ feed, index }) => {
-            const row = document.createElement('button');
-            row.className = 'feed-row';
-            row.type = 'button';
-            row.setAttribute('aria-label', `Edit ${feedDisplayName(feed)}`);
-
-            const name = document.createElement('span');
-            name.className = 'feed-list-name';
-            name.textContent = feedDisplayName(feed);
-            const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            chevron.setAttribute('viewBox', '0 0 24 24');
-            chevron.setAttribute('aria-hidden', 'true');
-            chevron.innerHTML = '<path d="m9 18 6-6-6-6"/>';
-            row.appendChild(name);
-            if (feed.isNew) {
-                const badge = document.createElement('span');
-                badge.className = 'feed-new-badge';
-                badge.textContent = 'New';
-                row.appendChild(badge);
-            }
-            row.appendChild(chevron);
-            row.addEventListener('click', () => {
-                selectedFeedIndex = index;
-                renderManagedFeeds();
-                feedList.scrollTop = 0;
-            });
-            feedList.appendChild(row);
-        });
-    }
-
-    async function openFeeds() {
-        if (!feedsModal || manageFeedsBtn?.disabled) return;
-        openModal(feedsModal);
-        clearStatus(feedsStatus);
-        if (feedList) feedList.innerHTML = '<p class="feed-empty">Loading feeds...</p>';
-        if (feedsSummary) feedsSummary.textContent = 'Loading subscriptions...';
-        try {
-            const file = await getFeedsFile();
-            managedFeeds = parseFeedsFile(file.content);
-            selectedFeedIndex = null;
-            addingFeed = false;
-            feedsSha = file.sha;
-            if (feedSearch) feedSearch.value = '';
-            setFeedsDirty(false);
-            renderManagedFeeds();
-        } catch (error) {
-            setStatus(error.message || 'Could not load feeds. Try again.', 'error', feedsStatus);
-            if (feedList) feedList.innerHTML = '<p class="feed-empty">Feeds unavailable.</p>';
-            if (feedsSummary) feedsSummary.textContent = 'Could not load subscriptions';
-        }
-    }
-
-    function closeFeeds() {
-        closeModal(feedsModal);
-    }
-
-    manageFeedsBtn?.addEventListener('click', openFeeds);
-    closeFeedsBtn?.addEventListener('click', closeFeeds);
-    feedsModal?.addEventListener('click', event => { if (event.target === feedsModal) closeFeeds(); });
-    feedSearch?.addEventListener('input', renderManagedFeeds);
-    addFeedForm?.addEventListener('submit', event => {
-        event.preventDefault();
-        addingFeed = true;
-        selectedFeedIndex = null;
-        clearStatus(feedsStatus);
-        renderManagedFeeds();
-    });
+    setupConnectBtn?.addEventListener('click', doConnect);
 
     if (repoLink) repoLink.href = `https://github.com/${getFeedRepository()}`;
     keyboardHelp?.addEventListener('click', e => { if (e.target === keyboardHelp) closeModal(keyboardHelp); });
@@ -817,94 +330,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function isShort(item) { return item?.link && /youtube\.com\/shorts\//i.test(item.link); }
 
-    function updateShortsButton() {
-        if (!shortsBtn) return;
-        const count = feedData.filter(item => isShort(item) && isUnreadVersion(item, metaById.get(item.id))).length;
-        const available = !rssSettings.disableShorts;
-        shortsBtn.hidden = !available;
-        shortsBtn.classList.toggle('has-shorts', count > 0);
-        shortsBtn.title = 'Open Shorts';
-        shortsBtn.setAttribute('aria-label', 'Open Shorts');
-    }
-
-    function renderShort() {
-        if (!shortsStage || !shortsItems[shortsIndex]) return;
-        const item = shortsItems[shortsIndex];
-        const id = item.video_id || item.link.match(/[?&]v=([^&]+)/)?.[1] || item.link.split('/').pop();
-        shortsStage.innerHTML = `<iframe id="shorts-frame" src="https://www.youtube.com/embed/${encodeURIComponent(id)}?autoplay=1&mute=1&playsinline=1&enablejsapi=1" title="${item.title.replace(/"/g, '&quot;')}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe><div class="shorts-caption"><strong>${item.title}</strong><span>${item.feed_title || ''}</span></div><div class="shorts-controls"><button class="shorts-control" data-short-command="unMute" type="button">🔊 Unmute</button><button class="shorts-control" data-short-command="pauseVideo" type="button">⏸ Pause</button></div><div class="shorts-gesture-layer" aria-hidden="true"></div>`;
-        const frame = $('shorts-frame');
-        frame?.addEventListener('load', () => frame.classList.add('loaded'), { once: true });
-        shortsViewer.querySelector('.shorts-end').hidden = true;
-    }
-
-    function showNoShorts() {
-        if (!shortsEmptyStatus) return;
-        clearTimeout(shortsEmptyStatusTimer);
-        shortsEmptyStatus.hidden = false;
-        shortsEmptyStatusTimer = setTimeout(() => { shortsEmptyStatus.hidden = true; }, 5000);
-    }
-
-    function openShorts() {
-        if (rssSettings.disableShorts) return;
-        const unread = feedData.filter(item => isShort(item) && isUnreadVersion(item, metaById.get(item.id)));
-        shortsItems = unread;
-        if (!shortsItems.length) { showNoShorts(); return; }
-        if (shortsViewerTitle) shortsViewerTitle.textContent = 'New Shorts';
-        shortsIndex = 0;
-        shortsViewer.hidden = false;
-        document.body.classList.add('shorts-open');
-        renderShort();
-    }
-    function nextShort() {
-        if (shortsIndex < shortsItems.length - 1) { shortsIndex += 1; renderShort(); }
-        else shortsViewer.querySelector('.shorts-end').hidden = false;
-    }
-    function closeShorts() { shortsViewer.hidden = true; document.body.classList.remove('shorts-open'); shortsStage.innerHTML = ''; }
-    async function markShortsDone() {
-        const now = new Date().toISOString();
-        meta = gistSync.getLocal(); meta.items = meta.items || [];
-        const byId = new Map(meta.items.map(item => [item.id, item]));
-        shortsItems.forEach(item => {
-            let record = byId.get(item.id);
-            if (!record) { record = { id: item.id, date: now, starred: false }; meta.items.push(record); }
-            record.seen = true; record.published = item.published; record.read_changed_at = now;
-        });
-        meta.updated_at = now; gistSync.setLocal(meta);
-        markShortsDone.disabled = true;
-        try { await upload(); closeShorts(); renderAll(); showFeedSyncMessage('Shorts marked done', 'success', 2000); }
-        catch (error) { showFeedSyncMessage(error.message || 'Could not save Shorts', 'error', 4000); markShortsDone.disabled = false; }
-    }
-    shortsStage?.addEventListener('click', event => {
-        const button = event.target.closest('[data-short-command]');
-        if (!button) return;
-        const frame = $('shorts-frame');
-        if (!frame) return;
-        const command = button.dataset.shortCommand;
-        frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func: command, args: [] }), 'https://www.youtube.com');
-        if (command === 'unMute') button.hidden = true;
-        if (command === 'pauseVideo') {
-            button.dataset.shortCommand = 'playVideo';
-            button.textContent = '▶ Play';
-        } else if (command === 'playVideo') {
-            button.dataset.shortCommand = 'pauseVideo';
-            button.textContent = '⏸ Pause';
-        }
-    });
-    shortsBtn?.addEventListener('click', openShorts);
-    closeShortsBtn?.addEventListener('click', closeShorts);
-    markShortsDoneBtn?.addEventListener('click', markShortsDone);
-    let shortsTouchY = 0;
-    function shortsTouchStart(e) { shortsTouchY = e.touches[0].clientY; }
-    function shortsTouchEnd(e) {
-        const delta = shortsTouchY - e.changedTouches[0].clientY;
-        if (Math.abs(delta) < 45) return;
-        if (delta > 0) nextShort();
-        else if (shortsIndex > 0) { shortsIndex -= 1; renderShort(); }
-    }
-    shortsViewer?.addEventListener('touchstart', shortsTouchStart, { passive: true, capture: true });
-    shortsViewer?.addEventListener('touchend', shortsTouchEnd, { passive: true, capture: true });
-    shortsViewer?.addEventListener('wheel', e => { if (e.deltaY > 30) { e.preventDefault(); nextShort(); } }, { passive: false });
-
     function appendFeedBatch(batchSize = FEED_BATCH_SIZE) {
         const sentinel = $('feed-render-sentinel');
         if (!sentinel || feedRenderCursor >= feedRenderQueue.length) return;
@@ -954,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderedItems = [];
         renderedDataById = new Map();
         focusedItem = null;
-        const mainItems = feedData.filter(item => !isShort(item));
+        const mainItems = feedData.filter(item => !rssSettings.disableShorts || !isShort(item));
         mainItems.forEach(item => {
             if (!displayedStarGroup.has(item.id)) displayedStarGroup.set(item.id, starredIds.has(item.id));
         });
@@ -1013,7 +438,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFeed();
         if (emptyEl) emptyEl.style.display = visibleItems().length ? 'none' : '';
         currentIdx = -1;
-        updateShortsButton();
     }
 
     window.addEventListener('blink-sync', event => {
@@ -1031,11 +455,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('keydown', e => {
         if (e.target.tagName === 'INPUT') return;
-        if (!shortsViewer.hidden) {
-            if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); nextShort(); }
-            else if (e.key === 'Escape' || e.key === 'ArrowUp') { e.preventDefault(); if (e.key === 'Escape') closeShorts(); }
-            return;
-        }
         let items = visibleItems();
         if (!items.length) return;
         switch (e.key) {
@@ -1088,11 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 break;
             case 'Escape':
-                if (feedsModal && feedsModal.classList.contains('open')) {
-                    closeFeeds();
-                } else if (settingsModal && settingsModal.classList.contains('open')) {
-                    closeSettings();
-                } else if (keyboardHelp && keyboardHelp.classList.contains('open')) {
+                if (keyboardHelp && keyboardHelp.classList.contains('open')) {
                     closeModal(keyboardHelp);
                 }
                 break;
@@ -1230,7 +645,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         syncReady = true;
         if (markReadBtn) markReadBtn.disabled = false;
-        if (manageFeedsBtn) manageFeedsBtn.disabled = false;
         renderAll();
         if (loadingEl) loadingEl.style.display = 'none';
         if (feedEl) feedEl.style.display = '';

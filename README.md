@@ -15,7 +15,7 @@ Blink is a client-side RSS reader that runs entirely in the browser. Fork it, ad
 
 ## Features
 
-- **RSS & YouTube** — Add, edit, copy, and remove subscriptions from Blink. YouTube channel URLs are automatically converted to RSS feeds.
+- **RSS & YouTube** — Manage subscriptions by editing `feeds.txt` on GitHub. YouTube channel URLs are automatically converted to RSS feeds.
 - **Starred items** — Star items to save them permanently. Recent unstarred items are pruned after a configurable number of days.
 - **Gist sync** — Sync starred items across devices using a private GitHub Gist.
 - **Inbox reset** — Mark all current unstarred items read with one button; scheduled builds fetch new items hourly.
@@ -45,7 +45,7 @@ Blink shows unread and starred items only. Opening a link or playing a video doe
 
 ### feeds.txt
 
-Use the Feeds button in the footer to manage subscriptions in Blink. Saving commits `feeds.txt` through GitHub; the next hourly workflow applies subscription changes. Use the footer checkmark button to mark current unstarred items read. You can also edit `feeds.txt` directly. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
+Manage subscriptions by editing `feeds.txt` directly on GitHub; the next hourly workflow applies changes. The GitHub button in the left footer opens the project repository (automatically pointing to your fork when deployed with GitHub Actions). There are no in-app settings. Use the footer checkmark button to mark current unstarred items read. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
 
 ```
 #rss
@@ -59,7 +59,7 @@ https://www.youtube.com/@Apple
 https://www.youtube.com/feeds/videos.xml?channel_id=UCxxxxxx
 ```
 
-YouTube channel URLs (`@handle` format) are automatically resolved to their RSS feeds by the fetch script.
+YouTube channel URLs (`@handle` format) are automatically resolved to their RSS feeds by the fetch script. Set `include_youtube_shorts=true` under `#settings` in `feeds.txt` to include Shorts in the regular feed, using the same player and read/star controls as other videos. Shorts are excluded by default.
 
 ### Retention
 
@@ -83,7 +83,7 @@ Backlog capture starts when this version loads successfully. It cannot recover e
 
 ## Local Development
 
-Local development bypasses GitHub OAuth and Gist sync. Read state stays in browser storage; feed changes write directly to local `feeds.txt`.
+Local development bypasses GitHub OAuth and Gist sync. Read state stays in browser storage. Edit local `feeds.txt` directly to change subscriptions.
 
 ```bash
 git clone https://github.com/<your-username>/blink.git
@@ -93,7 +93,7 @@ python scripts/fetch_feeds.py   # initial index.html
 python scripts/dev_server.py    # http://127.0.0.1:8000
 ```
 
-Use `scripts/dev_server.py`, not `python -m http.server`, when testing feed management. **Save** writes `feeds.txt`. Run `python scripts/fetch_feeds.py` separately when you need fresh local feed data.
+Run `python scripts/fetch_feeds.py` again after editing `feeds.txt` or whenever you need fresh local feed data.
 
 `js/config.local.js` is not needed. Localhost always uses local development mode; deployed Pages builds inject GitHub configuration during deployment.
 

@@ -11,8 +11,8 @@
     <title>Blink</title>
     <link rel="preconnect" href="https://img.youtube.com">
     <link rel="preconnect" href="https://api.github.com">
-    <link rel="modulepreload" href="js/main.js?v=26">
-    <link rel="stylesheet" href="css/style.css?v=27">
+    <link rel="modulepreload" href="js/main.js?v=29">
+    <link rel="stylesheet" href="css/style.css?v=29">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png">
     <link rel="apple-touch-icon" href="images/icon-192.png">
@@ -53,10 +53,6 @@
         <p class="sub">No new items right now</p>
     </div>
 
-    <div id="bottom-settings">
-        <button id="settings-link" class="bottom-link">Settings</button>
-    </div>
-
     <div id="setup-form" style="display:none;">
         <div class="setup-content">
             <img src="images/icon-192.png" alt="Blink" class="setup-icon">
@@ -69,18 +65,14 @@
 
     <div id="floating-buttons">
         <div class="floating-left floating-group">
-            <button id="manage-feeds-btn" class="btn floating-btn" title="Manage feeds" aria-label="Manage feeds" disabled>
-                <svg viewBox="0 0 24 24"><circle cx="5" cy="19" r="1"/><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/></svg>
-            </button>
-            <button id="shorts-btn" class="btn floating-btn shorts-footer-btn" title="Open Shorts" aria-label="Open Shorts" hidden>
-                <svg viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></svg>
-            </button>
+            <a id="repo-link" class="btn floating-btn github-btn" href="https://github.com/tinykings/blink" target="_blank" rel="noopener noreferrer" title="Project on GitHub" aria-label="Project on GitHub">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.86c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.99 1.03-2.69-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.03a9.58 9.58 0 0 1 5 0c1.91-1.3 2.75-1.03 2.75-1.03.55 1.38.2 2.4.1 2.65.64.7 1.03 1.6 1.03 2.69 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
+            </a>
         </div>
         <div id="feed-sync-status" class="feed-sync-status" role="status" aria-live="polite" aria-atomic="true" hidden>
             <span class="sync-spinner" aria-hidden="true"></span>
             <span id="feed-sync-text">Saving read state...</span>
         </div>
-        <div id="shorts-empty-status" class="shorts-empty-status" role="status" aria-live="polite" hidden>No shorts</div>
         <button id="mark-read-btn" class="btn floating-btn floating-right" title="Mark current items read" aria-label="Mark current items read" disabled>
             <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>
         </button>
@@ -102,62 +94,6 @@
         </div>
     </div>
 
-    <div id="feeds-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="feeds-modal-title" style="display:none;">
-        <div class="modal-content feeds-content">
-            <div class="modal-heading">
-                <div>
-                    <h2 id="feeds-modal-title">Feeds</h2>
-                    <a id="repo-link" class="feeds-repo-link" href="https://github.com/tinykings/blink" title="Blink on GitHub" aria-label="Blink on GitHub">GitHub</a>
-                    <p id="feeds-summary" class="modal-subtitle">Loading subscriptions...</p>
-                </div>
-                <button id="close-feeds-btn" class="icon-btn" type="button" aria-label="Close feed manager">
-                    <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
-                </button>
-            </div>
-            <div id="feeds-status" class="status" role="status" aria-live="polite"></div>
-            <form id="add-feed-form" class="add-feed-form">
-                <button id="open-add-feed-btn" class="btn feed-add-btn" type="submit">Add feed</button>
-            </form>
-            <div class="feed-list-toolbar">
-                <label class="sr-only" for="feed-search">Search feeds</label>
-                <input id="feed-search" type="search" placeholder="Search feeds" autocomplete="off">
-            </div>
-            <div id="feed-list" class="feed-list" aria-live="polite"></div>
-            <div class="modal-actions feeds-actions">
-                <button id="rss-settings-btn" class="btn feeds-settings-btn" type="button">Settings</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="settings-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title" style="display:none;">
-        <div class="modal-content">
-            <h2 id="settings-modal-title">Settings</h2>
-            <div id="status" class="status"></div>
-            <p style="font-size:.85rem;color:var(--muted);margin-block-end:12px;">GitHub Gist sync</p>
-            <p id="github-connection" class="connection-state">Not connected</p>
-            <div class="rss-preferences">
-                <h3>RSS preferences</h3>
-                <label class="toggle-row"><input id="disable-shorts-toggle" type="checkbox"><span>Disable YouTube Shorts</span></label>
-                <p class="setting-hint">When enabled, Shorts are unavailable. When unchecked, Shorts appear only in dedicated viewer.</p>
-            </div>
-            <button id="connect-github-btn" class="btn connect-btn">Connect GitHub</button>
-            <div class="modal-actions">
-                <button id="disconnect-github-btn" class="btn danger" hidden>Disconnect</button>
-                <button id="save-rss-settings-btn" class="btn primary" type="button">Save RSS settings</button>
-                <button id="close-btn" class="btn">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="shorts-viewer" class="shorts-viewer" hidden>
-        <button id="close-shorts-btn" class="shorts-close" type="button" aria-label="Close Shorts">×</button>
-        <h2 id="shorts-viewer-title" class="shorts-viewer-title"></h2>
-        <div id="shorts-stage" class="shorts-stage"><div class="shorts-gesture-layer" aria-hidden="true"></div></div>
-        <div class="shorts-end" hidden>
-            <p>End of Shorts</p>
-            <button id="mark-shorts-done-btn" class="btn primary" type="button">Mark Shorts as done</button>
-        </div>
-    </div>
-    <script type="module" src="js/main.js?v=26"></script>
+    <script type="module" src="js/main.js?v=29"></script>
 </body>
 </html>

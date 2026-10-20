@@ -159,87 +159,8 @@ function feedRepository() {
         : DEFAULT_FEED_REPOSITORY;
 }
 
-function decodeBase64(value) {
-    const bytes = Uint8Array.from(atob(value.replace(/\n/g, '')), character => character.charCodeAt(0));
-    return new TextDecoder().decode(bytes);
-}
-
-function encodeBase64(value) {
-    const bytes = new TextEncoder().encode(value);
-    let binary = '';
-    bytes.forEach(byte => { binary += String.fromCharCode(byte); });
-    return btoa(binary);
-}
-
-async function repositoryRequest(path, token, options = {}) {
-    const response = await fetch(`${API_BASE}/repos/${feedRepository()}${path}`, {
-        ...options,
-        headers: {
-            ...githubHeaders(token),
-            ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-            ...options.headers
-        }
-    });
-    if (!response.ok) {
-        let message = `GitHub repository request failed: ${response.status}`;
-        try {
-            const body = await response.json();
-            if (body.message) message = body.message;
-        } catch { /* Keep status message. */ }
-        if (response.status === 401 || response.status === 403 || response.status === 404) {
-            message = 'GitHub connection lacks repository access. Update OAuth permissions, then reconnect.';
-        }
-        throw new Error(message);
-    }
-    if (response.status === 204) return null;
-    return response.json();
-}
-
 export function isLocalDevelopment() {
     return LOCAL_DEV;
-}
-
-async function localRequest(path, options = {}) {
-    const response = await fetch(`/__blink/${path}`, {
-        ...options,
-        headers: {
-            ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-            ...options.headers
-        }
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || `Local development request failed: ${response.status}`);
-    return data;
-}
-
-export async function getFeedsFile() {
-    if (LOCAL_DEV) return localRequest('feeds');
-    const { token } = getGitHubConfig();
-    if (!token) throw new Error('Connect GitHub before managing feeds.');
-    const file = await repositoryRequest('/contents/feeds.txt?ref=main', token, {
-        headers: { Accept: 'application/vnd.github.object+json' }
-    });
-    return { content: decodeBase64(file.content), sha: file.sha };
-}
-
-export async function updateFeedsFile(content, sha) {
-    if (LOCAL_DEV) {
-        return localRequest('feeds', {
-            method: 'PUT',
-            body: JSON.stringify({ content, sha })
-        });
-    }
-    const { token } = getGitHubConfig();
-    if (!token) throw new Error('Connect GitHub before managing feeds.');
-    return repositoryRequest('/contents/feeds.txt', token, {
-        method: 'PUT',
-        body: JSON.stringify({
-            message: 'Update feeds from Blink',
-            content: encodeBase64(content),
-            sha,
-            branch: 'main'
-        })
-    });
 }
 
 export function getFeedRepository() {
