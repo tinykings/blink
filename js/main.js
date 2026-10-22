@@ -6,7 +6,8 @@ import {
     connectGitHub,
     getFeedRepository,
     getGitHubConfig,
-    isLocalDevelopment
+    isLocalDevelopment,
+    refreshFeeds
 } from './github-auth.js';
 
 let meta = { items: [] };
@@ -615,7 +616,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentMeta = gistSync.getLocal();
             const changed = markFeedItemsRead(currentMeta, feedData);
             gistSync.setLocal(currentMeta);
-            if (changed) await upload();
+            if (changed) {
+                await upload();
+            } else {
+                await refreshFeeds(message => setFeedSyncStatus(message));
+            }
             window.location.reload();
             return true;
         } catch (error) {

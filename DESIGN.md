@@ -129,8 +129,9 @@ Blink is a single-page RSS reader built for keyboard-first power users who want 
 ### Feed Refresh and Read State
 - GitHub Actions fetches feeds and deploys site every hour
 - Bottom-bar checkmark marks every current unstarred item read and saves state
+- With nothing unread, the checkmark dispatches the feed workflow, reports status, and reloads after completion
 - Marked items disappear immediately; starred items remain visible
-- Newly published or updated items appear after next scheduled deployment
+- Newly published or updated items appear after the next scheduled deployment or manual refresh
 
 ## Theme System
 

@@ -39,13 +39,13 @@ On first visit, select **Connect GitHub** and authorize Gist access. Blink finds
 
 Blink loads read state and stars from `blink-data.json` on startup and merges changes after network reconnect. Every save fetches and merges remote state first. Read and star changes have separate timestamps so starring does not mark an item read.
 
-Blink shows unread and starred items only. Opening a link or playing a video does not mark it read. **Mark current items read** marks all current unstarred items read, including items you have not scrolled to. Those items disappear immediately, while starred items stay visible. New or updated items arrive with the next hourly deployment. There is no read-item archive or view toggle.
+Blink shows unread and starred items only. Opening a link or playing a video does not mark it read. **Mark current items read** marks all current unstarred items read, including items you have not scrolled to. Those items disappear immediately, while starred items stay visible. New or updated items arrive with the next hourly deployment. When there is nothing left to mark read, the same button triggers the feed workflow, reports its status, and reloads when the refresh finishes. There is no read-item archive or view toggle.
 
 ## Configuration
 
 ### feeds.txt
 
-Manage subscriptions by editing `feeds.txt` directly on GitHub; the next hourly workflow applies changes. The GitHub button in the left footer opens the project repository (automatically pointing to your fork when deployed with GitHub Actions). There are no in-app settings. Use the footer checkmark button to mark current unstarred items read. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
+Manage subscriptions by editing `feeds.txt` directly on GitHub; the next hourly workflow applies changes. The GitHub button in the left footer opens the project repository (automatically pointing to your fork when deployed with GitHub Actions). There are no in-app settings. Use the footer checkmark button to mark current unstarred items read, or to trigger a feed refresh when nothing is unread. Add RSS feeds under `#rss` and YouTube channels under `#youtube`. Comments starting with `#` (other than the section headers) are used as channel labels.
 
 ```
 #rss
@@ -67,7 +67,7 @@ The feed fetcher includes items from the last 5 days by default. To change this 
 
 Once Blink loads an item, it saves unread content in `blink-data.json`. Unread items survive reloads and sync until you mark them read. Items merge by ID, newest publication first.
 
-Marking current items read saves every current unstarred item as read and removes it from view. Starred content stays indefinitely. Compact read markers remain so older tabs cannot restore read items as unread. Feed fetching and site deployment run hourly from the scheduled GitHub Actions workflow.
+Marking current items read saves every current unstarred item as read and removes it from view. Starred content stays indefinitely. Compact read markers remain so older tabs cannot restore read items as unread. Feed fetching and site deployment run hourly from the scheduled GitHub Actions workflow. Clicking the checkmark with nothing unread dispatches that workflow immediately and reloads after it completes.
 
 Backlog capture starts when this version loads successfully. It cannot recover entries already missing from both the page and Gist. Entries published and removed between visits are not captured. Local development uses browser storage instead of Gist. Unread content and read markers increase storage use over time.
 

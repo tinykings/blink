@@ -8,7 +8,7 @@ import { markFeedItemsRead } from '../js/feed-state.js';
 const main = readFileSync(new URL('../js/main.js', import.meta.url), 'utf8');
 const markAsRead = main.slice(main.indexOf('    async function performMarkAsRead()'), main.indexOf("    markReadBtn?.addEventListener('click'"));
 
-function setup(failSave = false) {
+function setup(failSave = false, failRefresh = false) {
     const calls = [];
     const state = { items: [
         { id: 'read', seen: true, published: '2020-01-01' },
@@ -30,7 +30,10 @@ function setup(failSave = false) {
             calls.push('save');
             if (failSave) throw new Error('Gist unavailable');
         },
-        renderAll: () => { calls.push('render'); }
+        refreshFeeds: async () => {
+            calls.push('refresh');
+            if (failRefresh) throw new Error('Feed refresh failed');
+        }
     });
     vm.runInContext(markAsRead, context);
     return { calls, state, context };
@@ -53,9 +56,17 @@ test('failed read-state save leaves page open and restores button', async () => 
     assert.equal(app.context.markReadBtn.disabled, false);
 });
 
-test('no unread items skips save and still reloads current content', async () => {
+test('no unread items refreshes feeds and checks status before reloading', async () => {
     const app = setup();
     app.context.feedData = [{ id: 'read', link: 'https://example.com/read', published: '2020-01-01' }];
     assert.equal(await app.context.performMarkAsRead(), true);
-    assert.deepEqual(app.calls, ['reload']);
+    assert.deepEqual(app.calls, ['refresh', 'reload']);
+});
+
+test('failed feed refresh leaves page open and restores button', async () => {
+    const app = setup(false, true);
+    app.context.feedData = [{ id: 'read', link: 'https://example.com/read', published: '2020-01-01' }];
+    assert.equal(await app.context.performMarkAsRead(), false);
+    assert.deepEqual(app.calls, ['refresh']);
+    assert.equal(app.context.markReadBtn.disabled, false);
 });
